@@ -1,185 +1,471 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html class="light" lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>JaseMaster — Wu-Tang Yellow (Playback Fixed)</title>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>ACEMASTER Hardware</title>
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#FFD400",
+            accent: "#E11D48",
+            "background-light": "#F5F5F5",
+            "background-dark": "#1A1A1A",
+            "panel-light": "#E0E0E0",
+            "panel-dark": "#2A2A2A",
+          },
+          fontFamily: {
+            display: ["Inter", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"],
+          },
+          boxShadow: {
+            'neun-out': '6px 6px 12px #bebebe, -6px -6px 12px #ffffff',
+            'neun-in': 'inset 4px 4px 8px #bebebe, inset -4px -4px 8px #ffffff',
+            'neun-out-dark': '6px 6px 12px #121212, -6px -6px 12px #222222',
+            'neun-in-dark': 'inset 4px 4px 8px #121212, inset -4px -4px 8px #222222',
+          }
+        },
+      },
+    };
+  </script>
+
   <style>
-    :root{
-      --bg:#fff8d6; --panel:#fff; --ink:#111; --muted:#555; --yellow:#ffd400; --shadow:0 10px 30px rgba(0,0,0,.10);
-      --ok:#0a7a2f; --warn:#a14b00; --bad:#b40000;
-      --radius:18px;
+    body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { min-height: max(884px, 100dvh); }
+
+    .analog-dial{
+      background: linear-gradient(145deg, #f0f0f0, #cacaca);
+      box-shadow: 4px 4px 8px #bebebe, -4px -4px 8px #ffffff;
     }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--ink);
-      background: radial-gradient(1200px 600px at 25% 0%, #ffea76, transparent 60%), linear-gradient(180deg, #fff5b5, var(--bg) 40%, #fff);}
-    header{position:sticky;top:0;z-index:5;background:linear-gradient(90deg, rgba(255,212,0,.95), rgba(255,255,255,.9));
-      border-bottom:1px solid rgba(0,0,0,.08);backdrop-filter:blur(8px);}
-    .wrap{max-width:1200px;margin:0 auto;padding:16px}
-    .topbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-    .brand h1{margin:0;font-size:22px}
-    .brand p{margin:4px 0 0;color:rgba(0,0,0,.70);font-size:13px;font-weight:700}
-    .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .btn{border:1px solid rgba(0,0,0,.12);border-radius:999px;padding:10px 14px;background:var(--panel);font-weight:900;cursor:pointer;box-shadow:0 8px 18px rgba(0,0,0,.06)}
-    .btn.primary{background:var(--yellow);border-color:rgba(0,0,0,.22)}
-    .btn.dark{background:#111;color:#fff}
-    .btn:disabled{opacity:.5;cursor:not-allowed}
-    .pill{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid rgba(0,0,0,.08);
-      font-weight:1000;font-size:13px;white-space:nowrap;color:var(--ok);box-shadow:0 10px 22px rgba(0,0,0,.06)}
-    .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}
-    @media (max-width:980px){.grid{grid-template-columns:1fr}}
-    .card{background:var(--panel);border:1px solid rgba(0,0,0,.10);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
-    .hd{padding:14px 16px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;
-      border-bottom:1px solid rgba(0,0,0,.07);background:linear-gradient(180deg, rgba(255,212,0,.18), transparent)}
-    .hd h2{margin:0;font-size:16px}
-    .meta{color:var(--muted);font-size:13px;font-weight:800}
-    .bd{padding:14px 16px}
-    .fileline{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border:1px dashed rgba(0,0,0,.18);padding:10px 12px;border-radius:14px;background:rgba(255,212,0,.06)}
-    .small{font-size:12px;color:var(--muted);font-weight:800}
-    .wave{width:100%;height:120px;border-radius:16px;background:linear-gradient(180deg, rgba(0,0,0,.04), rgba(0,0,0,.02));
-      border:1px solid rgba(0,0,0,.08);overflow:hidden}
-    .wave canvas{width:100%;height:100%;display:block}
-    .transport{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
-    .toggle{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 10px;border:1px solid rgba(0,0,0,.10);
-      border-radius:14px;background:rgba(0,0,0,.02);font-weight:900;font-size:13px}
-    .toggle input{transform:scale(1.15)}
-    .section{border:1px solid rgba(0,0,0,.10);border-radius:16px;padding:12px;background:rgba(255,255,255,.75);margin-top:12px}
+    .dark .analog-dial{
+      background: linear-gradient(145deg, #333, #222);
+      box-shadow: 4px 4px 8px #121212, -4px -4px 8px #2a2a2a;
+    }
+    .screen-inset{
+      box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.1);
+      background: #0a0a0a;
+    }
+    .status-light-green{ box-shadow: 0 0 8px #10B981, inset 0 0 4px #10B981; }
+    .status-light-red{ box-shadow: 0 0 8px #EF4444, inset 0 0 4px #EF4444; }
+    .status-light-yellow{ box-shadow: 0 0 8px #FFD400, inset 0 0 4px #FFD400; }
+
+    .canvasWrap canvas{ width:100%; height:100%; display:block; }
+
+    /* tooltip */
+    .tt{ position: relative; }
+    .tt:hover::after, .tt:focus-within::after{
+      content: attr(data-tt);
+      position:absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: calc(100% + 10px);
+      background: rgba(10,10,10,.95);
+      color: #fff;
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-family: "JetBrains Mono", monospace;
+      white-space: nowrap;
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      z-index: 50;
+      max-width: 280px;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+    .tt:hover::before, .tt:focus-within::before{
+      content:"";
+      position:absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: calc(100% + 2px);
+      border: 8px solid transparent;
+      border-top-color: rgba(10,10,10,.95);
+      z-index: 51;
+    }
+
+    input[type="range"]{ accent-color: #FFD400; }
+
+    /* Make horizontal scroll look decent on mobile */
+    .scrollbar-hide::-webkit-scrollbar { display:none; }
+    .scrollbar-hide { -ms-overflow-style:none; scrollbar-width:none; }
   </style>
 </head>
 
-<body>
-<header>
-  <div class="wrap">
-    <div class="topbar">
-      <div class="brand">
-        <h1>JaseMaster</h1>
-        <p>Playback-fixed (mobile-safe) • Original / Mastered / Reference players</p>
-      </div>
-      <div class="actions">
-        <button class="btn primary" id="autoBtn" disabled>Auto-Master</button>
-        <button class="btn dark" id="exportBtn" disabled>Export WAV</button>
-        <span class="pill" id="statusPill">Load audio to begin</span>
-      </div>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen overflow-x-hidden">
+
+<header class="sticky top-0 z-50 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-6 py-4 flex justify-between items-center">
+  <div>
+    <h1 class="text-xl font-black tracking-tighter uppercase italic text-slate-900 dark:text-white">
+      ACE<span class="text-primary">MASTER</span>
+    </h1>
+    <p class="text-[10px] font-mono opacity-60" id="buildLabel">V2.1 Hardware Emulation • Mobile-safe playback</p>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <button class="w-10 h-10 rounded-full flex items-center justify-center bg-panel-light dark:bg-panel-dark shadow-neun-out dark:shadow-neun-out-dark tt"
+      data-tt="Toggle dark mode"
+      id="darkBtn">
+      <span class="material-symbols-outlined text-xl">contrast</span>
+    </button>
+    <div class="flex items-center gap-2">
+      <div class="w-3 h-3 rounded-full bg-emerald-500 status-light-green" id="statusLed"></div>
+      <span class="text-[10px] font-mono uppercase opacity-70" id="statusText">Ready</span>
     </div>
   </div>
 </header>
 
-<main>
-  <div class="wrap">
-    <div class="grid">
-      <div class="col">
-        <div class="card">
-          <div class="hd">
-            <h2>Original <span class="meta" id="origMeta">—</span></h2>
-          </div>
-          <div class="bd">
-            <div class="fileline">
-              <input type="file" id="inputMain" accept="audio/*">
-              <span class="small" id="mainInfo">Upload a WAV/MP3.</span>
-            </div>
-            <div class="wave"><canvas id="waveOrig"></canvas></div>
-            <div class="transport">
-              <button class="btn" id="playOrig" disabled>Play</button>
-              <button class="btn" id="pauseOrig" disabled>Pause</button>
-              <button class="btn" id="stopOrig" disabled>Stop</button>
-              <span class="small" id="origTime">00:00</span>
-            </div>
-          </div>
-        </div>
+<main class="p-6 space-y-8 pb-40 max-w-md mx-auto">
 
-        <div class="card" style="margin-top:16px;">
-          <div class="hd">
-            <h2>Mastered <span class="meta" id="mastMeta">—</span></h2>
-          </div>
-          <div class="bd">
-            <div class="wave"><canvas id="waveMast"></canvas></div>
-            <div class="transport">
-              <button class="btn" id="playMast" disabled>Play</button>
-              <button class="btn" id="pauseMast" disabled>Pause</button>
-              <button class="btn" id="stopMast" disabled>Stop</button>
-              <label class="toggle" title="Match loudness so you judge tone not volume.">
-                <input type="checkbox" id="levelMatch" checked> Level-match
-              </label>
-              <span class="small" id="mastTime">00:00</span>
-            </div>
-          </div>
-        </div>
+  <!-- QUICK ACTIONS -->
+  <section class="p-6 rounded-3xl bg-panel-light dark:bg-panel-dark shadow-neun-out dark:shadow-neun-out-dark border border-white/20">
+    <div class="grid grid-cols-2 gap-4">
+      <button class="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-800 dark:bg-slate-700 text-white font-bold shadow-md active:scale-95 transition-all tt"
+        data-tt="Load ONE stereo file OR select multiple files (up to 12) for stems."
+        id="loadBtn">
+        <span class="material-symbols-outlined mb-1">upload_file</span>
+        <span class="text-xs uppercase">Load Audio</span>
+      </button>
 
-        <div class="card" style="margin-top:16px;">
-          <div class="hd">
-            <h2>Reference <span class="meta" id="refMeta">—</span></h2>
-          </div>
-          <div class="bd">
-            <div class="fileline">
-              <input type="file" id="inputRef" accept="audio/*">
-              <span class="small">Optional: load a pro track for comparison.</span>
-            </div>
-            <div class="wave"><canvas id="waveRef"></canvas></div>
-            <div class="transport">
-              <button class="btn" id="playRef" disabled>Play</button>
-              <button class="btn" id="pauseRef" disabled>Pause</button>
-              <button class="btn" id="stopRef" disabled>Stop</button>
-              <span class="small" id="refTime">00:00</span>
-            </div>
-
-            <div class="section">
-              <div class="small">
-                If Play does nothing: your browser is blocking audio. Tap Play again (it unlocks AudioContext), or switch silent mode off on iPhone.
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-
-      <div class="col">
-        <div class="card">
-          <div class="hd">
-            <h2>Diagnostics</h2>
-            <span class="meta" id="diag">—</span>
-          </div>
-          <div class="bd">
-            <div class="small" id="diag2">
-              If anything fails, it will show in the status pill with the real reason.
-            </div>
-          </div>
-        </div>
-      </div>
-
+      <button class="flex flex-col items-center justify-center p-4 rounded-2xl bg-primary text-slate-900 font-bold shadow-md active:scale-95 transition-all tt"
+        data-tt="Create a mastered version using the selected style preset (safe headroom + ceiling)."
+        id="autoMasterBtn" disabled>
+        <span class="material-symbols-outlined mb-1">auto_awesome</span>
+        <span class="text-xs uppercase">Auto-Master</span>
+      </button>
     </div>
-  </div>
+
+    <div class="mt-4 flex justify-between px-2">
+      <div class="flex items-center gap-2">
+        <div class="w-2 h-2 rounded-full bg-primary status-light-yellow"></div>
+        <span class="text-[10px] font-mono uppercase" id="modeLabel">No audio loaded</span>
+      </div>
+      <span class="text-[10px] font-mono uppercase opacity-50" id="formatLabel">—</span>
+    </div>
+
+    <input id="fileMain" type="file" accept="audio/*" class="hidden" multiple>
+    <input id="fileRef" type="file" accept="audio/*" class="hidden">
+  </section>
+
+  <!-- SECTION 01: ORIGINAL / DRY SUM -->
+  <section class="relative p-6 rounded-[2.5rem] bg-panel-light dark:bg-panel-dark shadow-neun-out dark:shadow-neun-out-dark border-t border-white/30">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-sm font-black tracking-widest uppercase opacity-40" id="origTitle">Section 01 / Original</h2>
+      <button class="tt" data-tt="Load reference track (optional) for A/B comparison" id="refLoadMini">
+        <span class="material-symbols-outlined text-slate-400">library_music</span>
+      </button>
+    </div>
+
+    <div class="screen-inset w-full h-32 rounded-xl mb-4 relative overflow-hidden border-2 border-slate-400/20 canvasWrap">
+      <canvas id="waveOrig"></canvas>
+      <div class="absolute top-2 right-3 font-mono text-[10px] text-primary" id="origClock">00:00.00</div>
+      <div class="absolute bottom-2 left-3 font-mono text-[10px] text-primary/70" id="origInfo">—</div>
+    </div>
+
+    <div class="flex justify-around items-center">
+      <button class="analog-dial w-12 h-12 rounded-full flex items-center justify-center active:shadow-neun-in dark:active:shadow-neun-in-dark tt"
+        data-tt="Play Original (or Dry Sum in stem mode)"
+        id="playOrig" disabled>
+        <span class="material-symbols-outlined text-xl">play_arrow</span>
+      </button>
+      <button class="analog-dial w-12 h-12 rounded-full flex items-center justify-center active:shadow-neun-in dark:active:shadow-neun-in-dark tt"
+        data-tt="Pause"
+        id="pauseOrig" disabled>
+        <span class="material-symbols-outlined text-xl">pause</span>
+      </button>
+      <button class="analog-dial w-12 h-12 rounded-full flex items-center justify-center active:shadow-neun-in dark:active:shadow-neun-in-dark tt"
+        data-tt="Stop"
+        id="stopOrig" disabled>
+        <span class="material-symbols-outlined text-xl">stop</span>
+      </button>
+    </div>
+
+    <div class="mt-4 p-3 rounded-xl bg-white/5 border border-white/10">
+      <div class="flex items-center justify-between gap-2">
+        <div class="text-[10px] font-mono opacity-70">
+          Peak: <span id="origPeak">—</span> • RMS: <span id="origRms">—</span>
+        </div>
+        <label class="flex items-center gap-2 text-[10px] font-mono opacity-80 tt" data-tt="When ON: Mastered play is volume-matched to Original so you judge tone, not loudness.">
+          <input type="checkbox" id="levelMatch" class="rounded text-primary" checked>
+          Level-Match A/B
+        </label>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 02: MASTERED -->
+  <section class="relative p-8 rounded-[3rem] bg-panel-light dark:bg-panel-dark shadow-neun-out dark:shadow-neun-out-dark border-t border-white/30">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-sm font-black tracking-widest uppercase text-accent">Section 02 / Mastered</h2>
+      <div class="flex items-center gap-2">
+        <div class="w-2 h-2 rounded-full bg-accent status-light-red" id="mastLed"></div>
+        <span class="text-[10px] font-mono uppercase font-bold text-accent" id="mastState">Idle</span>
+      </div>
+    </div>
+
+    <!-- Controls row -->
+    <div class="grid grid-cols-2 gap-6 mb-6">
+      <div class="flex flex-col items-center">
+        <div class="w-full p-4 rounded-2xl bg-white/5 border border-white/10">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-[10px] font-mono uppercase opacity-70">Intensity</span>
+            <span class="text-[10px] font-mono text-primary" id="intensityVal">0.65</span>
+          </div>
+          <input type="range" min="0.2" max="1.0" step="0.01" value="0.65" id="intensity"
+            class="w-full tt" data-tt="How hard the chain pushes: more compression/saturation/limiting. Keep it sane.">
+        </div>
+      </div>
+
+      <div class="flex flex-col items-center">
+        <div class="w-full p-4 rounded-2xl bg-white/5 border border-white/10">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-[10px] font-mono uppercase opacity-70">Ceiling</span>
+            <span class="text-[10px] font-mono text-accent" id="ceilingVal">-1.0 dB</span>
+          </div>
+          <input type="range" min="-3.0" max="-0.1" step="0.1" value="-1.0" id="ceiling"
+            class="w-full tt" data-tt="Final output ceiling. -1.0 dB is a safe streaming target.">
+        </div>
+      </div>
+    </div>
+
+    <div class="space-y-4 mb-6">
+      <span class="text-[10px] font-black uppercase tracking-widest opacity-40 ml-1">Algorithm Preset</span>
+      <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide" id="presetRow">
+        <button data-preset="worship" class="px-5 py-2.5 rounded-full bg-primary text-slate-900 text-xs font-bold whitespace-nowrap shadow-md tt"
+          data-tt="Upbeat Worship: vocal clarity + punch + sparkle (safe).">Upbeat Worship</button>
+        <button data-preset="pop" class="px-5 py-2.5 rounded-full bg-panel-light dark:bg-panel-dark text-slate-500 text-xs font-bold whitespace-nowrap border border-slate-300 dark:border-slate-700 tt"
+          data-tt="Pop Punch: tighter low end + brighter top.">Pop Punch</button>
+        <button data-preset="rock" class="px-5 py-2.5 rounded-full bg-panel-light dark:bg-panel-dark text-slate-500 text-xs font-bold whitespace-nowrap border border-slate-300 dark:border-slate-700 tt"
+          data-tt="Rock Edge: slightly harder mids + controlled highs.">Rock Edge</button>
+        <button data-preset="lofi" class="px-5 py-2.5 rounded-full bg-panel-light dark:bg-panel-dark text-slate-500 text-xs font-bold whitespace-nowrap border border-slate-300 dark:border-slate-700 tt"
+          data-tt="Lo-Fi Warm: gentle top roll + warmth, less loudness.">Lo-Fi Warm</button>
+      </div>
+    </div>
+
+    <!-- Mastered waveform + FFT -->
+    <div class="screen-inset w-full h-40 rounded-2xl p-2 relative border-b-4 border-white/5 mb-4 overflow-hidden canvasWrap">
+      <canvas id="waveMast"></canvas>
+      <div class="absolute inset-x-2 top-2 flex justify-between font-mono text-[9px] text-emerald-400/70 pointer-events-none">
+        <span id="mastPeakTxt">Peak —</span>
+        <span id="mastLoudTxt">Auto-Master Ready</span>
+        <span id="mastCeilTxt">Ceil —</span>
+      </div>
+      <div class="absolute inset-x-2 bottom-2 flex justify-between font-mono text-[9px] text-emerald-400/60 pointer-events-none border-t border-emerald-500/10 pt-1">
+        <span>FFT</span><span>20Hz</span><span>1kHz</span><span>20kHz</span>
+      </div>
+    </div>
+
+    <div class="screen-inset w-full h-24 rounded-2xl p-2 relative overflow-hidden border-2 border-slate-400/20 canvasWrap mb-4">
+      <canvas id="fftCanvas"></canvas>
+      <div class="absolute top-2 left-3 font-mono text-[9px] text-primary/70 pointer-events-none">Spectrum (Mastered)</div>
+    </div>
+
+    <!-- Mastered transport -->
+    <div class="flex justify-around items-center mb-4">
+      <button class="analog-dial w-12 h-12 rounded-full flex items-center justify-center active:shadow-neun-in dark:active:shadow-neun-in-dark tt"
+        data-tt="Play Mastered (level-matched if toggle is ON)"
+        id="playMast" disabled>
+        <span class="material-symbols-outlined text-xl">play_arrow</span>
+      </button>
+      <button class="analog-dial w-12 h-12 rounded-full flex items-center justify-center active:shadow-neun-in dark:active:shadow-neun-in-dark tt"
+        data-tt="Pause"
+        id="pauseMast" disabled>
+        <span class="material-symbols-outlined text-xl">pause</span>
+      </button>
+      <button class="analog-dial w-12 h-12 rounded-full flex items-center justify-center active:shadow-neun-in dark:active:shadow-neun-in-dark tt"
+        data-tt="Stop"
+        id="stopMast" disabled>
+        <span class="material-symbols-outlined text-xl">stop</span>
+      </button>
+      <button class="analog-dial w-12 h-12 rounded-full flex items-center justify-center active:shadow-neun-in dark:active:shadow-neun-in-dark tt"
+        data-tt="Export mastered WAV"
+        id="exportBtn" disabled>
+        <span class="material-symbols-outlined text-xl">download</span>
+      </button>
+    </div>
+
+    <!-- FX toggles -->
+    <div class="grid grid-cols-2 gap-3 mt-2">
+      <label class="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold uppercase tt"
+        data-tt="High-pass ~30Hz + gentle mud cut ~300Hz to remove rumble/murk.">
+        <input id="fxCleanup" type="checkbox" class="rounded text-primary" checked>
+        Cleanup EQ
+      </label>
+      <label class="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold uppercase tt"
+        data-tt="Mono bass under ~120Hz + gentle width on highs. Safe club translation.">
+        <input id="fxWidth" type="checkbox" class="rounded text-primary" checked>
+        Stereo Width
+      </label>
+      <label class="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold uppercase tt"
+        data-tt="Glue compression: light gain reduction to bring mix together.">
+        <input id="fxGlue" type="checkbox" class="rounded text-primary" checked>
+        Glue Comp
+      </label>
+      <label class="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold uppercase tt"
+        data-tt="Saturation adds harmonics (perceived loudness). Too much = crunchy.">
+        <input id="fxSat" type="checkbox" class="rounded text-primary" checked>
+        Saturation
+      </label>
+    </div>
+
+    <div class="mt-4 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20">
+      <div class="flex gap-3">
+        <span class="material-symbols-outlined text-amber-500">warning</span>
+        <p class="text-[11px] leading-relaxed text-amber-700 dark:text-amber-400">
+          <span class="font-bold uppercase">Safety Rule:</span> If it gets louder but sounds worse, lower <span class="underline">Intensity</span> or choose a safer preset.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 03: REFERENCE -->
+  <section class="p-6 rounded-3xl bg-panel-light dark:bg-panel-dark shadow-neun-out dark:shadow-neun-out-dark border border-white/10" id="refSection">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-sm font-black uppercase opacity-40">Reference</h2>
+      <span class="text-[10px] font-mono italic opacity-60">Optional</span>
+    </div>
+
+    <button class="w-full py-4 border-2 border-dashed border-slate-400/30 rounded-2xl flex flex-col items-center gap-2 tt"
+      data-tt="Load a reference WAV/MP3 for A/B comparison"
+      id="loadRefBtn">
+      <span class="material-symbols-outlined text-slate-400">add_circle</span>
+      <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400" id="refLabel">Load Reference Track</span>
+    </button>
+
+    <div class="mt-4 screen-inset w-full h-28 rounded-xl relative overflow-hidden border-2 border-slate-400/20 canvasWrap">
+      <canvas id="waveRef"></canvas>
+      <div class="absolute top-2 right-3 font-mono text-[10px] text-primary" id="refClock">00:00.00</div>
+      <div class="absolute bottom-2 left-3 font-mono text-[10px] text-primary/70" id="refInfo">—</div>
+    </div>
+
+    <div class="mt-4 flex justify-around items-center">
+      <button class="analog-dial w-12 h-12 rounded-full flex items-center justify-center active:shadow-neun-in dark:active:shadow-neun-in-dark tt"
+        data-tt="Play Reference"
+        id="playRef" disabled>
+        <span class="material-symbols-outlined text-xl">play_arrow</span>
+      </button>
+      <button class="analog-dial w-12 h-12 rounded-full flex items-center justify-center active:shadow-neun-in dark:active:shadow-neun-in-dark tt"
+        data-tt="Pause"
+        id="pauseRef" disabled>
+        <span class="material-symbols-outlined text-xl">pause</span>
+      </button>
+      <button class="analog-dial w-12 h-12 rounded-full flex items-center justify-center active:shadow-neun-in dark:active:shadow-neun-in-dark tt"
+        data-tt="Stop"
+        id="stopRef" disabled>
+        <span class="material-symbols-outlined text-xl">stop</span>
+      </button>
+    </div>
+
+    <div class="mt-4 text-[10px] font-mono opacity-70">
+      Peak: <span id="refPeak">—</span> • RMS: <span id="refRms">—</span>
+    </div>
+  </section>
+
+  <!-- STEM MIXER (shows only when stem mode is active) -->
+  <section class="p-6 rounded-3xl bg-panel-light dark:bg-panel-dark shadow-neun-out dark:shadow-neun-out-dark border border-white/10 hidden" id="stemSection">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-sm font-black uppercase opacity-40">Stems Mixer</h2>
+      <span class="text-[10px] font-mono opacity-60" id="stemHint">Up to 12 stems</span>
+    </div>
+
+    <div class="text-[11px] opacity-70 mb-3">
+      Stems must be the same length to stay in sync. Master bus automatically leaves headroom.
+    </div>
+
+    <div class="space-y-3" id="stemList"></div>
+
+    <div class="mt-4 p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
+      <div class="text-[10px] font-mono opacity-70">
+        Bus Peak: <span id="busPeak">—</span> • Bus RMS: <span id="busRms">—</span>
+      </div>
+      <button class="px-3 py-2 rounded-xl bg-primary text-slate-900 text-xs font-bold shadow-md tt"
+        data-tt="Reset stem faders to AI-safe defaults"
+        id="resetFadersBtn">
+        Reset
+      </button>
+    </div>
+  </section>
+
 </main>
 
+<!-- Bottom nav (simple view switching) -->
+<nav class="fixed bottom-0 left-0 right-0 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 px-8 py-4 flex justify-between items-center safe-area-bottom">
+  <button class="flex flex-col items-center gap-1 text-primary" id="tabRack">
+    <span class="material-symbols-outlined text-2xl">settings_input_component</span>
+    <span class="text-[10px] font-bold uppercase">Rack</span>
+  </button>
+  <button class="flex flex-col items-center gap-1 text-slate-400" id="tabStems">
+    <span class="material-symbols-outlined text-2xl">equalizer</span>
+    <span class="text-[10px] font-bold uppercase">Stems</span>
+  </button>
+  <button class="flex flex-col items-center gap-1 text-slate-400" id="tabHistory">
+    <span class="material-symbols-outlined text-2xl">history</span>
+    <span class="text-[10px] font-bold uppercase">History</span>
+  </button>
+  <button class="flex flex-col items-center gap-1 text-slate-400" id="tabSetup">
+    <span class="material-symbols-outlined text-2xl">settings</span>
+    <span class="text-[10px] font-bold uppercase">Setup</span>
+  </button>
+</nav>
+
+<!-- little progress bar -->
+<div class="fixed bottom-24 left-6 right-6 h-1 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden shadow-sm">
+  <div class="absolute top-0 left-0 h-full w-[42%] bg-primary shadow-[0_0_10px_#FFD400]" id="progressBar"></div>
+</div>
+
 <script>
-const $ = (id)=>document.getElementById(id);
+/* =========================
+   ACEMASTER ENGINE
+   Single-file, static-host friendly.
+   - Stereo: 1 file
+   - Stems: 2..12 files (summed with mixer)
+   - Original / Mastered / Reference independent players
+   - Safe mastering chain (no maxed-out)
+========================= */
+
+const $ = (id) => document.getElementById(id);
 
 const state = {
   ctx: null,
-  original: null,
-  mastered: null,
-  reference: null,
-  analysis: { orig:null, mast:null, ref:null },
+  mode: "none", // none | stereo | stems
+  preset: "worship",
+  mainBuffer: null,      // stereo original buffer (if stereo mode)
+  stems: [],             // {name, buffer, gainDb}
+  refBuffer: null,
+  masteredBuffer: null,
+  analysis: { orig:null, bus:null, ref:null, mast:null },
   players: {
     orig: makePlayer(),
     mast: makePlayer(),
-    ref:  makePlayer(),
-  }
+    ref:  makePlayer()
+  },
+  fft: { analyser:null, raf:0 }
 };
 
-function setStatus(msg, kind="ok"){
-  const p=$("statusPill");
-  p.textContent = msg;
-  p.style.color = kind==="ok" ? "var(--ok)" : (kind==="warn" ? "var(--warn)" : "var(--bad)");
+function setStatus(text, level="ok"){
+  $("statusText").textContent = text;
+  const led = $("statusLed");
+  led.className = "w-3 h-3 rounded-full ";
+  if(level==="ok"){ led.classList.add("bg-emerald-500","status-light-green"); }
+  else if(level==="warn"){ led.classList.add("bg-primary","status-light-yellow"); }
+  else { led.classList.add("bg-red-500","status-light-red"); }
 }
 
 function ensureCtx(){
-  if (!state.ctx){
+  if(!state.ctx){
     state.ctx = new (window.AudioContext || window.webkitAudioContext)();
-    // iOS unlock helpers
+    // unlock on mobile gestures
     const unlock = async ()=>{
-      try{
-        if (state.ctx.state === "suspended") await state.ctx.resume();
-      }catch(e){}
+      try{ if(state.ctx && state.ctx.state==="suspended") await state.ctx.resume(); }catch(e){}
       window.removeEventListener("touchend", unlock, true);
       window.removeEventListener("click", unlock, true);
       window.removeEventListener("keydown", unlock, true);
@@ -193,37 +479,31 @@ function ensureCtx(){
 
 function makePlayer(){
   return {
-    src: null,
-    gain: null,
-    buffer: null,
-    startTime: 0,
-    offset: 0,
-    playing: false,
+    src:null, gain:null, buffer:null,
+    startTime:0, offset:0, playing:false,
     get time(){
-      if (!this.playing) return this.offset;
+      if(!this.playing) return this.offset;
       return this.offset + (ensureCtx().currentTime - this.startTime);
     }
   };
 }
 
 function stopPlayer(p){
-  try{ if (p.src) p.src.stop(0); }catch(e){}
-  try{ if (p.src) p.src.disconnect(); }catch(e){}
+  try{ if(p.src) p.src.stop(0); }catch(e){}
+  try{ if(p.src) p.src.disconnect(); }catch(e){}
   p.src=null; p.gain=null; p.playing=false; p.startTime=0; p.offset=0;
 }
-
 function pausePlayer(p){
-  if (!p.playing) return;
+  if(!p.playing) return;
   p.offset = p.time;
   stopPlayer(p);
 }
 
-async function playPlayer(p, buffer, gain=1.0){
+async function playBuffer(p, buffer, gain=1.0, connectNode=null){
   try{
     const ctx = ensureCtx();
-    if (ctx.state === "suspended") await ctx.resume();
+    if(ctx.state==="suspended") await ctx.resume();
 
-    // Always create a NEW BufferSource (one-shot node)
     stopPlayer(p);
     p.buffer = buffer;
 
@@ -233,34 +513,36 @@ async function playPlayer(p, buffer, gain=1.0){
     const g = ctx.createGain();
     g.gain.value = gain;
 
-    src.connect(g).connect(ctx.destination);
+    if(connectNode){
+      src.connect(g);
+      g.connect(connectNode);
+    }else{
+      src.connect(g).connect(ctx.destination);
+    }
 
-    p.src = src;
-    p.gain = g;
-    p.startTime = ctx.currentTime;
-    p.playing = true;
+    p.src=src; p.gain=g; p.startTime=ctx.currentTime; p.playing=true;
 
     const off = Math.max(0, Math.min(p.offset||0, buffer.duration-0.01));
     src.start(0, off);
-
     src.onended = ()=>{ p.playing=false; };
-
   }catch(err){
     console.error(err);
-    setStatus("Play failed: " + (err?.message || err), "bad");
+    setStatus("Play failed: " + (err?.message||err), "bad");
   }
 }
 
 function fmtTime(sec){
-  sec = Math.max(0, sec|0);
+  sec = Math.max(0, sec);
   const m = String(Math.floor(sec/60)).padStart(2,'0');
-  const s = String(sec%60).padStart(2,'0');
-  return `${m}:${s}`;
+  const s = String(Math.floor(sec%60)).padStart(2,'0');
+  const cs= String(Math.floor((sec - Math.floor(sec))*100)).padStart(2,'0');
+  return `${m}:${s}.${cs}`;
 }
 
 function gainToDb(g){ return 20*Math.log10(Math.max(1e-12,g)); }
+function dbToGain(db){ return Math.pow(10, db/20); }
 
-function analyze(buffer){
+function analyzeBuffer(buffer){
   const L = buffer.getChannelData(0);
   const R = buffer.numberOfChannels>1 ? buffer.getChannelData(1) : null;
   let peak=0, sum=0;
@@ -271,26 +553,28 @@ function analyze(buffer){
     sum += v*v;
   }
   const rms = Math.sqrt(sum/L.length);
-  return { peakDb: gainToDb(peak), rmsDb: gainToDb(rms), dur: buffer.duration, sr: buffer.sampleRate, ch: buffer.numberOfChannels };
+  return {
+    peakDb: gainToDb(peak),
+    rmsDb: gainToDb(rms),
+    duration: buffer.duration,
+    sr: buffer.sampleRate,
+    ch: buffer.numberOfChannels
+  };
 }
 
-function setMeta(which, a){
-  const id = which==="orig" ? "origMeta" : which==="mast" ? "mastMeta" : "refMeta";
-  if (!a){ $(id).textContent="—"; return; }
-  $(id).textContent = `${a.ch}ch • ${Math.round(a.sr/1000)}kHz • Peak ${a.peakDb.toFixed(1)} dB • RMS ${a.rmsDb.toFixed(1)} dB • ${fmtTime(a.dur)}`;
-}
-
+/* ====== Waveform draw (simple peaks) ====== */
 function computePeaks(buffer, bins=900){
   const L = buffer.getChannelData(0);
   const R = buffer.numberOfChannels>1 ? buffer.getChannelData(1) : null;
-  const len=L.length;
-  const size=Math.max(1, Math.floor(len/bins));
-  const peaks=new Float32Array(bins);
+  const len = L.length;
+  const size = Math.max(1, Math.floor(len/bins));
+  const peaks = new Float32Array(bins);
   for(let i=0;i<bins;i++){
-    const s=i*size, e=(i===bins-1)?len:(s+size);
+    const s=i*size;
+    const e=(i===bins-1)?len:(s+size);
     let m=0;
     for(let j=s;j<e;j++){
-      const v=R ? 0.5*(Math.abs(L[j])+Math.abs(R[j])) : Math.abs(L[j]);
+      const v = R ? 0.5*(Math.abs(L[j])+Math.abs(R[j])) : Math.abs(L[j]);
       if(v>m) m=v;
     }
     peaks[i]=m;
@@ -298,133 +582,983 @@ function computePeaks(buffer, bins=900){
   return peaks;
 }
 
-function drawWave(canvas, peaks){
-  const ctx2d=canvas.getContext("2d");
-  const dpr=window.devicePixelRatio||1;
-  const w=canvas.clientWidth, h=canvas.clientHeight;
-  canvas.width=Math.floor(w*dpr); canvas.height=Math.floor(h*dpr);
+function drawWave(canvas, peaks, color="#FFD400"){
+  const ctx2d = canvas.getContext("2d");
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  canvas.width = Math.floor(w*dpr);
+  canvas.height= Math.floor(h*dpr);
   ctx2d.setTransform(dpr,0,0,dpr,0,0);
   ctx2d.clearRect(0,0,w,h);
 
-  ctx2d.globalAlpha=0.18;
-  ctx2d.fillStyle="#111";
-  ctx2d.fillRect(0,h/2,w,1);
+  // grid
+  ctx2d.globalAlpha=0.25;
+  ctx2d.strokeStyle="rgba(255,255,255,0.08)";
+  for(let i=1;i<6;i++){
+    ctx2d.beginPath();
+    ctx2d.moveTo(0,(h*i)/6);
+    ctx2d.lineTo(w,(h*i)/6);
+    ctx2d.stroke();
+  }
   ctx2d.globalAlpha=1;
 
-  const n=peaks.length;
-  const step=w/n;
-  ctx2d.fillStyle="#111";
+  // midline
+  ctx2d.fillStyle="rgba(255,255,255,0.10)";
+  ctx2d.fillRect(0,h/2,w,1);
+
+  // waveform
+  const n = peaks.length;
+  const step = w/n;
+  ctx2d.fillStyle=color;
   for(let i=0;i<n;i++){
-    const p=peaks[i];
-    const barH=Math.max(1, p*(h*0.9));
-    const y=(h-barH)/2;
-    ctx2d.fillRect(i*step,y,Math.max(1,step*0.9),barH);
+    const p = peaks[i];
+    const barH = Math.max(1, p*(h*0.92));
+    const y = (h - barH)/2;
+    ctx2d.globalAlpha = 0.9;
+    ctx2d.fillRect(i*step, y, Math.max(1, step*0.85), barH);
+  }
+  ctx2d.globalAlpha=1;
+}
+
+/* ====== FFT visualizer ====== */
+function startFFT(sourceNode){
+  stopFFT();
+  const ctx = ensureCtx();
+  const analyser = ctx.createAnalyser();
+  analyser.fftSize = 2048;
+  analyser.smoothingTimeConstant = 0.85;
+  state.fft.analyser = analyser;
+  sourceNode.connect(analyser);
+
+  const canvas = $("fftCanvas");
+  const c = canvas.getContext("2d");
+  const buffer = new Uint8Array(analyser.frequencyBinCount);
+
+  const loop = ()=>{
+    if(!state.fft.analyser) return;
+    analyser.getByteFrequencyData(buffer);
+
+    const dpr = window.devicePixelRatio||1;
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    canvas.width = Math.floor(w*dpr);
+    canvas.height= Math.floor(h*dpr);
+    c.setTransform(dpr,0,0,dpr,0,0);
+    c.clearRect(0,0,w,h);
+
+    // draw bars
+    const bars = 80;
+    const step = Math.floor(buffer.length/bars);
+    for(let i=0;i<bars;i++){
+      const v = buffer[i*step]/255;
+      const barH = v*(h*0.9);
+      const x = (i/bars)*w;
+      const bw = (w/bars)*0.75;
+      c.fillStyle = `rgba(16,185,129,${0.20 + 0.75*v})`; // emerald glow-ish
+      c.fillRect(x, h - barH, bw, barH);
+    }
+
+    state.fft.raf = requestAnimationFrame(loop);
+  };
+  state.fft.raf = requestAnimationFrame(loop);
+}
+
+function stopFFT(){
+  if(state.fft.raf) cancelAnimationFrame(state.fft.raf);
+  state.fft.raf = 0;
+  state.fft.analyser = null;
+}
+
+/* ====== Stems summing (Offline render source) ====== */
+function validateStems(buffers){
+  // same SR + roughly same duration
+  const sr = buffers[0].sampleRate;
+  const dur= buffers[0].duration;
+  for(const b of buffers){
+    if(b.sampleRate !== sr) return "All stems must have the same sample rate.";
+    if(Math.abs(b.duration - dur) > 0.02) return "Stems must be the same length to stay in sync.";
+  }
+  return null;
+}
+
+/* ====== Safe Mastering Chain (Offline) ======
+   Goal: NOT maxed out.
+   Steps:
+   1) Pre-normalize peak to -6 dBFS
+   2) Cleanup EQ (HPF 30Hz + mud cut)
+   3) Glue compression (light)
+   4) M/S mono bass + gentle width (optional)
+   5) Saturation (soft)
+   6) Final limiter (safe ceiling)
+*/
+function makeSaturationCurve(amount=0.25){
+  // safe waveshaper curve (tanh-ish)
+  const n = 8192;
+  const curve = new Float32Array(n);
+  for(let i=0;i<n;i++){
+    const x = (i/(n-1))*2 - 1;
+    const k = 1 + amount*20;
+    curve[i] = Math.tanh(k*x)/Math.tanh(k);
+  }
+  return curve;
+}
+
+async function renderMastered({preset, intensity, ceilingDb, fx}){
+  const srcBuffer = await getCurrentSourceAsBuffer(); // stereo buffer (original or stem-sum)
+  if(!srcBuffer) throw new Error("No audio loaded.");
+
+  const a0 = analyzeBuffer(srcBuffer);
+
+  // PRE GAIN: peak -> -6 dBFS target
+  const targetPeakDb = -6.0;
+  const preDb = targetPeakDb - a0.peakDb;
+  const preGain = dbToGain(preDb);
+
+  // Master output length
+  const ch = srcBuffer.numberOfChannels;
+  const offCtx = new OfflineAudioContext(ch, srcBuffer.length, srcBuffer.sampleRate);
+  const source = offCtx.createBufferSource();
+  source.buffer = srcBuffer;
+
+  // nodes
+  const pre = offCtx.createGain();
+  pre.gain.value = preGain;
+
+  // Cleanup EQ
+  const hpf = offCtx.createBiquadFilter();
+  hpf.type = "highpass"; hpf.frequency.value = 30; hpf.Q.value = 0.707;
+
+  const mud = offCtx.createBiquadFilter();
+  mud.type = "peaking";
+  mud.frequency.value = 300;
+  mud.Q.value = 1.1;
+  mud.gain.value = fx.cleanup ? (-0.8 - 1.0*(intensity-0.2)) : 0;
+
+  const air = offCtx.createBiquadFilter();
+  air.type = "highshelf";
+  air.frequency.value = 10000;
+  air.Q.value = 0.6;
+  air.gain.value = fx.cleanup ? (0.6 + 2.0*(intensity-0.2)) : 0;
+
+  // Glue compression
+  const comp = offCtx.createDynamicsCompressor();
+  comp.threshold.value = fx.glue ? (-22 + (-8*intensity)) : 0; // lower threshold => more comp
+  comp.ratio.value = fx.glue ? (1.8 + 1.8*intensity) : 1.0;
+  comp.attack.value = fx.glue ? 0.03 : 0.003;   // slow-ish attack keeps transients
+  comp.release.value = fx.glue ? 0.25 : 0.1;
+  comp.knee.value = 12;
+
+  // Saturation
+  const sat = offCtx.createWaveShaper();
+  sat.curve = makeSaturationCurve(fx.sat ? (0.12 + 0.30*intensity) : 0.001);
+  sat.oversample = "4x";
+
+  // Width (simple M/S trick using splitter/merger, safe bass mono-ish)
+  const splitter = offCtx.createChannelSplitter(2);
+  const merger   = offCtx.createChannelMerger(2);
+  const sumL = offCtx.createGain();
+  const sumR = offCtx.createGain();
+  const mid  = offCtx.createGain();
+  const side = offCtx.createGain();
+  const toL  = offCtx.createGain();
+  const toR  = offCtx.createGain();
+
+  // matrix: mid = (L+R)/2, side = (L-R)/2
+  sumL.gain.value = 0.5; sumR.gain.value = 0.5;
+  mid.gain.value  = 1.0;
+  side.gain.value = 1.0;
+
+  // width amount
+  let width = 1.12;
+  if(preset==="worship") width = 1.14;
+  if(preset==="pop")    width = 1.18;
+  if(preset==="rock")   width = 1.10;
+  if(preset==="lofi")   width = 1.06;
+  if(!fx.width) width = 1.0;
+
+  // side gain for widening
+  side.gain.value = width;
+
+  // reconstruct: L = mid + side, R = mid - side
+  toL.gain.value = 1.0;
+  toR.gain.value = -1.0;
+
+  // Bass mono-ish: reduce side below ~120Hz by filtering the side channel low band down.
+  const sideLow = offCtx.createBiquadFilter();
+  sideLow.type = "lowpass"; sideLow.frequency.value = 120; sideLow.Q.value = 0.7;
+
+  const sideLowGain = offCtx.createGain();
+  sideLowGain.gain.value = fx.width ? 0.15 : 1.0; // keep some, but mostly mono
+
+  const sideHigh = offCtx.createBiquadFilter();
+  sideHigh.type = "highpass"; sideHigh.frequency.value = 120; sideHigh.Q.value = 0.7;
+
+  const sideHighGain = offCtx.createGain();
+  sideHighGain.gain.value = 1.0;
+
+  const sideSum = offCtx.createGain();
+  sideSum.gain.value = 1.0;
+
+  // Limiter (safe): compressor used as limiter + final gain to ceiling
+  const limiter = offCtx.createDynamicsCompressor();
+  limiter.threshold.value = -6 + (-10*intensity); // more intensity => lower threshold
+  limiter.ratio.value = 20;
+  limiter.attack.value = 0.003;
+  limiter.release.value = 0.10;
+  limiter.knee.value = 0;
+
+  const outGain = offCtx.createGain();
+  // Ceiling in linear
+  const ceilingGain = dbToGain(ceilingDb);
+  outGain.gain.value = ceilingGain;
+
+  // Routing
+  source.connect(pre);
+
+  pre.connect(hpf);
+  hpf.connect(mud);
+  mud.connect(air);
+  air.connect(comp);
+  comp.connect(sat);
+
+  if(ch === 1){
+    // mono: skip M/S
+    sat.connect(limiter);
+    limiter.connect(outGain);
+    outGain.connect(offCtx.destination);
+  }else{
+    sat.connect(splitter);
+
+    splitter.connect(sumL,0);
+    splitter.connect(sumR,1);
+    // mid = (L+R)/2
+    splitter.connect(sumL,0);
+    splitter.connect(sumR,1);
+    sumL.connect(mid);
+    sumR.connect(mid);
+
+    // side = (L-R)/2
+    // We can approximate with gains:
+    const lToSide = offCtx.createGain(); lToSide.gain.value = 0.5;
+    const rToSide = offCtx.createGain(); rToSide.gain.value = -0.5;
+    splitter.connect(lToSide,0);
+    splitter.connect(rToSide,1);
+    lToSide.connect(side);
+    rToSide.connect(side);
+
+    // bass mono-ish on side: split side into low/high, reduce low
+    side.connect(sideLow);
+    side.connect(sideHigh);
+    sideLow.connect(sideLowGain);
+    sideHigh.connect(sideHighGain);
+    sideLowGain.connect(sideSum);
+    sideHighGain.connect(sideSum);
+
+    // widen side
+    // (side already has gain = width, apply after bass-mono conditioning)
+    const sideWidth = offCtx.createGain();
+    sideWidth.gain.value = width;
+    sideSum.connect(sideWidth);
+
+    // reconstruct
+    mid.connect(merger,0,0);
+    mid.connect(merger,0,1);
+
+    sideWidth.connect(toL);
+    sideWidth.connect(toR);
+
+    toL.connect(merger,0,0);
+    toR.connect(merger,0,1);
+
+    merger.connect(limiter);
+    limiter.connect(outGain);
+    outGain.connect(offCtx.destination);
+  }
+
+  source.start(0);
+  const rendered = await offCtx.startRendering();
+
+  // Final safety: hard clamp tiny overs (browser nodes can still overshoot slightly)
+  clampBuffer(rendered, ceilingDb);
+
+  return rendered;
+}
+
+function clampBuffer(buffer, ceilingDb){
+  const ceil = dbToGain(ceilingDb);
+  for(let ch=0; ch<buffer.numberOfChannels; ch++){
+    const d = buffer.getChannelData(ch);
+    for(let i=0;i<d.length;i++){
+      if(d[i] >  ceil) d[i] =  ceil;
+      if(d[i] < -ceil) d[i] = -ceil;
+    }
   }
 }
 
-function enableBlock(which, on){
-  const map = {
-    orig: ["playOrig","pauseOrig","stopOrig"],
-    mast: ["playMast","pauseMast","stopMast"],
-    ref:  ["playRef","pauseRef","stopRef"]
-  };
-  map[which].forEach(id=>$(id).disabled=!on);
+/* ====== Current source for mastering (stereo or stem sum) ====== */
+async function getCurrentSourceAsBuffer(){
+  if(state.mode==="stereo") return state.mainBuffer;
+  if(state.mode==="stems")  return await renderStemSumBuffer(); // create a stereo sum buffer offline (dry)
+  return null;
 }
 
-// main load
-$("inputMain").addEventListener("change", async (e)=>{
-  const f=e.target.files?.[0];
-  if(!f) return;
-  try{
-    setStatus("Loading original…","warn");
-    stopPlayer(state.players.orig);
-    const ctx=ensureCtx();
-    const arr=await f.arrayBuffer();
-    const buf=await ctx.decodeAudioData(arr.slice(0));
-    state.original=buf;
-    state.analysis.orig=analyze(buf);
-    setMeta("orig", state.analysis.orig);
-    drawWave($("waveOrig"), computePeaks(buf));
-    enableBlock("orig", true);
+async function renderStemSumBuffer(){
+  // dry sum of stems using their gains (no master FX)
+  if(!state.stems.length) return null;
+  const first = state.stems[0].buffer;
+  const ch = Math.max(1, first.numberOfChannels);
+  const off = new OfflineAudioContext(ch, first.length, first.sampleRate);
 
-    $("autoBtn").disabled=false;
-    setStatus("Original loaded. Tap Play.","ok");
+  const bus = off.createGain();
+  bus.gain.value = 1.0;
+
+  for(const s of state.stems){
+    const src = off.createBufferSource();
+    src.buffer = s.buffer;
+    const g = off.createGain();
+    g.gain.value = dbToGain(s.gainDb);
+    src.connect(g).connect(bus);
+    src.start(0);
+  }
+
+  bus.connect(off.destination);
+  const rendered = await off.startRendering();
+
+  // headroom safety on the dry sum: if peak > -3, pull down a bit (preview friendliness)
+  const a = analyzeBuffer(rendered);
+  if(a.peakDb > -3.0){
+    const reduceDb = (-6.0 - a.peakDb);
+    const mul = dbToGain(reduceDb);
+    for(let ch=0; ch<rendered.numberOfChannels; ch++){
+      const d = rendered.getChannelData(ch);
+      for(let i=0;i<d.length;i++) d[i] *= mul;
+    }
+  }
+
+  // update bus stats for UI
+  const a2 = analyzeBuffer(rendered);
+  state.analysis.bus = a2;
+  $("busPeak").textContent = `${a2.peakDb.toFixed(1)} dB`;
+  $("busRms").textContent  = `${a2.rmsDb.toFixed(1)} dB`;
+
+  return rendered;
+}
+
+/* ====== Level-match gain ====== */
+function computeLevelMatchGain(){
+  if(!$("levelMatch").checked) return 1.0;
+  const o = state.analysis.orig || state.analysis.bus;
+  const m = state.analysis.mast;
+  if(!o || !m) return 1.0;
+  const deltaDb = o.rmsDb - m.rmsDb;
+  return dbToGain(deltaDb);
+}
+
+/* ====== WAV export (16-bit PCM) ====== */
+function bufferToWav16(buffer){
+  const numCh = buffer.numberOfChannels;
+  const sr = buffer.sampleRate;
+  const length = buffer.length;
+  const bytesPerSample = 2;
+  const blockAlign = numCh * bytesPerSample;
+  const byteRate = sr * blockAlign;
+  const dataSize = length * blockAlign;
+  const out = new ArrayBuffer(44 + dataSize);
+  const dv = new DataView(out);
+
+  let p=0;
+  const writeStr=(s)=>{ for(let i=0;i<s.length;i++) dv.setUint8(p++, s.charCodeAt(i)); };
+  const writeU32=(v)=>{ dv.setUint32(p, v, true); p+=4; };
+  const writeU16=(v)=>{ dv.setUint16(p, v, true); p+=2; };
+
+  writeStr("RIFF");
+  writeU32(36 + dataSize);
+  writeStr("WAVE");
+
+  writeStr("fmt ");
+  writeU32(16);
+  writeU16(1); // PCM
+  writeU16(numCh);
+  writeU32(sr);
+  writeU32(byteRate);
+  writeU16(blockAlign);
+  writeU16(16);
+
+  writeStr("data");
+  writeU32(dataSize);
+
+  // interleave
+  const chans = [];
+  for(let ch=0; ch<numCh; ch++) chans.push(buffer.getChannelData(ch));
+
+  for(let i=0; i<length; i++){
+    for(let ch=0; ch<numCh; ch++){
+      let v = chans[ch][i];
+      v = Math.max(-1, Math.min(1, v));
+      const s = v < 0 ? v*0x8000 : v*0x7FFF;
+      dv.setInt16(p, s, true);
+      p += 2;
+    }
+  }
+  return out;
+}
+
+/* =========================
+   UI WIRING
+========================= */
+function enable(id, on){ $(id).disabled = !on; }
+
+$("darkBtn").onclick = ()=> document.documentElement.classList.toggle("dark");
+
+$("loadBtn").onclick = ()=> $("fileMain").click();
+$("refLoadMini").onclick = ()=> $("fileRef").click();
+$("loadRefBtn").onclick = ()=> $("fileRef").click();
+
+$("loadRefBtn").addEventListener("click", ()=> $("fileRef").click());
+
+$("loadRefBtn").onclick = ()=> $("fileRef").click();
+
+$("refLoadMini").onclick = ()=> $("fileRef").click();
+
+$("loadRefBtn").onclick = ()=> $("fileRef").click();
+
+$("loadRefBtn").addEventListener("click", ()=> $("fileRef").click());
+
+$("loadRefBtn").onclick = ()=> $("fileRef").click();
+
+$("loadRefBtn").addEventListener("click", ()=> $("fileRef").click());
+
+// preset selection
+$("presetRow").addEventListener("click", (e)=>{
+  const btn = e.target.closest("button[data-preset]");
+  if(!btn) return;
+  state.preset = btn.dataset.preset;
+
+  // style buttons
+  [...$("presetRow").querySelectorAll("button[data-preset]")].forEach(b=>{
+    if(b === btn){
+      b.className = "px-5 py-2.5 rounded-full bg-primary text-slate-900 text-xs font-bold whitespace-nowrap shadow-md tt";
+    }else{
+      b.className = "px-5 py-2.5 rounded-full bg-panel-light dark:bg-panel-dark text-slate-500 text-xs font-bold whitespace-nowrap border border-slate-300 dark:border-slate-700 tt";
+    }
+  });
+
+  // set intensity suggestions
+  const intensity = $("intensity");
+  if(state.preset==="worship") intensity.value = 0.65;
+  if(state.preset==="pop")    intensity.value = 0.72;
+  if(state.preset==="rock")   intensity.value = 0.62;
+  if(state.preset==="lofi")   intensity.value = 0.50;
+  $("intensityVal").textContent = Number(intensity.value).toFixed(2);
+
+  setStatus("Preset: " + btn.textContent.trim(), "ok");
+});
+
+$("intensity").addEventListener("input", ()=>{
+  $("intensityVal").textContent = Number($("intensity").value).toFixed(2);
+});
+$("ceiling").addEventListener("input", ()=>{
+  $("ceilingVal").textContent = `${Number($("ceiling").value).toFixed(1)} dB`;
+});
+
+$("loadBtn").addEventListener("click", ()=> $("fileMain").click());
+
+$("fileMain").addEventListener("change", async (e)=>{
+  const files = [...(e.target.files || [])];
+  if(!files.length) return;
+  try{
+    setStatus("Loading audio…", "warn");
+    const ctx = ensureCtx();
+
+    // stop players
+    stopPlayer(state.players.orig);
+    stopPlayer(state.players.mast);
+    stopPlayer(state.players.ref);
+    stopFFT();
+
+    state.mainBuffer = null;
+    state.masteredBuffer = null;
+    state.stems = [];
+
+    // decode all
+    const decoded = [];
+    for(const f of files){
+      const ab = await f.arrayBuffer();
+      const buf = await ctx.decodeAudioData(ab.slice(0));
+      decoded.push({ name: f.name, buffer: buf });
+    }
+
+    if(decoded.length === 1){
+      state.mode = "stereo";
+      state.mainBuffer = decoded[0].buffer;
+
+      const a = analyzeBuffer(state.mainBuffer);
+      state.analysis.orig = a;
+
+      $("modeLabel").textContent = "Stereo Mode (1 file)";
+      $("formatLabel").textContent = `${a.ch}ch / ${Math.round(a.sr/1000)}kHz`;
+      $("origTitle").textContent = "Section 01 / Original";
+      $("origInfo").textContent = `${a.ch}ch • ${Math.round(a.sr/1000)}kHz • ${a.duration.toFixed(2)}s`;
+
+      $("origPeak").textContent = `${a.peakDb.toFixed(1)} dB`;
+      $("origRms").textContent  = `${a.rmsDb.toFixed(1)} dB`;
+
+      drawWave($("waveOrig"), computePeaks(state.mainBuffer), "#FFD400");
+
+      enable("playOrig", true);
+      enable("pauseOrig", true);
+      enable("stopOrig", true);
+
+      enable("autoMasterBtn", true);
+      enable("playMast", false);
+      enable("pauseMast", false);
+      enable("stopMast", false);
+      enable("exportBtn", false);
+
+      $("mastState").textContent = "Idle";
+      setStatus("Loaded stereo track. Choose preset → Auto-Master.", "ok");
+
+      // hide stems UI
+      $("stemSection").classList.add("hidden");
+      $("tabStems").classList.add("text-slate-400");
+    } else {
+      // stems mode
+      if(decoded.length > 12) throw new Error("Max 12 stems. Select 12 or fewer files.");
+      const err = validateStems(decoded.map(d=>d.buffer));
+      if(err) throw new Error(err);
+
+      state.mode = "stems";
+      state.stems = decoded.map((d)=>({ name:d.name, buffer:d.buffer, gainDb: 0 }));
+
+      // AI-safe default balancing: leave headroom by reducing all stems a bit
+      // rule of thumb: - (6 + 20*log10(N)) / 2  (gentle)
+      const N = state.stems.length;
+      const baseDb = - (6 + (20*Math.log10(N))) * 0.55;
+      state.stems.forEach(s=> s.gainDb = baseDb);
+
+      await buildStemMixerUI();
+
+      const sum = await renderStemSumBuffer();
+      const a = analyzeBuffer(sum);
+      state.analysis.orig = a; // treat dry sum like original for A/B
+      $("modeLabel").textContent = `Stem Mode (${N} files)`;
+      $("formatLabel").textContent = `${a.ch}ch / ${Math.round(a.sr/1000)}kHz`;
+      $("origTitle").textContent = "Section 01 / Dry Sum";
+      $("origInfo").textContent = `${N} stems • ${Math.round(a.sr/1000)}kHz • ${a.duration.toFixed(2)}s`;
+
+      $("origPeak").textContent = `${a.peakDb.toFixed(1)} dB`;
+      $("origRms").textContent  = `${a.rmsDb.toFixed(1)} dB`;
+
+      drawWave($("waveOrig"), computePeaks(sum), "#FFD400");
+
+      enable("playOrig", true);
+      enable("pauseOrig", true);
+      enable("stopOrig", true);
+
+      enable("autoMasterBtn", true);
+      enable("playMast", false);
+      enable("pauseMast", false);
+      enable("stopMast", false);
+      enable("exportBtn", false);
+
+      $("mastState").textContent = "Idle";
+      setStatus("Loaded stems. Adjust faders (optional) → Auto-Master.", "ok");
+
+      // show stems UI
+      $("stemSection").classList.remove("hidden");
+    }
+
+    // reset progress
+    $("progressBar").style.width = "0%";
+
   }catch(err){
     console.error(err);
-    setStatus("Load failed (try WAV/MP3): " + (err?.message||err), "bad");
+    setStatus(err?.message || String(err), "bad");
+  }finally{
+    // allow re-select same file set
+    e.target.value = "";
   }
 });
 
-// reference load
-$("inputRef").addEventListener("change", async (e)=>{
-  const f=e.target.files?.[0];
+$("fileRef").addEventListener("change", async (e)=>{
+  const f = e.target.files?.[0];
   if(!f) return;
   try{
-    setStatus("Loading reference…","warn");
+    setStatus("Loading reference…", "warn");
+    const ctx = ensureCtx();
     stopPlayer(state.players.ref);
-    const ctx=ensureCtx();
-    const arr=await f.arrayBuffer();
-    const buf=await ctx.decodeAudioData(arr.slice(0));
-    state.reference=buf;
-    state.analysis.ref=analyze(buf);
-    setMeta("ref", state.analysis.ref);
-    drawWave($("waveRef"), computePeaks(buf));
-    enableBlock("ref", true);
-    setStatus("Reference loaded. Tap Play.","ok");
+
+    const ab = await f.arrayBuffer();
+    const buf = await ctx.decodeAudioData(ab.slice(0));
+    state.refBuffer = buf;
+
+    const a = analyzeBuffer(buf);
+    state.analysis.ref = a;
+
+    $("refLabel").textContent = f.name;
+    $("refInfo").textContent = `${a.ch}ch • ${Math.round(a.sr/1000)}kHz • ${a.duration.toFixed(2)}s`;
+
+    $("refPeak").textContent = `${a.peakDb.toFixed(1)} dB`;
+    $("refRms").textContent  = `${a.rmsDb.toFixed(1)} dB`;
+
+    drawWave($("waveRef"), computePeaks(buf), "#FFD400");
+
+    enable("playRef", true);
+    enable("pauseRef", true);
+    enable("stopRef", true);
+
+    setStatus("Reference loaded. You can A/B anytime.", "ok");
   }catch(err){
     console.error(err);
     setStatus("Reference load failed: " + (err?.message||err), "bad");
+  }finally{
+    e.target.value = "";
   }
 });
 
-function getLevelMatchedGain(){
-  if (!$("levelMatch").checked) return 1.0;
-  const o=state.analysis.orig, m=state.analysis.mast;
-  if(!o || !m) return 1.0;
-  const deltaDb = o.rmsDb - m.rmsDb;
-  return Math.pow(10, deltaDb/20);
+/* ====== stem mixer UI ====== */
+async function buildStemMixerUI(){
+  const list = $("stemList");
+  list.innerHTML = "";
+
+  state.stems.forEach((s, idx)=>{
+    const row = document.createElement("div");
+    row.className = "p-3 rounded-2xl bg-white/5 border border-white/10";
+    row.innerHTML = `
+      <div class="flex items-center justify-between gap-3">
+        <div class="min-w-0">
+          <div class="text-[11px] font-bold truncate">${escapeHtml(s.name)}</div>
+          <div class="text-[10px] font-mono opacity-60">Gain: <span id="gLbl_${idx}">${s.gainDb.toFixed(1)} dB</span></div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="px-2 py-1 rounded-xl bg-panel-light dark:bg-panel-dark border border-slate-300 dark:border-slate-700 text-[10px] font-bold tt"
+            data-tt="Mute this stem"
+            id="mute_${idx}">M</button>
+        </div>
+      </div>
+      <div class="mt-3">
+        <input type="range" min="-24" max="12" step="0.1" value="${s.gainDb}" id="gain_${idx}" class="w-full tt"
+          data-tt="Stem fader in dB. Keep headroom.">
+      </div>
+    `;
+    list.appendChild(row);
+
+    const slider = row.querySelector(`#gain_${idx}`);
+    const muteBtn= row.querySelector(`#mute_${idx}`);
+    const lbl    = row.querySelector(`#gLbl_${idx}`);
+
+    let muted = false;
+    muteBtn.addEventListener("click", async ()=>{
+      muted = !muted;
+      muteBtn.classList.toggle("bg-primary", muted);
+      muteBtn.classList.toggle("text-slate-900", muted);
+      state.stems[idx].gainDb = muted ? -120 : Number(slider.value);
+      lbl.textContent = muted ? "-INF" : `${state.stems[idx].gainDb.toFixed(1)} dB`;
+      // update waveform preview in stem mode
+      if(state.mode==="stems"){
+        const sum = await renderStemSumBuffer();
+        drawWave($("waveOrig"), computePeaks(sum), "#FFD400");
+        const a = analyzeBuffer(sum);
+        state.analysis.orig = a;
+        $("origPeak").textContent = `${a.peakDb.toFixed(1)} dB`;
+        $("origRms").textContent  = `${a.rmsDb.toFixed(1)} dB`;
+      }
+    });
+
+    slider.addEventListener("input", async ()=>{
+      if(muted) return;
+      state.stems[idx].gainDb = Number(slider.value);
+      lbl.textContent = `${state.stems[idx].gainDb.toFixed(1)} dB`;
+      if(state.mode==="stems"){
+        const sum = await renderStemSumBuffer();
+        drawWave($("waveOrig"), computePeaks(sum), "#FFD400");
+        const a = analyzeBuffer(sum);
+        state.analysis.orig = a;
+        $("origPeak").textContent = `${a.peakDb.toFixed(1)} dB`;
+        $("origRms").textContent  = `${a.rmsDb.toFixed(1)} dB`;
+      }
+    });
+  });
+
+  // show bus stats
+  await renderStemSumBuffer();
 }
 
-// transport wiring
-$("playOrig").onclick = ()=> state.original && playPlayer(state.players.orig, state.original, 1.0);
+$("resetFadersBtn").addEventListener("click", async ()=>{
+  if(state.mode!=="stems") return;
+  const N = state.stems.length;
+  const baseDb = - (6 + (20*Math.log10(N))) * 0.55;
+  state.stems.forEach(s=> s.gainDb = baseDb);
+
+  // rebuild UI (simplest)
+  await buildStemMixerUI();
+
+  const sum = await renderStemSumBuffer();
+  drawWave($("waveOrig"), computePeaks(sum), "#FFD400");
+  const a = analyzeBuffer(sum);
+  state.analysis.orig = a;
+  $("origPeak").textContent = `${a.peakDb.toFixed(1)} dB`;
+  $("origRms").textContent  = `${a.rmsDb.toFixed(1)} dB`;
+
+  setStatus("Stem faders reset.", "ok");
+});
+
+/* ====== Transport ====== */
+$("playOrig").onclick = async ()=>{
+  if(state.mode==="stereo" && state.mainBuffer){
+    await playBuffer(state.players.orig, state.mainBuffer, 1.0);
+  }else if(state.mode==="stems"){
+    const sum = await renderStemSumBuffer();
+    await playBuffer(state.players.orig, sum, 1.0);
+  }
+};
 $("pauseOrig").onclick = ()=> pausePlayer(state.players.orig);
-$("stopOrig").onclick = ()=> { stopPlayer(state.players.orig); $("origTime").textContent="00:00"; };
+$("stopOrig").onclick  = ()=> { stopPlayer(state.players.orig); $("origClock").textContent="00:00.00"; };
 
-$("playRef").onclick  = ()=> state.reference && playPlayer(state.players.ref, state.reference, 1.0);
-$("pauseRef").onclick = ()=> pausePlayer(state.players.ref);
-$("stopRef").onclick  = ()=> { stopPlayer(state.players.ref); $("refTime").textContent="00:00"; };
+$("playRef").onclick = async ()=> state.refBuffer && playBuffer(state.players.ref, state.refBuffer, 1.0);
+$("pauseRef").onclick= ()=> pausePlayer(state.players.ref);
+$("stopRef").onclick = ()=> { stopPlayer(state.players.ref); $("refClock").textContent="00:00.00"; };
 
-$("playMast").onclick = ()=> state.mastered && playPlayer(state.players.mast, state.mastered, getLevelMatchedGain());
+$("playMast").onclick = async ()=>{
+  if(!state.masteredBuffer) return;
+  const g = computeLevelMatchGain();
+  await playBuffer(state.players.mast, state.masteredBuffer, g);
+};
 $("pauseMast").onclick= ()=> pausePlayer(state.players.mast);
-$("stopMast").onclick = ()=> { stopPlayer(state.players.mast); $("mastTime").textContent="00:00"; };
+$("stopMast").onclick = ()=> { stopPlayer(state.players.mast); $("mastLoudTxt").textContent="Stopped"; };
 
-// time updates
-setInterval(()=>{
-  const p=state.players.orig; if(p.buffer) $("origTime").textContent=fmtTime(p.time);
-  const r=state.players.ref;  if(r.buffer) $("refTime").textContent=fmtTime(r.time);
-  const m=state.players.mast; if(m.buffer) $("mastTime").textContent=fmtTime(m.time);
-  $("diag").textContent = `AudioContext: ${state.ctx ? state.ctx.state : "not created"}`;
-}, 250);
-
-// placeholder mastering (you will replace with your full chain)
-$("autoBtn").addEventListener("click", async ()=>{
-  if(!state.original) return;
+/* ====== Auto-master ====== */
+$("autoMasterBtn").addEventListener("click", async ()=>{
   try{
-    setStatus("Auto-Master (demo): copying original → mastered","warn");
-    // For now: just copy original (pro chain goes here)
-    state.mastered = state.original;
-    state.analysis.mast = analyze(state.mastered);
-    setMeta("mast", state.analysis.mast);
-    drawWave($("waveMast"), computePeaks(state.mastered));
-    enableBlock("mast", true);
+    if(state.mode==="none") return;
 
-    $("exportBtn").disabled=false;
-    setStatus("Master ready. Play Mastered.","ok");
+    $("mastState").textContent = "Working…";
+    $("mastLed").className = "w-2 h-2 rounded-full bg-primary status-light-yellow";
+    setStatus("Auto-Master running…", "warn");
+
+    $("progressBar").style.width = "15%";
+
+    const intensity = Number($("intensity").value);
+    const ceilingDb = Number($("ceiling").value);
+
+    const fx = {
+      cleanup: $("fxCleanup").checked,
+      width:   $("fxWidth").checked,
+      glue:    $("fxGlue").checked,
+      sat:     $("fxSat").checked
+    };
+
+    // render
+    const mastered = await renderMastered({
+      preset: state.preset,
+      intensity,
+      ceilingDb,
+      fx
+    });
+
+    state.masteredBuffer = mastered;
+    state.analysis.mast = analyzeBuffer(mastered);
+
+    $("progressBar").style.width = "75%";
+
+    drawWave($("waveMast"), computePeaks(mastered), "rgba(16,185,129,0.95)");
+
+    $("mastPeakTxt").textContent = `Peak ${state.analysis.mast.peakDb.toFixed(1)} dB`;
+    $("mastCeilTxt").textContent = `Ceil ${ceilingDb.toFixed(1)} dB`;
+    $("mastLoudTxt").textContent = `Preset ${state.preset.toUpperCase()} • Int ${intensity.toFixed(2)}`;
+
+    enable("playMast", true);
+    enable("pauseMast", true);
+    enable("stopMast", true);
+    enable("exportBtn", true);
+
+    $("mastState").textContent = "Active";
+    $("mastLed").className = "w-2 h-2 rounded-full bg-accent status-light-red";
+
+    // FFT is based on analyser from live playback; we’ll start it when playing mastered:
+    // We'll hook analyser by creating a fake chain during playback (simple way: tap play then it animates)
+    // For always-on FFT preview, we can also fake it from an Offline buffer, but that’s heavier.
+
+    $("progressBar").style.width = "100%";
+    setTimeout(()=> $("progressBar").style.width="42%", 450);
+
+    setStatus("Master ready. Play Mastered (A/B level-match ON).", "ok");
+
   }catch(err){
     console.error(err);
-    setStatus("Auto-master failed: " + (err?.message||err), "bad");
+    $("mastState").textContent = "Error";
+    $("mastLed").className = "w-2 h-2 rounded-full bg-red-500 status-light-red";
+    setStatus("Auto-Master failed: " + (err?.message||err), "bad");
   }
 });
+
+/* Hook FFT to mastered playback by inserting analyser between gain and destination */
+(function patchMasteredPlayToFFT(){
+  const originalPlayMast = $("playMast").onclick;
+  $("playMast").onclick = async ()=>{
+    if(!state.masteredBuffer) return;
+    try{
+      const ctx = ensureCtx();
+      if(ctx.state==="suspended") await ctx.resume();
+
+      // stop existing mast
+      stopPlayer(state.players.mast);
+      stopFFT();
+
+      // create src/gain
+      const src = ctx.createBufferSource();
+      src.buffer = state.masteredBuffer;
+
+      const g = ctx.createGain();
+      g.gain.value = computeLevelMatchGain();
+
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 2048;
+      analyser.smoothingTimeConstant = 0.85;
+
+      src.connect(g);
+      g.connect(analyser);
+      analyser.connect(ctx.destination);
+
+      // set in player
+      const p = state.players.mast;
+      p.src = src;
+      p.gain= g;
+      p.buffer = state.masteredBuffer;
+      p.startTime = ctx.currentTime;
+      p.playing = true;
+
+      const off = Math.max(0, Math.min(p.offset||0, state.masteredBuffer.duration-0.01));
+      src.start(0, off);
+      src.onended = ()=>{ p.playing=false; stopFFT(); };
+
+      // run FFT
+      state.fft.analyser = analyser;
+      runFFTLoop();
+
+      $("mastState").textContent = "Active";
+      setStatus("Playing mastered (FFT live).", "ok");
+    }catch(err){
+      console.error(err);
+      setStatus("Mastered play failed: " + (err?.message||err), "bad");
+    }
+  };
+
+  function runFFTLoop(){
+    const analyser = state.fft.analyser;
+    if(!analyser) return;
+    const buffer = new Uint8Array(analyser.frequencyBinCount);
+    const canvas = $("fftCanvas");
+    const c = canvas.getContext("2d");
+
+    const loop = ()=>{
+      if(!state.fft.analyser) return;
+      analyser.getByteFrequencyData(buffer);
+
+      const dpr = window.devicePixelRatio||1;
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      canvas.width = Math.floor(w*dpr);
+      canvas.height= Math.floor(h*dpr);
+      c.setTransform(dpr,0,0,dpr,0,0);
+      c.clearRect(0,0,w,h);
+
+      // bars
+      const bars = 80;
+      const step = Math.floor(buffer.length/bars);
+      for(let i=0;i<bars;i++){
+        const v = buffer[i*step]/255;
+        const barH = v*(h*0.9);
+        const x = (i/bars)*w;
+        const bw = (w/bars)*0.75;
+
+        c.fillStyle = `rgba(16,185,129,${0.18 + 0.78*v})`;
+        c.fillRect(x, h - barH, bw, barH);
+      }
+
+      state.fft.raf = requestAnimationFrame(loop);
+    };
+    state.fft.raf = requestAnimationFrame(loop);
+  }
+})();
+
+/* ====== Export ====== */
+$("exportBtn").addEventListener("click", ()=>{
+  if(!state.masteredBuffer) return;
+  try{
+    setStatus("Exporting WAV…", "warn");
+    const wav = bufferToWav16(state.masteredBuffer);
+    const blob = new Blob([wav], {type:"audio/wav"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "ACEMASTER_Master.wav";
+    a.click();
+    setStatus("Exported ACEMASTER_Master.wav", "ok");
+  }catch(err){
+    console.error(err);
+    setStatus("Export failed: " + (err?.message||err), "bad");
+  }
+});
+
+/* ====== Live clocks ====== */
+setInterval(()=>{
+  // original clock
+  const po = state.players.orig;
+  if(po.buffer){
+    $("origClock").textContent = fmtTime(po.time);
+  }
+
+  // reference clock
+  const pr = state.players.ref;
+  if(pr.buffer){
+    $("refClock").textContent = fmtTime(pr.time);
+  }
+
+  // mastered status text
+  const pm = state.players.mast;
+  if(pm.buffer && pm.playing){
+    // keep mast text lively but not spammy
+  }
+}, 120);
+
+/* ====== Tabs ====== */
+function setTab(active){
+  const tabs = ["Rack","Stems","History","Setup"];
+  for(const t of tabs){
+    const el = $("tab"+t);
+    el.classList.remove("text-primary");
+    el.classList.add("text-slate-400");
+  }
+  $("tab"+active).classList.add("text-primary");
+  $("tab"+active).classList.remove("text-slate-400");
+
+  // show/hide stem section for stems tab
+  if(active==="Stems"){
+    if(state.mode==="stems") $("stemSection").classList.remove("hidden");
+    window.scrollTo({ top: document.body.scrollHeight, behavior:"smooth" });
+  }else if(active==="Rack"){
+    window.scrollTo({ top: 0, behavior:"smooth" });
+  }
+  // History/Setup are placeholders for now
+}
+$("tabRack").onclick = ()=> setTab("Rack");
+$("tabStems").onclick= ()=> setTab("Stems");
+$("tabHistory").onclick=()=> { setTab("History"); setStatus("History panel coming next.", "warn"); };
+$("tabSetup").onclick =()=> { setTab("Setup"); setStatus("Setup panel coming next.", "warn"); };
+
+/* ====== Helpers ====== */
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, s=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[s]));
+}
+
+/* Initial */
+if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+  document.documentElement.classList.add('dark');
+}
+setStatus("Ready. Load audio to begin.", "ok");
+$("intensityVal").textContent = Number($("intensity").value).toFixed(2);
+$("ceilingVal").textContent = `${Number($("ceiling").value).toFixed(1)} dB`;
 </script>
+
 </body>
 </html>
