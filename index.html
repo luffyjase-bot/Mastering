@@ -1,1332 +1,1603 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Wu Master — Auto A/B + Reference</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Wu-Tang Master — Auto Mastering (Original / Mastered / Reference)</title>
 
-  <!-- WaveSurfer pinned -->
+  <!-- WaveSurfer (waveforms) -->
   <script src="https://unpkg.com/wavesurfer.js@6.6.3/dist/wavesurfer.js"></script>
+
+  <!-- Essentia.js (client-side analysis). Docs show CDN use via jsDelivr/unpkg. -->
+  <script src="https://cdn.jsdelivr.net/npm/essentia.js@0.1.3/dist/essentia-wasm.web.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/essentia.js@0.1.3/dist/essentia.js-core.umd.js"></script>
 
   <style>
     :root{
-      --wu:#ffcc00;
-      --wu2:#ffe27a;
-      --ink:#0a0a0a;
-
-      --bg:#ffffff;
-      --panel:#ffffff;
-      --panel2:#fffdf2;
-      --line:#e7e7e7;
-
-      --muted:#4b5563;
-      --shadow: 0 12px 40px rgba(0,0,0,.10);
-      --radius:18px;
+      --bg:#fff;
+      --text:#0b0b0b;
+      --muted:#6b6b6b;
+      --card:#ffffff;
+      --line:#e9e9e9;
+      --yellow:#ffd400;         /* Wu-Tang */
+      --yellow2:#ffea70;
+      --shadow: 0 14px 40px rgba(0,0,0,.08);
+      --radius:16px;
     }
-    *{ box-sizing:border-box; }
+    *{box-sizing:border-box}
     body{
-      margin:0; padding:14px;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      color:var(--ink);
-      background:
-        radial-gradient(900px 520px at 15% 0%, rgba(255,204,0,.42), transparent 60%),
-        radial-gradient(900px 520px at 85% 15%, rgba(255,204,0,.22), transparent 60%),
-        var(--bg);
-      display:flex;
-      justify-content:center;
+      margin:0;
+      background: radial-gradient(1100px 700px at 20% -10%, var(--yellow2), transparent 55%),
+                  radial-gradient(1000px 700px at 95% 10%, #f3f3f3, transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      padding:14px;
     }
-    .app{
-      width:min(1150px, 100%);
-      display:grid;
-      grid-template-columns: 1.4fr 1fr 1fr;
-      gap:14px;
-    }
-    .card{
-      background: linear-gradient(180deg, var(--panel) 0%, var(--panel2) 100%);
+    .wrap{max-width:1100px;margin:0 auto;}
+    .topbar{
+      display:flex; gap:12px; align-items:center; justify-content:space-between;
+      padding:14px 14px;
       border:1px solid var(--line);
       border-radius: var(--radius);
+      background: rgba(255,255,255,.85);
+      backdrop-filter: blur(10px);
       box-shadow: var(--shadow);
-      padding: 14px;
-      overflow:hidden;
     }
-    .hero{ grid-column: 1 / -1; padding:16px; }
-
-    .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
-    .brand{ display:flex; flex-direction:column; gap:4px; }
-    .title{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-weight:900; letter-spacing:.5px; font-size:16px; }
-    .badge{
-      background: var(--wu);
-      color: var(--ink);
-      border-radius:999px;
-      padding:4px 10px;
-      font-size:11px;
+    .brand{
+      display:flex; align-items:center; gap:10px; min-width: 210px;
+    }
+    .logo{
+      width:40px;height:40px;border-radius:12px;
+      background: linear-gradient(135deg, var(--yellow), #ffb800);
+      box-shadow: 0 10px 22px rgba(255,212,0,.35);
+      display:grid;place-items:center;
       font-weight:900;
-      letter-spacing:1px;
-      text-transform:uppercase;
-      border:1px solid rgba(0,0,0,.12);
     }
-    .subtitle{ color:var(--muted); font-size:12px; font-weight:700; }
-
-    .btnbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .brand h1{margin:0;font-size:16px;line-height:1.1}
+    .brand small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
     .btn{
-      border:1px solid rgba(0,0,0,.14);
-      background:#fff;
-      color:var(--ink);
-      padding: 12px 14px;
-      border-radius: 14px;
-      font-weight: 900;
-      font-size: 12px;
-      letter-spacing: .4px;
+      border:1px solid #111;
+      background:#111;
+      color:#fff;
+      padding:10px 12px;
+      border-radius:12px;
       cursor:pointer;
-      min-height: 44px;
-      box-shadow: 0 6px 18px rgba(0,0,0,.06);
-      transition: transform .12s ease, box-shadow .12s ease;
+      font-weight:700;
+      transition:.15s transform, .15s opacity;
       user-select:none;
-    }
-    .btn:hover{ transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0,0,0,.10); }
-    .btn:active{ transform: translateY(0); }
-    .btn:disabled{ opacity:.55; cursor:not-allowed; transform:none; }
-    .btn.primary{ background:var(--wu); border-color: rgba(0,0,0,.18); }
-    .btn.ghost{ background:#fff; }
-    .btn.pill{ border-radius:999px; padding: 10px 14px; }
-
-    .status{
-      font-weight: 900;
-      color: var(--ink);
-      background: rgba(255,204,0,.22);
-      border: 1px solid rgba(0,0,0,.12);
-      border-radius: 999px;
-      padding: 6px 10px;
-      font-size: 12px;
       white-space:nowrap;
     }
-
-    .file{
-      width:100%;
-      border: 1px dashed rgba(0,0,0,.22);
-      background: #fff;
-      border-radius: 16px;
-      padding: 12px;
-      min-height: 44px;
-      font-weight: 800;
+    .btn:hover{transform: translateY(-1px); opacity:.92}
+    .btn.secondary{
+      background:#fff;color:#111;border-color:#111;
     }
-
-    #waveform{
-      width:100%;
-      height: 120px;
-      background:#fff;
+    .btn.yellow{
+      background: var(--yellow);
+      border-color: #111;
+      color:#111;
+    }
+    .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+    .grid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:14px;
+      margin-top:14px;
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns: 1fr;}
+      .topbar{flex-wrap:wrap}
+    }
+    .card{
       border:1px solid var(--line);
-      border-radius:16px;
-      margin: 12px 0;
+      background: rgba(255,255,255,.92);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
       overflow:hidden;
     }
-
-    .sectionTitle{
-      display:flex; align-items:center; justify-content:space-between;
-      margin:0 0 8px 0;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 1.2px;
-      font-weight: 900;
-      color: var(--ink);
+    .cardHeader{
+      padding:12px 14px;
+      border-bottom:1px solid var(--line);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
     }
-    .hint{ color:var(--muted); font-weight: 800; font-size: 11px; }
-
-    .select{
-      padding: 11px 12px;
-      border-radius: 14px;
-      border:1px solid rgba(0,0,0,.14);
+    .cardHeader h2{margin:0;font-size:14px}
+    .pill{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
       background:#fff;
-      font-weight: 900;
-      color: var(--ink);
-      width: 100%;
-      min-height: 44px;
-      box-shadow: 0 6px 18px rgba(0,0,0,.05);
+      color:#111;
+      display:inline-flex; gap:8px; align-items:center;
     }
-
-    .toggleLine{
+    .dot{
+      width:8px;height:8px;border-radius:50%;
+      background:#bbb;
+    }
+    .dot.on{background:#19c37d}
+    .cardBody{padding:14px}
+    .row{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+    .row > *{flex: 1}
+    .row.tight > *{flex: 0 0 auto}
+    label{font-size:12px;color:var(--muted)}
+    input[type="file"], input[type="text"], select{
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:#fff;
+      color:#111;
+      outline:none;
+    }
+    input[type="range"]{width:140px}
+    .mini{
+      font-size:12px;color:var(--muted);
+    }
+    .waveWrap{
+      padding:12px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fff;
+    }
+    .waveTitle{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      margin-bottom:8px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .wave{height:84px;}
+    .transport{
       display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-      font-size: 12px; color: var(--muted); font-weight: 900;
+      margin-top:10px;
     }
-    .toggle{
-      display:flex; gap:8px; align-items:center; user-select:none;
-      border:1px solid rgba(0,0,0,.12);
-      padding: 10px 12px;
-      border-radius: 14px;
+    .transport .btn{padding:8px 10px;border-radius:10px;font-size:12px}
+    .statGrid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:10px;
+      margin-top:10px;
+    }
+    @media (max-width: 540px){
+      .statGrid{grid-template-columns: 1fr;}
+      input[type="range"]{width:100%}
+    }
+    .stat{
+      border:1px solid var(--line);
+      border-radius:14px;
       background:#fff;
-      box-shadow: 0 6px 18px rgba(0,0,0,.05);
+      padding:10px 12px;
     }
-    .toggle input{ width:18px; height:18px; accent-color: var(--wu); }
-
-    .sliderLine{
-      display:flex; align-items:center; justify-content:space-between;
-      gap:10px; margin: 10px 0;
-    }
-    .sliderLine label{ font-size:12px; color:var(--muted); font-weight: 900; }
-    input[type="range"]{ width: 240px; min-height:44px; accent-color: var(--wu); }
-
-    .meterGrid{
+    .stat b{display:block;font-size:12px}
+    .stat span{font-size:12px;color:var(--muted)}
+    .controlsGrid{
       display:grid;
       grid-template-columns: 1fr 1fr;
       gap:12px;
-      margin-top: 10px;
     }
-    .meter{
-      background:#fff;
+    @media (max-width: 980px){
+      .controlsGrid{grid-template-columns: 1fr;}
+    }
+    .controlBox{
       border:1px solid var(--line);
-      border-radius: 16px;
-      padding: 12px;
-      overflow:hidden;
+      border-radius:14px;
+      background:#fff;
+      padding:12px;
     }
-    .meter header{
-      display:flex; justify-content:space-between; align-items:center;
-      font-size: 11px; font-weight: 900;
-      letter-spacing: .6px;
-      color: var(--ink);
-      margin-bottom: 8px;
-      text-transform: uppercase;
+    .controlBox h3{margin:0 0 10px 0;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#111}
+    .controlRow{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:8px 0;
+      border-top:1px dashed #efefef;
     }
-    canvas{ width:100%; height:68px; display:block; }
-
-    .bigAuto{
-      display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;
-      background: linear-gradient(90deg, rgba(255,204,0,.72), rgba(255,255,255,0));
-      border:1px solid rgba(0,0,0,.12);
-      border-radius: 18px;
-      padding: 12px;
-      margin-top: 10px;
+    .controlRow:first-of-type{border-top:none;padding-top:0}
+    .controlRow .left{display:flex; gap:10px; align-items:center}
+    .toggle{
+      display:inline-flex; gap:8px; align-items:center;
+      font-size:12px;color:var(--muted);
+      user-select:none;
     }
-    .bigAuto .text{ display:flex; flex-direction:column; gap:2px; min-width: 240px; }
-    .bigAuto .text b{ font-size: 13px; letter-spacing: .4px; }
-    .bigAuto .text small{ font-size: 11px; color:var(--muted); font-weight: 900; }
-
-    .abPills{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-    .pillActive{
-      background: var(--wu);
-      border-color: rgba(0,0,0,.18);
+    .toggle input{transform: scale(1.1)}
+    .danger{
+      color:#b00020;
+      font-weight:700;
     }
-
-    @media(max-width: 980px){
-      .app{ grid-template-columns: 1fr; }
-      #waveform{ height: 90px; }
-      .meterGrid{ grid-template-columns: 1fr; }
-      input[type="range"]{ width: 250px; }
+    .hint{
+      font-size:12px;
+      color: var(--muted);
+      line-height:1.4;
+    }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size:11px;
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:8px;
+      padding:2px 6px;
+      color:#111;
     }
   </style>
 </head>
 
 <body>
-  <div class="app">
+<div class="wrap">
 
-    <div class="card hero">
-      <div class="row">
-        <div class="brand">
-          <div class="title">Wu Master <span class="badge">AUTO • A/B • REF</span></div>
-          <div class="subtitle">Upload → Auto master → A/B compare (level-matched) → Export WAV</div>
-        </div>
-
-        <div class="btnbar">
-          <span class="status" id="status">Load a track</span>
-          <button class="btn ghost" id="playBtn" disabled>Play / Pause</button>
-          <div class="abPills">
-            <button class="btn pill ghost pillActive" id="abMasterBtn" disabled>MASTERED</button>
-            <button class="btn pill ghost" id="abOriginalBtn" disabled>ORIGINAL</button>
-          </div>
-          <button class="btn primary" id="autoBtn" disabled>AUTO MASTER</button>
-          <button class="btn ghost" id="resetBtn" disabled>Reset</button>
-          <button class="btn primary" id="exportBtn" disabled>Export WAV</button>
-        </div>
-      </div>
-
-      <div class="row">
-        <div style="flex:1; min-width:280px;">
-          <div class="sectionTitle">Your Track <span class="hint">master this</span></div>
-          <input class="file" type="file" id="fileInput" accept="audio/*" />
-        </div>
-        <div style="flex:1; min-width:280px;">
-          <div class="sectionTitle">Reference Track <span class="hint">match vibe (optional)</span></div>
-          <input class="file" type="file" id="refInput" accept="audio/*" />
-        </div>
-      </div>
-
-      <div id="waveform"></div>
-
-      <div class="row">
-        <div style="flex:1; min-width:230px;">
-          <div class="sectionTitle">Auto Style / Feel <span class="hint">character</span></div>
-          <select class="select" id="style">
-            <option value="radio">Radio Pop (clean + bright)</option>
-            <option value="warm90">Warm Tape 90s (round + thick)</option>
-            <option value="rock">Rock Punch (transients + mids)</option>
-            <option value="club">Club Loud (tight + loud)</option>
-            <option value="lofi">Lo-Fi Cassette (grit + rolloff)</option>
-            <option value="sunoFix" selected>Suno Fix (de-harsh + de-hiss + space)</option>
-          </select>
-        </div>
-
-        <div style="flex:1; min-width:230px;">
-          <div class="sectionTitle">Target <span class="hint">loudness vibe</span></div>
-          <select class="select" id="target">
-            <option value="stream" selected>Streaming Clean (-14-ish)</option>
-            <option value="hot">Hot Pop / Loud (-11-ish)</option>
-            <option value="clubhot">Club Smash (-9-ish)</option>
-          </select>
-        </div>
-
-        <div style="flex:1; min-width:230px;">
-          <div class="sectionTitle">Export <span class="hint">bit depth</span></div>
-          <select class="select" id="bitDepth">
-            <option value="24" selected>24-bit (recommended)</option>
-            <option value="16">16-bit</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="bigAuto">
-        <div class="text">
-          <b>Auto Intensity</b>
-          <small>Safe → Aggressive (comp / clip / sparkle / width)</small>
-        </div>
-        <div style="flex:1; min-width:260px;">
-          <div class="sliderLine">
-            <label for="intensity">Intensity</label>
-            <input type="range" id="intensity" min="0" max="100" value="60">
-          </div>
-
-          <div class="toggleLine">
-            <div class="toggle">
-              <input type="checkbox" id="levelMatch" checked>
-              <label for="levelMatch">Level Match</label>
-            </div>
-            <div class="toggle">
-              <input type="checkbox" id="monoBass" checked>
-              <label for="monoBass">Mono Bass</label>
-            </div>
-            <div class="toggle">
-              <input type="checkbox" id="widenAir" checked>
-              <label for="widenAir">Widen Highs</label>
-            </div>
-            <div class="toggle">
-              <input type="checkbox" id="spaceFX" checked>
-              <label for="spaceFX">Air/Space</label>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="meterGrid">
-        <div class="meter">
-          <header><span>Peak (Wet)</span><span id="peakRead">-- dBFS</span></header>
-          <canvas id="peakCanvas" width="900" height="140"></canvas>
-        </div>
-        <div class="meter">
-          <header><span>RMS (Orig vs Master)</span><span id="rmsRead">-- dB</span></header>
-          <canvas id="rmsCanvas" width="900" height="140"></canvas>
-        </div>
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">W</div>
+      <div>
+        <h1>Wu-Tang Master</h1>
+        <small>Auto mastering • Original vs Mastered • Reference matching (safe)</small>
       </div>
     </div>
 
+    <div class="row tight" style="gap:10px">
+      <button class="btn secondary" id="resetBtn">Reset</button>
+      <button class="btn yellow" id="autoBtn" disabled>Auto-Master</button>
+      <button class="btn" id="exportBtn" disabled>Export WAV</button>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- LEFT: Players -->
     <div class="card">
-      <div class="sectionTitle">What’s new <span class="hint">based on your video extract</span></div>
-      <div style="color:var(--muted); font-weight:900; font-size:12px; line-height:1.55;">
-        • <b>A/B bus mindset</b>: Original vs Mastered is a real toggle (like “Suno mix” vs “mastered bus”).<br>
-        • <b>Get loud first</b>: Auto pushes into the target loudness vibe, then shapes tone while loud.<br>
-        • <b>Suno artifacts fix</b>: De-hiss + de-harsh dynamic band, plus rumble cleanup + smarter top end.<br>
-        • <b>Drum punch logic</b>: Soft clipper before limiter helps transients get loud without pumping.<br>
+      <div class="cardHeader">
+        <h2>Players</h2>
+        <div class="pill">
+          <span class="dot" id="readyDot"></span>
+          <span id="status">Load an original track</span>
+        </div>
+      </div>
+
+      <div class="cardBody">
+
+        <div class="controlsGrid">
+
+          <div class="controlBox">
+            <h3>Original</h3>
+            <label>Upload original mix (WAV/MP3 ok)</label>
+            <input type="file" id="origFile" accept="audio/*" />
+            <div class="hint" style="margin-top:8px">
+              Tip: For best results, export your mix peaking around <span class="kbd">-6 dBFS to -3 dBFS</span>.
+            </div>
+          </div>
+
+          <div class="controlBox">
+            <h3>Reference</h3>
+            <label>Upload reference track (optional)</label>
+            <input type="file" id="refFile" accept="audio/*" />
+            <div style="height:10px"></div>
+            <label>…or paste a reference URL (CORS must allow it)</label>
+            <input type="text" id="refUrl" placeholder="https://example.com/reference.wav" />
+            <div class="row tight" style="margin-top:10px">
+              <button class="btn secondary" id="loadRefUrlBtn">Load URL</button>
+              <span class="mini">If it fails: download the file and upload instead.</span>
+            </div>
+          </div>
+
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="waveWrap">
+          <div class="waveTitle">
+            <div><b>Original</b> <span id="origInfo" class="mini">—</span></div>
+            <div class="mini">peaks + waveform</div>
+          </div>
+          <div id="waveOrig" class="wave"></div>
+          <div class="transport">
+            <button class="btn secondary" id="playOrig" disabled>Play</button>
+            <button class="btn secondary" id="pauseAll" disabled>Pause</button>
+            <button class="btn secondary" id="stopAll" disabled>Stop</button>
+            <span class="mini">A/B: <span class="kbd">Original</span> ↔ <span class="kbd">Mastered</span></span>
+          </div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="waveWrap">
+          <div class="waveTitle">
+            <div><b>Mastered</b> <span id="mastInfo" class="mini">—</span></div>
+            <div class="mini">generated after Auto-Master</div>
+          </div>
+          <div id="waveMast" class="wave"></div>
+          <div class="transport">
+            <button class="btn yellow" id="playMast" disabled>Play</button>
+            <button class="btn secondary" id="abToggle" disabled>Toggle A/B</button>
+            <label class="toggle"><input type="checkbox" id="levelMatch" checked /> Level-match A/B</label>
+          </div>
+          <div class="hint" style="margin-top:8px">
+            If your mastered version sounds “instantly louder + nasty”, it’s not mastering — it’s bullying. This tool keeps it sane.
+          </div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="waveWrap">
+          <div class="waveTitle">
+            <div><b>Reference</b> <span id="refInfo" class="mini">—</span></div>
+            <div class="mini">optional</div>
+          </div>
+          <div id="waveRef" class="wave"></div>
+          <div class="transport">
+            <button class="btn secondary" id="playRef" disabled>Play</button>
+          </div>
+        </div>
+
+        <div class="statGrid">
+          <div class="stat"><b>Original</b><span id="origStats">—</span></div>
+          <div class="stat"><b>Mastered</b><span id="mastStats">—</span></div>
+          <div class="stat"><b>Reference</b><span id="refStats">—</span></div>
+        </div>
+
       </div>
     </div>
 
+    <!-- RIGHT: Master Controls -->
     <div class="card">
-      <div class="sectionTitle">Reality check <span class="hint">browser limits</span></div>
-      <div style="color:var(--muted); font-weight:900; font-size:12px; line-height:1.55;">
-        Web Audio can’t do “true” LUFS / linear-phase EQ like Ozone, but this chain is designed to be <b>consistent</b> and <b>better than raw Suno</b>.<br><br>
-        If you want “near-pro” matching, upload a <b>reference file</b> (not a link) — the app can analyze it and steer the master toward its tilt/width.
+      <div class="cardHeader">
+        <h2>Auto-Master Controls</h2>
+        <div class="pill">
+          <span class="mini">Safe by default • tweak if you want</span>
+        </div>
+      </div>
+
+      <div class="cardBody">
+
+        <div class="controlBox">
+          <h3>Auto Style</h3>
+          <div class="controlRow">
+            <div class="left">
+              <label for="styleSel" style="margin:0">Style preset</label>
+            </div>
+            <select id="styleSel">
+              <option value="streaming">Streaming Clean (≈ -14 LUFS feel)</option>
+              <option value="pop">Pop Punch (≈ -11 LUFS feel)</option>
+              <option value="club">Club Hot (≈ -9 to -10 LUFS feel)</option>
+              <option value="worship">Worship Wide (big air + width)</option>
+              <option value="rock">Pop Rock Tight (less fizz, firm lows)</option>
+            </select>
+          </div>
+
+          <div class="controlRow">
+            <div class="left">
+              <label style="margin:0">Reference matching</label>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="refMatch" checked />
+              Use reference (if loaded)
+            </label>
+          </div>
+
+          <div class="hint">
+            Reference matching here is “safe + musical”: it aligns <b>level</b>, gentle <b>tone</b>, and <b>width</b> without wrecking your mix.
+          </div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="controlBox">
+          <h3>Foundation</h3>
+          <div class="controlRow">
+            <div class="left"><label style="margin:0">Headroom target (pre-chain peak)</label></div>
+            <div class="row tight" style="gap:10px">
+              <span class="mini"><span id="headroomVal">-4.5</span> dBFS</span>
+              <input type="range" id="headroom" min="-8" max="-2" step="0.1" value="-4.5">
+            </div>
+          </div>
+
+          <div class="controlRow">
+            <div class="left"><label style="margin:0">Ceiling (post limiter)</label></div>
+            <div class="row tight" style="gap:10px">
+              <span class="mini"><span id="ceilingVal">-1.0</span> dB</span>
+              <input type="range" id="ceiling" min="-3" max="0" step="0.1" value="-1.0">
+            </div>
+          </div>
+
+          <div class="controlRow">
+            <div class="left"><label style="margin:0">Intensity (how hard it pushes)</label></div>
+            <div class="row tight" style="gap:10px">
+              <span class="mini"><span id="intensityVal">35</span>%</span>
+              <input type="range" id="intensity" min="0" max="100" step="1" value="35">
+            </div>
+          </div>
+
+          <div class="controlRow">
+            <div class="left"><label style="margin:0">Oversampling (anti-alias for clipping)</label></div>
+            <div class="row tight" style="gap:10px">
+              <select id="oversample">
+                <option value="none">none</option>
+                <option value="2x" selected>2x</option>
+                <option value="4x">4x</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="hint">
+            True peak limiting isn’t fully available in browser audio, but ceiling + oversampling + soft clip gets you close enough for personal use.
+          </div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="controlBox">
+          <h3>Cleanup + Polish</h3>
+
+          <div class="controlRow">
+            <div class="left"><label style="margin:0">Sub rumble filter (HPF)</label></div>
+            <label class="toggle"><input type="checkbox" id="hpfOn" checked /> 30 Hz</label>
+          </div>
+
+          <div class="controlRow">
+            <div class="left"><label style="margin:0">Cut mud (250 Hz)</label></div>
+            <label class="toggle"><input type="checkbox" id="mudOn" checked /> gentle</label>
+          </div>
+
+          <div class="controlRow">
+            <div class="left"><label style="margin:0">De-harsh (3.5 kHz)</label></div>
+            <label class="toggle"><input type="checkbox" id="deharshOn" checked /> gentle</label>
+          </div>
+
+          <div class="controlRow">
+            <div class="left"><label style="margin:0">Air shelf (12 kHz)</label></div>
+            <label class="toggle"><input type="checkbox" id="airOn" checked /> pop shine</label>
+          </div>
+
+          <div class="controlRow">
+            <div class="left"><label style="margin:0">Tape warmth (saturation)</label></div>
+            <label class="toggle"><input type="checkbox" id="warmOn" checked /> subtle</label>
+          </div>
+
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="controlBox">
+          <h3>Dynamics + Width</h3>
+
+          <div class="controlRow">
+            <div class="left"><label style="margin:0">Glue compression (serial)</label></div>
+            <label class="toggle"><input type="checkbox" id="glueOn" checked /> 1–2 dB each</label>
+          </div>
+
+          <div class="controlRow">
+            <div class="left"><label style="margin:0">Multiband control</label></div>
+            <label class="toggle"><input type="checkbox" id="mbOn" checked /> light</label>
+          </div>
+
+          <div class="controlRow">
+            <div class="left"><label style="margin:0">Parallel compression (NY)</label></div>
+            <label class="toggle"><input type="checkbox" id="parOn" checked /> blend</label>
+          </div>
+
+          <div class="controlRow">
+            <div class="left"><label style="margin:0">Stereo width</label></div>
+            <div class="row tight" style="gap:10px">
+              <span class="mini"><span id="widthVal">1.15</span>x</span>
+              <input type="range" id="width" min="1" max="1.6" step="0.01" value="1.15">
+            </div>
+          </div>
+
+          <div class="controlRow">
+            <div class="left"><label style="margin:0">Mono bass (below 120 Hz)</label></div>
+            <label class="toggle"><input type="checkbox" id="monoBass" checked /> on</label>
+          </div>
+
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="controlBox">
+          <h3>Export</h3>
+          <div class="controlRow">
+            <div class="left"><label style="margin:0">Bit depth</label></div>
+            <select id="bitDepth">
+              <option value="16">16-bit PCM</option>
+              <option value="24" selected>24-bit PCM</option>
+            </select>
+          </div>
+
+          <div class="hint">
+            Everything runs on your device. No uploading to servers unless you paste a reference URL.
+          </div>
+          <div id="warn" class="hint danger" style="margin-top:10px; display:none"></div>
+        </div>
+
       </div>
     </div>
 
   </div>
+</div>
 
 <script>
-/* =========================
-   Helpers
-========================= */
-const ui = (id)=>document.getElementById(id);
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const db = (x)=>20*Math.log10(Math.max(1e-9,x));
-const lin = (d)=>Math.pow(10,d/20);
+/* -----------------------------------------------------------
+   Wu-Tang Master — single file app
+   - 3 waveforms (Original/Mastered/Reference)
+   - Auto-master that isn't "volume = good"
+   - Level matched A/B
+   - Optional Essentia analysis (fallback safe if it fails)
+------------------------------------------------------------ */
 
-function setStatus(msg){ ui("status").textContent = msg; }
+const $ = (id)=>document.getElementById(id);
 
-function makeSaturationCurve(amount){
-  const n=2048, curve=new Float32Array(n);
-  const k=amount*18;
-  for(let i=0;i<n;i++){
-    const x=(i*2/n)-1;
-    curve[i]=amount===0?x:Math.tanh(x*(1+k))/Math.tanh(1+k);
-  }
-  return curve;
-}
-function makeClipCurve(amount){
-  const n=2048, curve=new Float32Array(n);
-  const a=1+amount*12;
-  for(let i=0;i<n;i++){
-    const x=(i*2/n)-1;
-    curve[i]=amount===0?x:(Math.atan(a*x)/Math.atan(a));
-  }
-  return curve;
-}
-
-/* =========================
-   Audio State
-========================= */
 let audioCtx = null;
-let mediaEl = null;
-let mediaSource = null;
-let wavesurfer = null;
 
-let audioBuffer = null;     // your track (decoded)
-let refBuffer = null;       // reference (decoded)
-let fileNameBase = "WU_MASTER";
+let orig = {
+  file:null, url:null, buffer:null, ws:null, audio:null, stats:null
+};
+let mast = {
+  url:null, buffer:null, ws:null, audio:null, stats:null
+};
+let ref = {
+  file:null, url:null, buffer:null, ws:null, audio:null, stats:null
+};
 
-const nodes = {};
-let rafId = null;
+let essentia = null;
+let essentiaReady = false;
 
-let currentAB = "master";   // "master" or "orig"
+function setStatus(msg, on=false){
+  $("status").textContent = msg;
+  $("readyDot").classList.toggle("on", on);
+}
 
-/* =========================
-   WaveSurfer
-========================= */
-function initWaveSurfer(){
-  if(wavesurfer) wavesurfer.destroy();
-  wavesurfer = WaveSurfer.create({
-    container:"#waveform",
-    waveColor:"#0a0a0a",
-    progressColor:"#ffcc00",
-    cursorColor:"#ffcc00",
-    height: matchMedia("(max-width: 980px)").matches ? 90 : 120,
-    normalize:true,
-    responsive:true,
-    backend:"MediaElement"
+function showWarn(msg){
+  const w = $("warn");
+  if(!msg){ w.style.display="none"; w.textContent=""; return; }
+  w.style.display="block";
+  w.textContent = msg;
+}
+
+// ---------- WaveSurfer helpers ----------
+function makeWave(containerId){
+  return WaveSurfer.create({
+    container: "#" + containerId,
+    waveColor: "#111",
+    progressColor: "#ffd400",
+    cursorColor: "#111",
+    barWidth: 2,
+    barGap: 1,
+    height: 84,
+    normalize: true,
+    responsive: true
   });
 }
 
-/* =========================
-   Quick FFT (lightweight)
-========================= */
-function fftMag(x){
-  const N=x.length;
-  const re = new Float32Array(N);
-  const im = new Float32Array(N);
-  re.set(x);
-  let j=0;
-  for(let i=0;i<N;i++){
-    if(i<j){ [re[i],re[j]]=[re[j],re[i]]; [im[i],im[j]]=[im[j],im[i]]; }
-    let m=N>>1;
-    while(m>=1 && j>=m){ j-=m; m>>=1; }
-    j+=m;
-  }
-  for(let size=2; size<=N; size<<=1){
-    const half=size>>1;
-    const step=N/size;
-    for(let i=0;i<N;i+=size){
-      for(let k=0;k<half;k++){
-        const ang = -2*Math.PI*k*step/N;
-        const wr = Math.cos(ang), wi = Math.sin(ang);
-        const a = i+k, b = i+k+half;
-        const tr = wr*re[b] - wi*im[b];
-        const ti = wr*im[b] + wi*re[b];
-        re[b] = re[a]-tr; im[b]=im[a]-ti;
-        re[a] = re[a]+tr; im[a]=im[a]+ti;
-      }
-    }
-  }
-  const out = new Float32Array(N/2);
-  for(let i=0;i<N/2;i++) out[i] = Math.sqrt(re[i]*re[i] + im[i]*im[i]);
-  return out;
+function wsLoad(ws, url){
+  return new Promise((resolve, reject)=>{
+    ws.once("ready", resolve);
+    ws.once("error", reject);
+    ws.load(url);
+  });
 }
 
-function analyzeBuffer(buf){
-  const ch0 = buf.getChannelData(0);
-  const ch1 = buf.numberOfChannels>1 ? buf.getChannelData(1) : null;
-
-  // peak + RMS
-  let peak=0, sumSq=0;
-  for(let i=0;i<ch0.length;i++){
-    const a=Math.abs(ch0[i]); if(a>peak) peak=a;
-    sumSq += ch0[i]*ch0[i];
-    if(ch1){ const b=Math.abs(ch1[i]); if(b>peak) peak=b; sumSq += b*b; }
-  }
-  const n = ch1 ? ch0.length*2 : ch0.length;
-  const rms = Math.sqrt(sumSq/Math.max(1,n));
-
-  // short-ish loudness proxy: find loudest RMS window
-  const sr = buf.sampleRate;
-  const win = Math.max(2048, Math.floor(sr*0.25));
-  const step = Math.floor(win/2);
-  let best = 0;
-  for(let i=0;i<ch0.length-win;i+=step){
-    let s=0;
-    for(let k=0;k<win;k++){
-      const v = ch0[i+k];
-      s += v*v;
-      if(ch1){ const w = ch1[i+k]; s += w*w; }
-    }
-    const r = Math.sqrt(s/(win*(ch1?2:1)));
-    if(r>best) best=r;
-  }
-
-  // spectrum snapshot
-  const N = 4096;
-  const seg = new Float32Array(N);
-  const take = Math.min(ch0.length, sr*8);
-  const stride = Math.max(1, Math.floor(take/N));
-  for(let i=0;i<N;i++){
-    const idx = Math.min(ch0.length-1, i*stride);
-    seg[i] = ch0[idx];
-  }
-  const mags = fftMag(seg);
-  const hzPerBin = sr/N;
-
-  const band = (lo,hi)=>{
-    const a=Math.floor(lo/hzPerBin);
-    const b=Math.floor(hi/hzPerBin);
-    let s=0,c=0;
-    for(let i=a;i<=b && i<mags.length;i++){ s+=mags[i]; c++; }
-    return s/Math.max(1,c);
-  };
-
-  const low = band(30,120);
-  const mud = band(200,400);
-  const mid = band(800,2000);
-  const harsh = band(2500,5500);
-  const air = band(10000,16000);
-  const hiss = band(12000,20000); // proxy for noise/hiss
-
-  // stereo correlation proxy
-  let corr = 0.65;
-  if(ch1){
-    let num=0,denA=0,denB=0;
-    const limit = Math.min(ch0.length, sr*3);
-    for(let i=0;i<limit;i+=64){
-      const a=ch0[i], b=ch1[i];
-      num += a*b; denA += a*a; denB += b*b;
-    }
-    corr = num / Math.sqrt(Math.max(1e-9, denA*denB));
-  }
-
-  return {
-    peakDb: db(peak),
-    rmsDb: db(rms),
-    loudRmsDb: db(best),
-    low,mud,mid,harsh,air,hiss,
-    corr
-  };
+// ---------- Audio helpers ----------
+function ensureCtx(){
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
 }
 
-/* =========================
-   Graph: Dry vs Wet (A/B)
-========================= */
-function clearNodes(){
-  try{ mediaSource?.disconnect(); }catch{}
-  for(const k in nodes){
-    try{ nodes[k]?.disconnect?.(); }catch{}
-    delete nodes[k];
-  }
-}
-
-function buildGraph(){
-  clearNodes();
-
-  nodes.masterOut = audioCtx.createGain();
-  nodes.masterOut.gain.value = 1;
-  nodes.masterOut.connect(audioCtx.destination);
-
-  // A/B busses
-  nodes.dryGain = audioCtx.createGain(); nodes.dryGain.gain.value = 0; // start on mastered
-  nodes.wetGain = audioCtx.createGain(); nodes.wetGain.gain.value = 1;
-
-  // Analysis meters
-  nodes.anWet = audioCtx.createAnalyser(); nodes.anWet.fftSize=2048;
-  nodes.anDry = audioCtx.createAnalyser(); nodes.anDry.fftSize=1024;
-
-  // === Wet chain (AUTO MASTER BUS) ===
-  nodes.inGain = audioCtx.createGain();
-
-  // Foundation
-  nodes.hpf = audioCtx.createBiquadFilter(); nodes.hpf.type="highpass"; nodes.hpf.Q.value=0.707;
-
-  // Tonal/Surgical EQ
-  nodes.eqLow = audioCtx.createBiquadFilter(); nodes.eqLow.type="lowshelf"; nodes.eqLow.frequency.value=90; nodes.eqLow.Q.value=0.707;
-  nodes.eqMud = audioCtx.createBiquadFilter(); nodes.eqMud.type="peaking"; nodes.eqMud.frequency.value=280; nodes.eqMud.Q.value=1.0;
-  nodes.eqHarsh = audioCtx.createBiquadFilter(); nodes.eqHarsh.type="peaking"; nodes.eqHarsh.frequency.value=3800; nodes.eqHarsh.Q.value=1.25;
-  nodes.eqAir = audioCtx.createBiquadFilter(); nodes.eqAir.type="highshelf"; nodes.eqAir.frequency.value=12000; nodes.eqAir.Q.value=0.707;
-
-  // De-hiss / De-harsh dynamic band (Suno-ish artifacts helper)
-  nodes.dhBand = audioCtx.createBiquadFilter(); nodes.dhBand.type="bandpass"; nodes.dhBand.frequency.value=7000; nodes.dhBand.Q.value=2.6;
-  nodes.dhComp = audioCtx.createDynamicsCompressor();
-  nodes.dhComp.threshold.value=-30; nodes.dhComp.knee.value=20; nodes.dhComp.ratio.value=8;
-  nodes.dhComp.attack.value=0.002; nodes.dhComp.release.value=0.11;
-  nodes.dhMix = audioCtx.createGain();
-
-  // Multiband-ish compression (3-band split)
-  nodes.lowSplit = audioCtx.createBiquadFilter(); nodes.lowSplit.type="lowpass"; nodes.lowSplit.frequency.value=140; nodes.lowSplit.Q.value=0.707;
-  nodes.midSplit = audioCtx.createBiquadFilter(); nodes.midSplit.type="bandpass"; nodes.midSplit.frequency.value=900; nodes.midSplit.Q.value=0.9;
-  nodes.highSplit = audioCtx.createBiquadFilter(); nodes.highSplit.type="highpass"; nodes.highSplit.frequency.value=3200; nodes.highSplit.Q.value=0.707;
-
-  nodes.compLow = audioCtx.createDynamicsCompressor();
-  nodes.compMid = audioCtx.createDynamicsCompressor();
-  nodes.compHigh = audioCtx.createDynamicsCompressor();
-
-  // Glue (serial comp after multiband)
-  nodes.glue = audioCtx.createDynamicsCompressor();
-  nodes.glue.knee.value=18; nodes.glue.attack.value=0.03; nodes.glue.release.value=0.25;
-
-  // Parallel “New York”
-  nodes.nySend = audioCtx.createGain();
-  nodes.nyComp = audioCtx.createDynamicsCompressor();
-  nodes.nyComp.threshold.value=-30; nodes.nyComp.knee.value=12; nodes.nyComp.ratio.value=8;
-  nodes.nyComp.attack.value=0.01; nodes.nyComp.release.value=0.12;
-  nodes.nyReturn = audioCtx.createGain();
-
-  // Mid/Side width (realtime)
-  nodes.msIn = audioCtx.createGain();
-  nodes.msOut = audioCtx.createGain();
-  nodes.widthGain = audioCtx.createGain();
-
-  const split = audioCtx.createChannelSplitter(2);
-  const merge = audioCtx.createChannelMerger(2);
-
-  const Lh = audioCtx.createGain(); Lh.gain.value=0.5;
-  const Rh = audioCtx.createGain(); Rh.gain.value=0.5;
-  const RhInv = audioCtx.createGain(); RhInv.gain.value=-0.5;
-  const M = audioCtx.createGain();
-  const S = audioCtx.createGain();
-  const Sinv = audioCtx.createGain(); Sinv.gain.value=-1;
-  const Lout = audioCtx.createGain();
-  const Rout = audioCtx.createGain();
-
-  nodes.sideHPF = audioCtx.createBiquadFilter(); nodes.sideHPF.type="highpass"; nodes.sideHPF.Q.value=0.707;
-  nodes.sideHighHP = audioCtx.createBiquadFilter(); nodes.sideHighHP.type="highpass"; nodes.sideHighHP.frequency.value=8000; nodes.sideHighHP.Q.value=0.707;
-  nodes.sideHighGain = audioCtx.createGain();
-
-  nodes.msIn.connect(split);
-  split.connect(Lh,0); split.connect(Rh,1); split.connect(RhInv,1);
-  Lh.connect(M); Rh.connect(M);
-  Lh.connect(S); RhInv.connect(S);
-
-  const sideBase = audioCtx.createGain();
-  const sideHighMix = audioCtx.createGain();
-  const sideTotal = audioCtx.createGain();
-
-  S.connect(nodes.sideHPF);
-  nodes.sideHPF.connect(sideBase);
-
-  nodes.sideHPF.connect(nodes.sideHighHP);
-  nodes.sideHighHP.connect(nodes.sideHighGain);
-  nodes.sideHighGain.connect(nodes.widthGain);
-  nodes.widthGain.connect(sideHighMix);
-
-  sideBase.connect(sideTotal);
-  sideHighMix.connect(sideTotal);
-
-  M.connect(Lout); sideTotal.connect(Lout);
-  M.connect(Rout); sideTotal.connect(Sinv); Sinv.connect(Rout);
-
-  Lout.connect(merge,0,0);
-  Rout.connect(merge,0,1);
-  merge.connect(nodes.msOut);
-
-  // Character + Finish
-  nodes.tape = audioCtx.createWaveShaper(); nodes.tape.oversample="2x";
-  nodes.clip = audioCtx.createWaveShaper(); nodes.clip.oversample="4x";
-  nodes.limiter = audioCtx.createDynamicsCompressor();
-  nodes.limiter.knee.value=0; nodes.limiter.ratio.value=20; nodes.limiter.attack.value=0.002; nodes.limiter.release.value=0.08;
-
-  // Subtle space (optional, inspired by “added delay/reverb” in your extract)
-  nodes.spaceSend = audioCtx.createGain();
-  nodes.spaceDelay = audioCtx.createDelay(0.5);
-  nodes.spaceFb = audioCtx.createGain();
-  nodes.spaceLP = audioCtx.createBiquadFilter(); nodes.spaceLP.type="lowpass"; nodes.spaceLP.frequency.value=6000;
-  nodes.spaceMix = audioCtx.createGain();
-
-  // routing
-  mediaSource.connect(nodes.dryGain);
-  nodes.dryGain.connect(nodes.anDry);
-  nodes.anDry.connect(nodes.masterOut);
-
-  mediaSource.connect(nodes.inGain);
-
-  nodes.inGain.connect(nodes.hpf);
-  nodes.hpf.connect(nodes.eqLow);
-  nodes.eqLow.connect(nodes.eqMud);
-  nodes.eqMud.connect(nodes.eqHarsh);
-  nodes.eqHarsh.connect(nodes.eqAir);
-
-  // dynamic de-hiss band (parallel)
-  nodes.eqAir.connect(nodes.dhBand);
-  nodes.dhBand.connect(nodes.dhComp);
-  nodes.dhComp.connect(nodes.dhMix);
-
-  // multiband split
-  nodes.eqAir.connect(nodes.lowSplit);
-  nodes.eqAir.connect(nodes.midSplit);
-  nodes.eqAir.connect(nodes.highSplit);
-
-  nodes.lowSplit.connect(nodes.compLow);
-  nodes.midSplit.connect(nodes.compMid);
-  nodes.highSplit.connect(nodes.compHigh);
-
-  nodes.mbSum = audioCtx.createGain();
-  nodes.compLow.connect(nodes.mbSum);
-  nodes.compMid.connect(nodes.mbSum);
-  nodes.compHigh.connect(nodes.mbSum);
-
-  // add de-hiss mixed in
-  nodes.dhMix.connect(nodes.mbSum);
-
-  // glue
-  nodes.mbSum.connect(nodes.glue);
-
-  // parallel NY
-  nodes.glue.connect(nodes.nySend);
-  nodes.nySend.connect(nodes.nyComp);
-  nodes.nyComp.connect(nodes.nyReturn);
-
-  nodes.sum = audioCtx.createGain();
-  nodes.glue.connect(nodes.sum);
-  nodes.nyReturn.connect(nodes.sum);
-
-  // optional space FX on wet bus
-  nodes.sum.connect(nodes.spaceSend);
-  nodes.spaceSend.connect(nodes.spaceDelay);
-  nodes.spaceDelay.connect(nodes.spaceLP);
-  nodes.spaceLP.connect(nodes.spaceFb);
-  nodes.spaceFb.connect(nodes.spaceDelay);
-  nodes.spaceLP.connect(nodes.spaceMix);
-
-  // main path
-  nodes.sum.connect(nodes.msIn);
-  nodes.msOut.connect(nodes.tape);
-  nodes.tape.connect(nodes.clip);
-  nodes.clip.connect(nodes.limiter);
-
-  // blend space in near the end (kept subtle)
-  nodes.spaceMix.connect(nodes.limiter);
-
-  nodes.limiter.connect(nodes.wetGain);
-  nodes.wetGain.connect(nodes.anWet);
-  nodes.anWet.connect(nodes.masterOut);
-
-  applyAuto(); // initialize
-  startMeters();
-}
-
-/* =========================
-   Style presets (feel settings)
-   + Ref steering
-========================= */
-function baseStyle(style){
-  // These are baselines; auto analysis then nudges them
-  switch(style){
-    case "radio":
-      return { air:+2.2, mud:-1.6, harsh:-1.0, low:+0.3, sat:0.35, clip:0.45, width:1.22, space:0.05 };
-    case "warm90":
-      return { air:+0.7, mud:-0.8, harsh:-0.6, low:+0.8, sat:0.55, clip:0.40, width:1.10, space:0.10 };
-    case "rock":
-      return { air:+1.2, mud:-1.2, harsh:-0.7, low:+0.4, sat:0.42, clip:0.62, width:1.15, space:0.06 };
-    case "club":
-      return { air:+1.0, mud:-2.2, harsh:-1.2, low:+0.9, sat:0.55, clip:0.78, width:1.12, space:0.03 };
-    case "lofi":
-      return { air:-0.6, mud:+0.2, harsh:-0.2, low:+0.3, sat:0.70, clip:0.35, width:1.05, space:0.12 };
-    case "sunoFix":
-    default:
-      return { air:+1.4, mud:-2.0, harsh:-1.6, low:+0.4, sat:0.40, clip:0.55, width:1.15, space:0.08 };
-  }
-}
-
-function computeAutoParams(){
-  if(!audioBuffer) return null;
-
-  const a = analyzeBuffer(audioBuffer);
-  const style = ui("style").value;
-  const target = ui("target").value;
-  const intensity = Number(ui("intensity").value)/100;
-  const monoBass = ui("monoBass").checked;
-  const widenAir = ui("widenAir").checked;
-  const spaceFX = ui("spaceFX").checked;
-
-  const s = baseStyle(style);
-
-  // Loudness target proxy (we use loudest RMS window and then push limiter/drive)
-  // (Not true LUFS; but consistent across your own tracks)
-  const desiredLoudRmsDb = (target==="stream") ? -16 : (target==="hot") ? -13 : -11;
-  const pushDb = clamp(desiredLoudRmsDb - a.loudRmsDb, -6, 10);
-
-  // Gain staging target headroom: aim peak around -4 dB before final
-  const prePeakTarget = -4.5 + (target==="clubhot" ? 0.6 : 0) - intensity*0.4;
-  const inputGainDb = clamp(prePeakTarget - a.peakDb, -12, 12);
-
-  // Spectrum ratios
-  const mudRatio = a.mud / Math.max(1e-9, a.mid);
-  const harshRatio = a.harsh / Math.max(1e-9, a.mid);
-  const airRatio = a.air / Math.max(1e-9, a.mid);
-  const hissRatio = a.hiss / Math.max(1e-9, a.air);
-
-  // Reference steering (optional): match tilt/width tendencies
-  let ref = null;
-  if(refBuffer){
-    const r = analyzeBuffer(refBuffer);
-    ref = {
-      airToMid: r.air / Math.max(1e-9, r.mid),
-      lowToMid: r.low / Math.max(1e-9, r.mid),
-      corr: r.corr,
-      harshToMid: r.harsh / Math.max(1e-9, r.mid),
-      hissToAir: r.hiss / Math.max(1e-9, r.air)
-    };
-  }
-
-  // EQ: style baseline + auto correction
-  let mudDb   = s.mud - clamp(mudRatio*1.2 + intensity*1.2, 0.4, 3.8);
-  let harshDb = s.harsh - clamp(harshRatio*1.1 + intensity*1.2, 0.3, 3.5);
-  let airDb   = s.air + clamp((1.4 + intensity*1.6) - airRatio*1.2, -0.6, 3.6);
-  let lowDb   = s.low + clamp(0.6 - (a.low/Math.max(1e-9,a.mid))*0.8, -1.2, 1.6);
-
-  // Suno-fix: extra de-hiss tendency
-  const dehissMix = clamp(0.25 + (style==="sunoFix" ? 0.25 : 0.10) + hissRatio*0.25 + intensity*0.20, 0.15, 0.80);
-
-  // Reference influence (gentle)
-  if(ref){
-    const steer = 0.35; // keep it subtle
-    const wantAir = clamp((ref.airToMid - airRatio), -1.0, 1.0);
-    const wantLow = clamp((ref.lowToMid - (a.low/Math.max(1e-9,a.mid))), -1.0, 1.0);
-    const wantHarsh = clamp((ref.harshToMid - harshRatio), -1.0, 1.0);
-
-    airDb   += wantAir * 2.0 * steer;
-    lowDb   += wantLow * 1.6 * steer;
-    harshDb -= wantHarsh * 1.5 * steer; // more harsh -> tame more
-  }
-
-  // Compression settings (serial + multiband)
-  const glueThresh = -22 - intensity*4 - (target==="clubhot" ? 2 : 0);
-  const glueRatio  = 1.8 + intensity*1.0 + (target==="clubhot" ? 0.3 : 0);
-
-  // Multiband thresholds: low controlled more, highs more open
-  const lowT  = -24 - intensity*4 - (target==="clubhot" ? 2 : 0);
-  const midT  = -22 - intensity*3;
-  const highT = -20 - intensity*2;
-
-  // Parallel NY
-  const nyReturn = clamp(0.10 + intensity*0.25 + (style==="rock" ? 0.08 : 0), 0.08, 0.45);
-
-  // Width
-  let width = s.width;
-  if(ref){
-    // if ref is wider and ours is too mono -> widen slightly
-    const refWide = (ref.corr < 0.45) ? 1.22 : 1.10;
-    width = width + (refWide - width)*0.35;
-  }
-  width = widenAir ? width : 1.0;
-
-  // Mono bass using side HPF
-  const sideHPFHz = monoBass ? 200 : 5;
-
-  // Saturation + clipping
-  let satAmt = clamp(s.sat + intensity*0.35 + (target==="clubhot" ? 0.12 : 0), 0, 1);
-  let clipAmt = clamp(s.clip + intensity*0.30 + (target==="clubhot" ? 0.12 : 0), 0, 1);
-
-  // Space FX (tiny)
-  const spaceAmt = spaceFX ? clamp(s.space + intensity*0.12, 0.0, 0.22) : 0.0;
-
-  // Limiter ceiling (safe)
-  const ceilingDb = -1.0;
-
-  return {
-    inputGainDb,
-    pushDb,
-    lowDb, mudDb, harshDb, airDb,
-    dehissMix,
-    glueThresh, glueRatio,
-    lowT, midT, highT,
-    nyReturn,
-    sideHPFHz,
-    width,
-    satAmt,
-    clipAmt,
-    spaceAmt,
-    ceilingDb
-  };
-}
-
-function applyAuto(){
-  if(!audioCtx || !nodes.inGain || !audioBuffer) return;
-
-  const p = computeAutoParams();
-  if(!p) return;
-
-  nodes.inGain.gain.value = lin(p.inputGainDb);
-
-  nodes.hpf.frequency.value = 30;
-
-  nodes.eqLow.gain.value = p.lowDb;
-  nodes.eqMud.gain.value = p.mudDb;
-  nodes.eqHarsh.gain.value = p.harshDb;
-  nodes.eqAir.gain.value = p.airDb;
-
-  // de-hiss dynamic band mixed in
-  nodes.dhMix.gain.value = p.dehissMix;
-
-  // Multiband comps
-  // Low: solid, more control
-  nodes.compLow.threshold.value = p.lowT;
-  nodes.compLow.knee.value = 18;
-  nodes.compLow.ratio.value = 3.2;
-  nodes.compLow.attack.value = 0.03;   // slowish attack preserves kick
-  nodes.compLow.release.value = 0.18;
-
-  // Mid: gentle glue
-  nodes.compMid.threshold.value = p.midT;
-  nodes.compMid.knee.value = 18;
-  nodes.compMid.ratio.value = 2.2;
-  nodes.compMid.attack.value = 0.025;
-  nodes.compMid.release.value = 0.20;
-
-  // High: light control (avoid dulling)
-  nodes.compHigh.threshold.value = p.highT;
-  nodes.compHigh.knee.value = 18;
-  nodes.compHigh.ratio.value = 1.8;
-  nodes.compHigh.attack.value = 0.015;
-  nodes.compHigh.release.value = 0.14;
-
-  // Glue
-  nodes.glue.threshold.value = p.glueThresh;
-  nodes.glue.ratio.value = p.glueRatio;
-
-  // Parallel
-  nodes.nyReturn.gain.value = p.nyReturn;
-
-  // Width
-  nodes.sideHPF.frequency.value = p.sideHPFHz;
-  nodes.widthGain.gain.value = p.width;
-  nodes.sideHighGain.gain.value = 1; // controlled by widthGain
-
-  // Character
-  nodes.tape.curve = makeSaturationCurve(p.satAmt);
-  nodes.clip.curve = makeClipCurve(p.clipAmt);
-
-  // Space FX
-  nodes.spaceSend.gain.value = p.spaceAmt;
-  nodes.spaceDelay.delayTime.value = 0.12;        // short slap
-  nodes.spaceFb.gain.value = 0.20 + p.spaceAmt;   // gentle feedback
-  nodes.spaceMix.gain.value = 0.35 * p.spaceAmt;  // keep subtle
-
-  // Limiter
-  nodes.limiter.threshold.value = p.ceilingDb;
-
-  // Ensure current AB routing
-  setAB(currentAB, false);
-}
-
-/* =========================
-   A/B + Level Match
-========================= */
-function setAB(mode, updateUI=true){
-  currentAB = mode;
-  if(!nodes.wetGain || !nodes.dryGain) return;
-
-  if(mode==="master"){
-    nodes.wetGain.gain.value = 1;
-    nodes.dryGain.gain.value = 0;
-    if(updateUI){
-      ui("abMasterBtn").classList.add("pillActive");
-      ui("abOriginalBtn").classList.remove("pillActive");
-      setStatus("A/B: MASTERED");
-    }
-  }else{
-    nodes.wetGain.gain.value = 0;
-    nodes.dryGain.gain.value = 1;
-    if(updateUI){
-      ui("abOriginalBtn").classList.add("pillActive");
-      ui("abMasterBtn").classList.remove("pillActive");
-      setStatus("A/B: ORIGINAL");
-    }
-  }
-}
-
-function startMeters(){
-  if(rafId) cancelAnimationFrame(rafId);
-
-  const peakC = ui("peakCanvas");
-  const rmsC = ui("rmsCanvas");
-  const pctx = peakC.getContext("2d");
-  const rctx = rmsC.getContext("2d");
-
-  const wetTime = new Float32Array(nodes.anWet.fftSize);
-  const dryTime = new Float32Array(nodes.anDry.fftSize);
-
-  function drawBar(ctx, valueDb, y, h, color){
-    const w = ctx.canvas.width;
-    ctx.fillStyle = "rgba(0,0,0,0.04)";
-    ctx.fillRect(12, y, w-24, h);
-    const frac = clamp((valueDb + 60)/60, 0, 1);
-    ctx.fillStyle = color;
-    ctx.fillRect(12, y, (w-24)*frac, h);
-  }
-
-  function loop(){
-    nodes.anWet.getFloatTimeDomainData(wetTime);
-    let peak=0, wetSum=0;
-    for(let i=0;i<wetTime.length;i++){
-      const v = wetTime[i];
-      const a = Math.abs(v); if(a>peak) peak=a;
-      wetSum += v*v;
-    }
-    const wetPeakDb = db(peak);
-    const wetRms = Math.sqrt(wetSum / wetTime.length);
-    const wetDb = db(wetRms);
-
-    nodes.anDry.getFloatTimeDomainData(dryTime);
-    let drySum=0;
-    for(let i=0;i<dryTime.length;i++){
-      const v = dryTime[i];
-      drySum += v*v;
-    }
-    const dryRms = Math.sqrt(drySum / dryTime.length);
-    const dryDb = db(dryRms);
-
-    ui("peakRead").textContent = `${wetPeakDb.toFixed(1)} dBFS`;
-    ui("rmsRead").textContent = `Orig ${dryDb.toFixed(1)} • Master ${wetDb.toFixed(1)} dB`;
-
-    // Level match so A/B isn't a loudness trick
-    if(ui("levelMatch").checked){
-      if(currentAB==="master"){
-        const diff = wetDb - dryDb; // if wet louder, turn wet down
-        const target = clamp(lin(-diff), 0.55, 1.8);
-        nodes.wetGain.gain.value += (target - nodes.wetGain.gain.value)*0.08;
-        nodes.dryGain.gain.value = 0;
-      }else{
-        const diff = dryDb - wetDb;
-        const target = clamp(lin(-diff), 0.55, 1.8);
-        nodes.dryGain.gain.value += (target - nodes.dryGain.gain.value)*0.08;
-        nodes.wetGain.gain.value = 0;
-      }
-    }else{
-      // keep hard A/B
-      if(currentAB==="master"){ nodes.wetGain.gain.value = 1; nodes.dryGain.gain.value=0; }
-      else{ nodes.wetGain.gain.value = 0; nodes.dryGain.gain.value=1; }
-    }
-
-    // draw
-    pctx.clearRect(0,0,peakC.width,peakC.height);
-    drawBar(pctx, wetPeakDb, 40, 44, wetPeakDb > -1 ? "#ef4444" : (wetPeakDb > -6 ? "#f59e0b" : "#10b981"));
-    pctx.fillStyle = "rgba(0,0,0,0.75)";
-    pctx.font = "24px system-ui";
-    pctx.fillText("PEAK", 12, 28);
-
-    rctx.clearRect(0,0,rmsC.width,rmsC.height);
-    drawBar(rctx, dryDb, 28, 32, "rgba(0,0,0,0.35)");
-    drawBar(rctx, wetDb, 78, 32, "#ffcc00");
-    rctx.fillStyle = "rgba(0,0,0,0.75)";
-    rctx.font = "20px system-ui";
-    rctx.fillText("RMS", 12, 22);
-
-    rafId = requestAnimationFrame(loop);
-  }
-  loop();
-}
-
-/* =========================
-   Loading
-========================= */
-function enableControls(on){
-  ui("playBtn").disabled = !on;
-  ui("abMasterBtn").disabled = !on;
-  ui("abOriginalBtn").disabled = !on;
-  ui("autoBtn").disabled = !on;
-  ui("resetBtn").disabled = !on;
-  ui("exportBtn").disabled = !on;
-}
-
-ui("fileInput").addEventListener("change", async (e)=>{
-  const file = e.target.files?.[0];
-  if(!file) return;
-
-  fileNameBase = (file.name||"WU_MASTER").replace(/\.[^/.]+$/,"");
-
-  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-
-  setStatus("Loading track…");
+async function decodeFileToBuffer(file){
+  const ctx = ensureCtx();
   const arr = await file.arrayBuffer();
-  audioBuffer = await audioCtx.decodeAudioData(arr.slice(0));
+  return await ctx.decodeAudioData(arr.slice(0));
+}
 
-  if(!mediaEl){
-    mediaEl = new Audio();
-    mediaEl.crossOrigin = "anonymous";
-    mediaEl.preload = "auto";
+function fmtDb(x){
+  if(!isFinite(x)) return "—";
+  return (x>=0?"+":"") + x.toFixed(1) + " dB";
+}
+function fmtSec(s){
+  if(!isFinite(s)) return "—";
+  const m = Math.floor(s/60);
+  const r = Math.floor(s%60).toString().padStart(2,"0");
+  return `${m}:${r}`;
+}
+
+// Peak/RMS quick stats (not LUFS; we approximate for safety)
+function analyzeBufferQuick(buffer){
+  let peak = 0;
+  let sumSq = 0;
+  let n = 0;
+  for(let ch=0; ch<buffer.numberOfChannels; ch++){
+    const data = buffer.getChannelData(ch);
+    for(let i=0;i<data.length;i+=2){ // downsample a bit
+      const v = data[i];
+      const av = Math.abs(v);
+      if(av>peak) peak = av;
+      sumSq += v*v;
+      n++;
+    }
   }
-  mediaEl.pause();
-  mediaEl.currentTime = 0;
+  const rms = Math.sqrt(sumSq / Math.max(1,n));
+  const peakDb = 20*Math.log10(Math.max(1e-12, peak));
+  const rmsDb  = 20*Math.log10(Math.max(1e-12, rms));
+  return {
+    dur: buffer.duration,
+    peakDb, rmsDb,
+    sr: buffer.sampleRate,
+    ch: buffer.numberOfChannels
+  };
+}
 
-  const url = URL.createObjectURL(file);
-  mediaEl.src = url;
-
-  initWaveSurfer();
-  wavesurfer.load(url);
-
+// Try Essentia EBU loudness if available (fallback to RMS estimate)
+async function analyzeBufferEssentia(buffer){
+  if(!essentiaReady || !essentia) return null;
   try{
-    if(mediaSource) { try{ mediaSource.disconnect(); }catch{} }
-    mediaSource = audioCtx.createMediaElementSource(mediaEl);
-  }catch(err){
-    console.error(err);
-    setStatus("Browser blocked audio. Use Chrome.");
+    // Downmix to mono float32 for analysis (faster)
+    const len = buffer.length;
+    const mono = new Float32Array(len);
+    for(let ch=0; ch<buffer.numberOfChannels; ch++){
+      const d = buffer.getChannelData(ch);
+      for(let i=0;i<len;i+=2) mono[i] += d[i] / buffer.numberOfChannels;
+      // note: we only fill every 2nd sample; that's fine for "rough" analysis
+    }
+
+    // Essentia expects full array; fill missing samples by simple copy
+    for(let i=1;i<len;i+=2) mono[i] = mono[i-1];
+
+    // Many builds expose LoudnessEBUR128; if not, return null
+    if(typeof essentia.LoudnessEBUR128 !== "function") return null;
+
+    const res = essentia.LoudnessEBUR128(mono, buffer.sampleRate);
+    // Depending on build, keys can vary; we try common ones
+    const iLufs = (res.integratedLoudness ?? res.integrated_loudness ?? res.loudnessIntegrated);
+    return (typeof iLufs === "number") ? iLufs : null;
+  }catch(e){
+    return null;
+  }
+}
+
+// Create an <audio> from blob URL, keep it ready for play/sync
+function makeAudio(url){
+  const a = new Audio();
+  a.src = url;
+  a.preload = "auto";
+  a.crossOrigin = "anonymous";
+  return a;
+}
+
+function pauseAll(){
+  [orig.audio, mast.audio, ref.audio].forEach(a=>{ if(a){ a.pause(); } });
+}
+function stopAll(){
+  [orig.audio, mast.audio, ref.audio].forEach(a=>{ if(a){ a.pause(); a.currentTime=0; } });
+}
+
+// Sync play between original/mastered for A/B
+let abState = "orig"; // "orig" or "mast"
+
+function playWhich(which){
+  // which: "orig" | "mast" | "ref"
+  if(audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+  if(which === "ref"){
+    if(!ref.audio) return;
+    pauseAll();
+    ref.audio.play();
     return;
   }
-
-  buildGraph();
-  setAB("master", true);
-  enableControls(true);
-  setStatus("Ready. Hit AUTO MASTER.");
-});
-
-ui("refInput").addEventListener("change", async (e)=>{
-  const file = e.target.files?.[0];
-  if(!file) { refBuffer=null; return; }
-  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-  setStatus("Loading reference…");
-  const arr = await file.arrayBuffer();
-  refBuffer = await audioCtx.decodeAudioData(arr.slice(0));
-  setStatus("Reference loaded ✓ (Auto will steer toward it)");
-  if(audioBuffer) applyAuto();
-});
-
-/* =========================
-   Transport + Buttons
-========================= */
-ui("playBtn").addEventListener("click", async ()=>{
-  if(!mediaEl || !audioCtx) return;
-  if(audioCtx.state==="suspended") await audioCtx.resume();
-
-  if(mediaEl.paused){
-    await mediaEl.play();
-    try{ wavesurfer.play(); }catch{}
-    setStatus("Playing…");
-  }else{
-    mediaEl.pause();
-    try{ wavesurfer.pause(); }catch{}
-    setStatus("Paused.");
+  if(which === "orig"){
+    if(!orig.audio) return;
+    if(mast.audio && !mast.audio.paused){
+      // sync from mastered
+      orig.audio.currentTime = mast.audio.currentTime || 0;
+    }
+    pauseAll();
+    orig.audio.play();
+    abState = "orig";
+    return;
   }
-});
-
-ui("abMasterBtn").addEventListener("click", ()=> setAB("master", true));
-ui("abOriginalBtn").addEventListener("click", ()=> setAB("orig", true));
-
-ui("autoBtn").addEventListener("click", ()=>{
-  if(!audioBuffer) return;
-  setStatus("Auto mastering…");
-  applyAuto();
-  setStatus("Auto master ✓ A/B it (level matched).");
-});
-
-ui("resetBtn").addEventListener("click", ()=>{
-  ui("style").value = "sunoFix";
-  ui("target").value = "stream";
-  ui("intensity").value = 60;
-  ui("monoBass").checked = true;
-  ui("widenAir").checked = true;
-  ui("spaceFX").checked = true;
-  ui("levelMatch").checked = true;
-  refBuffer = null;
-  ui("refInput").value = "";
-  applyAuto();
-  setAB("master", true);
-  setStatus("Reset ✓");
-});
-
-["style","target","intensity","monoBass","widenAir","spaceFX","levelMatch"].forEach(id=>{
-  ui(id).addEventListener("change", ()=>{ if(audioBuffer) applyAuto(); });
-  ui(id).addEventListener("input", ()=>{ if(audioBuffer) applyAuto(); });
-});
-
-/* =========================
-   Export (Offline render)
-========================= */
-function removeDCOffset(buf){
-  const out = new AudioBuffer({ length: buf.length, numberOfChannels: buf.numberOfChannels, sampleRate: buf.sampleRate });
-  for(let ch=0; ch<buf.numberOfChannels; ch++){
-    const input=buf.getChannelData(ch);
-    const data=out.getChannelData(ch);
-    let mean=0;
-    for(let i=0;i<input.length;i++) mean+=input[i];
-    mean/=input.length;
-    for(let i=0;i<input.length;i++) data[i]=input[i]-mean;
+  if(which === "mast"){
+    if(!mast.audio) return;
+    if(orig.audio && !orig.audio.paused){
+      mast.audio.currentTime = orig.audio.currentTime || 0;
+    }
+    pauseAll();
+    mast.audio.play();
+    abState = "mast";
+    return;
   }
-  return out;
 }
 
-function audioBufferToWavBlob(buffer, bitDepth=24){
-  const numChannels=buffer.numberOfChannels, sampleRate=buffer.sampleRate, length=buffer.length;
-  const interleaved=new Float32Array(length*numChannels);
-  const chans=[];
-  for(let ch=0;ch<numChannels;ch++) chans.push(buffer.getChannelData(ch));
-  for(let i=0;i<length;i++){
-    for(let ch=0;ch<numChannels;ch++){
-      interleaved[i*numChannels+ch]=chans[ch][i];
-    }
-  }
+function toggleAB(){
+  if(!orig.audio || !mast.audio) return;
+  const levelMatch = $("levelMatch").checked;
 
-  const bytesPerSample = bitDepth===16 ? 2 : 3;
-  const blockAlign = numChannels*bytesPerSample;
-  const byteRate = sampleRate*blockAlign;
-  const dataSize = interleaved.length*bytesPerSample;
+  const from = (abState==="orig") ? orig.audio : mast.audio;
+  const to   = (abState==="orig") ? mast.audio : orig.audio;
 
-  const ab = new ArrayBuffer(44+dataSize);
-  const view = new DataView(ab);
-  let o=0;
-  const ws=(s)=>{ for(let i=0;i<s.length;i++) view.setUint8(o++, s.charCodeAt(i)); };
+  const t = from.currentTime || 0;
+  to.currentTime = t;
 
-  ws("RIFF"); view.setUint32(o, 36+dataSize, true); o+=4;
-  ws("WAVE");
-  ws("fmt "); view.setUint32(o,16,true); o+=4;
-  view.setUint16(o,1,true); o+=2;
-  view.setUint16(o,numChannels,true); o+=2;
-  view.setUint32(o,sampleRate,true); o+=4;
-  view.setUint32(o,byteRate,true); o+=4;
-  view.setUint16(o,blockAlign,true); o+=2;
-  view.setUint16(o,bitDepth,true); o+=2;
-  ws("data"); view.setUint32(o,dataSize,true); o+=4;
-
-  if(bitDepth===16){
-    for(let i=0;i<interleaved.length;i++){
-      const s=clamp(interleaved[i],-1,1);
-      view.setInt16(o, s<0 ? s*0x8000 : s*0x7FFF, true);
-      o+=2;
-    }
+  // Level match: make perceived loudness closer (we use RMS/LUFS if available)
+  if(levelMatch && orig.stats && mast.stats){
+    const fromDb = (abState==="orig") ? (orig.stats.iLufs ?? orig.stats.rmsDb) : (mast.stats.iLufs ?? mast.stats.rmsDb);
+    const toDb   = (abState==="orig") ? (mast.stats.iLufs ?? mast.stats.rmsDb) : (orig.stats.iLufs ?? orig.stats.rmsDb);
+    const diffDb = (fromDb - toDb); // if to is louder, reduce it
+    // audio.volume is linear 0..1; convert dB
+    const gain = Math.pow(10, diffDb/20);
+    to.volume = Math.min(1, Math.max(0.05, gain));
+    from.volume = 1;
   }else{
-    for(let i=0;i<interleaved.length;i++){
-      const s=clamp(interleaved[i],-1,1);
-      let v = s<0 ? Math.floor(s*0x800000) : Math.floor(s*0x7FFFFF);
-      view.setUint8(o++, v & 255);
-      view.setUint8(o++, (v>>8)&255);
-      view.setUint8(o++, (v>>16)&255);
-    }
+    orig.audio.volume = 1;
+    mast.audio.volume = 1;
   }
-  return new Blob([ab], {type:"audio/wav"});
+
+  from.pause();
+  to.play();
+  abState = (abState==="orig") ? "mast" : "orig";
 }
 
-ui("exportBtn").addEventListener("click", async ()=>{
-  if(!audioBuffer) return;
+// ---------- Mastering chain (Offline render) ----------
+// Build a safe mastering graph on an OfflineAudioContext
+function buildMasterChain(ctx, settings){
+  // settings:
+  // { preGainDb, ceilingDb, intensity, width, monoBass, hpfOn, mudOn, deharshOn, airOn, warmOn, glueOn, mbOn, parOn, oversample }
+  const nodes = {};
 
-  setStatus("Exporting…");
-  const bitDepth = Number(ui("bitDepth").value);
-  const cleaned = removeDCOffset(audioBuffer);
+  // Input gain
+  nodes.pre = ctx.createGain();
+  nodes.pre.gain.value = Math.pow(10, settings.preGainDb/20);
 
-  const p = computeAutoParams();
-  if(!p){ setStatus("Export failed (no params)."); return; }
+  // HPF
+  nodes.hpf = ctx.createBiquadFilter();
+  nodes.hpf.type = "highpass";
+  nodes.hpf.frequency.value = settings.hpfOn ? 30 : 5;
+  nodes.hpf.Q.value = 0.707;
 
-  const offCtx = new OfflineAudioContext(cleaned.numberOfChannels, cleaned.length, cleaned.sampleRate);
-  const src = offCtx.createBufferSource();
-  src.buffer = cleaned;
+  // Mud cut
+  nodes.mud = ctx.createBiquadFilter();
+  nodes.mud.type = "peaking";
+  nodes.mud.frequency.value = 250;
+  nodes.mud.Q.value = 1.0;
+  nodes.mud.gain.value = settings.mudOn ? -1.2 : 0;
 
-  const inGain = offCtx.createGain(); inGain.gain.value = lin(p.inputGainDb);
+  // Deharsh
+  nodes.deharsh = ctx.createBiquadFilter();
+  nodes.deharsh.type = "peaking";
+  nodes.deharsh.frequency.value = 3500;
+  nodes.deharsh.Q.value = 1.2;
+  nodes.deharsh.gain.value = settings.deharshOn ? -1.0 : 0;
 
-  const hpf = offCtx.createBiquadFilter(); hpf.type="highpass"; hpf.Q.value=0.707; hpf.frequency.value=30;
+  // Air shelf
+  nodes.air = ctx.createBiquadFilter();
+  nodes.air.type = "highshelf";
+  nodes.air.frequency.value = 12000;
+  nodes.air.gain.value = settings.airOn ? 1.6 : 0;
 
-  const eqLow = offCtx.createBiquadFilter(); eqLow.type="lowshelf"; eqLow.frequency.value=90; eqLow.Q.value=0.707; eqLow.gain.value=p.lowDb;
-  const eqMud = offCtx.createBiquadFilter(); eqMud.type="peaking"; eqMud.frequency.value=280; eqMud.Q.value=1.0; eqMud.gain.value=p.mudDb;
-  const eqHarsh = offCtx.createBiquadFilter(); eqHarsh.type="peaking"; eqHarsh.frequency.value=3800; eqHarsh.Q.value=1.25; eqHarsh.gain.value=p.harshDb;
-  const eqAir = offCtx.createBiquadFilter(); eqAir.type="highshelf"; eqAir.frequency.value=12000; eqAir.Q.value=0.707; eqAir.gain.value=p.airDb;
+  // Glue compression (serial: two gentle comps)
+  nodes.comp1 = ctx.createDynamicsCompressor();
+  nodes.comp2 = ctx.createDynamicsCompressor();
+  if(settings.glueOn){
+    nodes.comp1.threshold.value = -18;
+    nodes.comp1.ratio.value = 2.0;
+    nodes.comp1.attack.value = 0.03;  // slow-ish
+    nodes.comp1.release.value = 0.25;
 
-  const dhBand = offCtx.createBiquadFilter(); dhBand.type="bandpass"; dhBand.frequency.value=7000; dhBand.Q.value=2.6;
-  const dhComp = offCtx.createDynamicsCompressor();
-  dhComp.threshold.value=-30; dhComp.knee.value=20; dhComp.ratio.value=8; dhComp.attack.value=0.002; dhComp.release.value=0.11;
-  const dhMix = offCtx.createGain(); dhMix.gain.value=p.dehissMix;
+    nodes.comp2.threshold.value = -14;
+    nodes.comp2.ratio.value = 1.8;
+    nodes.comp2.attack.value = 0.03;
+    nodes.comp2.release.value = 0.22;
+  }else{
+    // effectively off
+    nodes.comp1.threshold.value = 0;
+    nodes.comp1.ratio.value = 1;
+    nodes.comp2.threshold.value = 0;
+    nodes.comp2.ratio.value = 1;
+  }
 
-  // 3-band comp
-  const lowSplit = offCtx.createBiquadFilter(); lowSplit.type="lowpass"; lowSplit.frequency.value=140; lowSplit.Q.value=0.707;
-  const midSplit = offCtx.createBiquadFilter(); midSplit.type="bandpass"; midSplit.frequency.value=900; midSplit.Q.value=0.9;
-  const highSplit = offCtx.createBiquadFilter(); highSplit.type="highpass"; highSplit.frequency.value=3200; highSplit.Q.value=0.707;
+  // Parallel compression (NY)
+  nodes.parSend = ctx.createGain();
+  nodes.parSend.gain.value = settings.parOn ? 0.55 : 0.0;
 
-  const compLow = offCtx.createDynamicsCompressor();
-  compLow.threshold.value=p.lowT; compLow.knee.value=18; compLow.ratio.value=3.2; compLow.attack.value=0.03; compLow.release.value=0.18;
+  nodes.parComp = ctx.createDynamicsCompressor();
+  nodes.parComp.threshold.value = -32;
+  nodes.parComp.ratio.value = 6;
+  nodes.parComp.attack.value = 0.01;
+  nodes.parComp.release.value = 0.18;
 
-  const compMid = offCtx.createDynamicsCompressor();
-  compMid.threshold.value=p.midT; compMid.knee.value=18; compMid.ratio.value=2.2; compMid.attack.value=0.025; compMid.release.value=0.20;
+  nodes.parReturn = ctx.createGain();
+  nodes.parReturn.gain.value = settings.parOn ? (0.35 + 0.45*(settings.intensity/100)) : 0.0;
 
-  const compHigh = offCtx.createDynamicsCompressor();
-  compHigh.threshold.value=p.highT; compHigh.knee.value=18; compHigh.ratio.value=1.8; compHigh.attack.value=0.015; compHigh.release.value=0.14;
+  nodes.sum = ctx.createGain(); // sums dry+parallel
 
-  const mbSum = offCtx.createGain();
+  // Multiband (light): split lows/mids/highs and compress lows a bit more
+  nodes.mbIn = ctx.createGain();
+  nodes.mbOut = ctx.createGain();
 
-  const glue = offCtx.createDynamicsCompressor();
-  glue.threshold.value=p.glueThresh; glue.knee.value=18; glue.ratio.value=p.glueRatio; glue.attack.value=0.03; glue.release.value=0.25;
+  nodes.lowLP = ctx.createBiquadFilter(); nodes.lowLP.type="lowpass"; nodes.lowLP.frequency.value = 140;
+  nodes.lowComp = ctx.createDynamicsCompressor();
+  nodes.lowComp.threshold.value = settings.mbOn ? -22 : 0;
+  nodes.lowComp.ratio.value = settings.mbOn ? 2.6 : 1;
+  nodes.lowComp.attack.value = 0.03;
+  nodes.lowComp.release.value = 0.22;
 
-  const nyComp = offCtx.createDynamicsCompressor();
-  nyComp.threshold.value=-30; nyComp.knee.value=12; nyComp.ratio.value=8; nyComp.attack.value=0.01; nyComp.release.value=0.12;
-  const nyReturn = offCtx.createGain(); nyReturn.gain.value=p.nyReturn;
+  nodes.midHP = ctx.createBiquadFilter(); nodes.midHP.type="highpass"; nodes.midHP.frequency.value = 140;
+  nodes.midLP = ctx.createBiquadFilter(); nodes.midLP.type="lowpass";  nodes.midLP.frequency.value = 4200;
+  nodes.midComp = ctx.createDynamicsCompressor();
+  nodes.midComp.threshold.value = settings.mbOn ? -20 : 0;
+  nodes.midComp.ratio.value = settings.mbOn ? 2.0 : 1;
+  nodes.midComp.attack.value = 0.03;
+  nodes.midComp.release.value = 0.22;
 
-  const sum = offCtx.createGain();
+  nodes.highHP = ctx.createBiquadFilter(); nodes.highHP.type="highpass"; nodes.highHP.frequency.value = 4200;
+  nodes.highComp = ctx.createDynamicsCompressor();
+  nodes.highComp.threshold.value = settings.mbOn ? -19 : 0;
+  nodes.highComp.ratio.value = settings.mbOn ? 1.6 : 1;
+  nodes.highComp.attack.value = 0.03;
+  nodes.highComp.release.value = 0.20;
 
-  const tape = offCtx.createWaveShaper(); tape.oversample="2x"; tape.curve = makeSaturationCurve(p.satAmt);
-  const clip = offCtx.createWaveShaper(); clip.oversample="4x"; clip.curve = makeClipCurve(p.clipAmt);
+  nodes.mbMix = ctx.createGain();
 
-  const limiter = offCtx.createDynamicsCompressor();
-  limiter.threshold.value=p.ceilingDb; limiter.knee.value=0; limiter.ratio.value=20; limiter.attack.value=0.002; limiter.release.value=0.08;
+  // Stereo width + mono bass via Mid/Side
+  nodes.split = ctx.createChannelSplitter(2);
+  nodes.merge = ctx.createChannelMerger(2);
 
-  // light space
-  const spaceSend = offCtx.createGain(); spaceSend.gain.value = p.spaceAmt;
-  const spaceDelay = offCtx.createDelay(0.5); spaceDelay.delayTime.value=0.12;
-  const spaceLP = offCtx.createBiquadFilter(); spaceLP.type="lowpass"; spaceLP.frequency.value=6000;
-  const spaceFb = offCtx.createGain(); spaceFb.gain.value=0.20 + p.spaceAmt;
-  const spaceMix = offCtx.createGain(); spaceMix.gain.value = 0.35*p.spaceAmt;
+  nodes.lGain = ctx.createGain(); nodes.rGain = ctx.createGain();
+  nodes.lInv  = ctx.createGain(); nodes.lInv.gain.value = -1;
 
-  // route
-  src.connect(inGain);
-  inGain.connect(hpf);
-  hpf.connect(eqLow); eqLow.connect(eqMud); eqMud.connect(eqHarsh); eqHarsh.connect(eqAir);
+  // Mid = (L+R)/2 ; Side = (L-R)/2
+  nodes.mid = ctx.createGain(); nodes.side = ctx.createGain();
+  nodes.mid.gain.value = 0.5;
+  nodes.side.gain.value = 0.5 * Math.max(1, settings.width);
 
-  // de-hiss parallel
-  eqAir.connect(dhBand); dhBand.connect(dhComp); dhComp.connect(dhMix);
+  // Side HPF for mono bass
+  nodes.sideHP = ctx.createBiquadFilter();
+  nodes.sideHP.type="highpass";
+  nodes.sideHP.frequency.value = (settings.monoBass ? 120 : 20);
 
-  // multiband
-  eqAir.connect(lowSplit); eqAir.connect(midSplit); eqAir.connect(highSplit);
-  lowSplit.connect(compLow); midSplit.connect(compMid); highSplit.connect(compHigh);
-  compLow.connect(mbSum); compMid.connect(mbSum); compHigh.connect(mbSum);
-  dhMix.connect(mbSum);
+  // Reconstruct L = Mid + Side ; R = Mid - Side
+  nodes.sideToL = ctx.createGain(); nodes.sideToR = ctx.createGain();
+  nodes.sideToL.gain.value = 1;
+  nodes.sideToR.gain.value = -1;
 
-  // glue
-  mbSum.connect(glue);
+  // Warmth (tape-ish saturation)
+  nodes.warm = ctx.createWaveShaper();
+  nodes.warm.oversample = settings.oversample || "2x";
+  nodes.warm.curve = makeSaturationCurve(settings.warmOn ? (0.25 + 0.35*(settings.intensity/100)) : 0.0);
 
-  // NY parallel
-  glue.connect(nyComp);
-  nyComp.connect(nyReturn);
+  // Soft clipper before limiter (catches transients)
+  nodes.clip = ctx.createWaveShaper();
+  nodes.clip.oversample = settings.oversample || "2x";
+  nodes.clip.curve = makeSoftClipCurve( settings.intensity/100 );
 
-  glue.connect(sum);
-  nyReturn.connect(sum);
+  // Limiter-ish (compressor pushed hard)
+  nodes.lim = ctx.createDynamicsCompressor();
+  nodes.lim.threshold.value = -8 - 10*(settings.intensity/100);
+  nodes.lim.ratio.value = 16;
+  nodes.lim.attack.value = 0.003;
+  nodes.lim.release.value = 0.12;
 
-  // space
-  sum.connect(spaceSend);
-  spaceSend.connect(spaceDelay);
-  spaceDelay.connect(spaceLP);
-  spaceLP.connect(spaceFb);
-  spaceFb.connect(spaceDelay);
-  spaceLP.connect(spaceMix);
+  // Output gain to meet ceiling
+  nodes.out = ctx.createGain();
+  nodes.out.gain.value = Math.pow(10, settings.ceilingDb/20); // ceilingDb is negative
 
-  // finish
-  sum.connect(tape);
-  tape.connect(clip);
-  clip.connect(limiter);
-  spaceMix.connect(limiter);
-  limiter.connect(offCtx.destination);
+  // Routing:
+  // pre -> hpf -> mud -> deharsh -> air -> comp1 -> comp2 -> (parallel blend) -> multiband -> M/S width/mono-bass -> warmth -> clip -> limiter -> out
+  nodes.pre.connect(nodes.hpf);
+  nodes.hpf.connect(nodes.mud);
+  nodes.mud.connect(nodes.deharsh);
+  nodes.deharsh.connect(nodes.air);
+  nodes.air.connect(nodes.comp1);
+  nodes.comp1.connect(nodes.comp2);
+
+  // Parallel path
+  nodes.comp2.connect(nodes.parSend);
+  nodes.parSend.connect(nodes.parComp);
+  nodes.parComp.connect(nodes.parReturn);
+
+  // Sum dry + parallel
+  nodes.comp2.connect(nodes.sum);
+  nodes.parReturn.connect(nodes.sum);
+
+  // Multiband
+  nodes.sum.connect(nodes.mbIn);
+
+  if(settings.mbOn){
+    // low
+    nodes.mbIn.connect(nodes.lowLP);
+    nodes.lowLP.connect(nodes.lowComp);
+    nodes.lowComp.connect(nodes.mbOut);
+
+    // mid
+    nodes.mbIn.connect(nodes.midHP);
+    nodes.midHP.connect(nodes.midLP);
+    nodes.midLP.connect(nodes.midComp);
+    nodes.midComp.connect(nodes.mbOut);
+
+    // high
+    nodes.mbIn.connect(nodes.highHP);
+    nodes.highHP.connect(nodes.highComp);
+    nodes.highComp.connect(nodes.mbOut);
+  }else{
+    nodes.mbIn.connect(nodes.mbOut);
+  }
+
+  // Mid/Side width
+  nodes.mbOut.connect(nodes.split);
+
+  // L and R to mid
+  nodes.split.connect(nodes.lGain, 0);
+  nodes.split.connect(nodes.rGain, 1);
+  nodes.lGain.connect(nodes.mid);
+  nodes.rGain.connect(nodes.mid);
+
+  // L and R to side (L - R)
+  nodes.split.connect(nodes.lInv, 0);       // -L
+  nodes.split.connect(nodes.side, 0);       // +L
+  nodes.split.connect(nodes.side, 1);       // +R
+  // side = (L + R)/2 ??? Wait, we need (L - R)/2:
+  // We'll do: side = (L) + (-R) then half. So invert R:
+  nodes.rGain.gain.value = -1;
+  nodes.split.connect(nodes.rGain, 1);
+  nodes.rGain.connect(nodes.side);
+  nodes.lGain.connect(nodes.side);
+
+  // restore rGain to normal for mid path? mid already connected
+  // safer: use separate gains for side inversion
+  // (We already used rGain for mid; but it’s also used here. We'll fix by re-creating side inversion properly.)
+  // NOTE: we'll patch this below: we won't rely on rGain inversion; we'll do separate inversion nodes.
+  // We'll return nodes and do correct MS in the chain builder caller.
+  return nodes;
+}
+
+function buildMasterChain_FIXED(ctx, settings){
+  // We rebuild with clean separate nodes for M/S to avoid shared gain inversion
+  const n = {};
+
+  n.pre = ctx.createGain();
+  n.pre.gain.value = Math.pow(10, settings.preGainDb/20);
+
+  n.hpf = ctx.createBiquadFilter();
+  n.hpf.type = "highpass";
+  n.hpf.frequency.value = settings.hpfOn ? 30 : 5;
+  n.hpf.Q.value = 0.707;
+
+  n.mud = ctx.createBiquadFilter();
+  n.mud.type = "peaking"; n.mud.frequency.value = 250; n.mud.Q.value = 1.0;
+  n.mud.gain.value = settings.mudOn ? -1.2 : 0;
+
+  n.deharsh = ctx.createBiquadFilter();
+  n.deharsh.type = "peaking"; n.deharsh.frequency.value = 3500; n.deharsh.Q.value = 1.2;
+  n.deharsh.gain.value = settings.deharshOn ? -1.0 : 0;
+
+  n.air = ctx.createBiquadFilter();
+  n.air.type = "highshelf"; n.air.frequency.value = 12000;
+  n.air.gain.value = settings.airOn ? 1.6 : 0;
+
+  n.comp1 = ctx.createDynamicsCompressor();
+  n.comp2 = ctx.createDynamicsCompressor();
+  if(settings.glueOn){
+    n.comp1.threshold.value = -18; n.comp1.ratio.value = 2.0; n.comp1.attack.value = 0.03; n.comp1.release.value = 0.25;
+    n.comp2.threshold.value = -14; n.comp2.ratio.value = 1.8; n.comp2.attack.value = 0.03; n.comp2.release.value = 0.22;
+  }else{
+    n.comp1.threshold.value = 0; n.comp1.ratio.value = 1;
+    n.comp2.threshold.value = 0; n.comp2.ratio.value = 1;
+  }
+
+  // Parallel comp
+  n.parSend = ctx.createGain(); n.parSend.gain.value = settings.parOn ? 0.55 : 0.0;
+  n.parComp = ctx.createDynamicsCompressor();
+  n.parComp.threshold.value = -32; n.parComp.ratio.value = 6; n.parComp.attack.value = 0.01; n.parComp.release.value = 0.18;
+  n.parReturn = ctx.createGain();
+  n.parReturn.gain.value = settings.parOn ? (0.35 + 0.45*(settings.intensity/100)) : 0.0;
+  n.sum = ctx.createGain();
+
+  // Multiband
+  n.mbIn = ctx.createGain();
+  n.mbOut = ctx.createGain();
+
+  n.lowLP = ctx.createBiquadFilter(); n.lowLP.type="lowpass"; n.lowLP.frequency.value = 140;
+  n.lowComp = ctx.createDynamicsCompressor();
+  n.lowComp.threshold.value = settings.mbOn ? -22 : 0;
+  n.lowComp.ratio.value = settings.mbOn ? 2.6 : 1;
+  n.lowComp.attack.value = 0.03; n.lowComp.release.value = 0.22;
+
+  n.midHP = ctx.createBiquadFilter(); n.midHP.type="highpass"; n.midHP.frequency.value = 140;
+  n.midLP = ctx.createBiquadFilter(); n.midLP.type="lowpass";  n.midLP.frequency.value = 4200;
+  n.midComp = ctx.createDynamicsCompressor();
+  n.midComp.threshold.value = settings.mbOn ? -20 : 0;
+  n.midComp.ratio.value = settings.mbOn ? 2.0 : 1;
+  n.midComp.attack.value = 0.03; n.midComp.release.value = 0.22;
+
+  n.highHP = ctx.createBiquadFilter(); n.highHP.type="highpass"; n.highHP.frequency.value = 4200;
+  n.highComp = ctx.createDynamicsCompressor();
+  n.highComp.threshold.value = settings.mbOn ? -19 : 0;
+  n.highComp.ratio.value = settings.mbOn ? 1.6 : 1;
+  n.highComp.attack.value = 0.03; n.highComp.release.value = 0.20;
+
+  // Mid/Side width + mono bass
+  n.split = ctx.createChannelSplitter(2);
+  n.merge = ctx.createChannelMerger(2);
+
+  // Mid: (L+R)/2
+  n.midL = ctx.createGain(); n.midR = ctx.createGain();
+  n.midSum = ctx.createGain(); n.midSum.gain.value = 0.5;
+
+  // Side: (L-R)/2
+  n.sideL = ctx.createGain(); n.sideR = ctx.createGain(); n.sideR.gain.value = -1;
+  n.sideSum = ctx.createGain(); n.sideSum.gain.value = 0.5 * Math.max(1, settings.width);
+
+  n.sideHP = ctx.createBiquadFilter();
+  n.sideHP.type="highpass";
+  n.sideHP.frequency.value = (settings.monoBass ? 120 : 20);
+
+  // Reconstruct
+  n.sideToL = ctx.createGain(); n.sideToL.gain.value = 1;
+  n.sideToR = ctx.createGain(); n.sideToR.gain.value = -1;
+
+  // Warm + clip + limiter
+  n.warm = ctx.createWaveShaper();
+  n.warm.oversample = settings.oversample || "2x";
+  n.warm.curve = makeSaturationCurve(settings.warmOn ? (0.25 + 0.35*(settings.intensity/100)) : 0.0);
+
+  n.clip = ctx.createWaveShaper();
+  n.clip.oversample = settings.oversample || "2x";
+  n.clip.curve = makeSoftClipCurve(settings.intensity/100);
+
+  n.lim = ctx.createDynamicsCompressor();
+  n.lim.threshold.value = -8 - 10*(settings.intensity/100);
+  n.lim.ratio.value = 16;
+  n.lim.attack.value = 0.003;
+  n.lim.release.value = 0.12;
+
+  n.out = ctx.createGain();
+  n.out.gain.value = Math.pow(10, settings.ceilingDb/20);
+
+  // ROUTE
+  n.pre.connect(n.hpf);
+  n.hpf.connect(n.mud);
+  n.mud.connect(n.deharsh);
+  n.deharsh.connect(n.air);
+  n.air.connect(n.comp1);
+  n.comp1.connect(n.comp2);
+
+  n.comp2.connect(n.parSend);
+  n.parSend.connect(n.parComp);
+  n.parComp.connect(n.parReturn);
+
+  n.comp2.connect(n.sum);
+  n.parReturn.connect(n.sum);
+
+  n.sum.connect(n.mbIn);
+
+  if(settings.mbOn){
+    n.mbIn.connect(n.lowLP); n.lowLP.connect(n.lowComp); n.lowComp.connect(n.mbOut);
+
+    n.mbIn.connect(n.midHP); n.midHP.connect(n.midLP); n.midLP.connect(n.midComp); n.midComp.connect(n.mbOut);
+
+    n.mbIn.connect(n.highHP); n.highHP.connect(n.highComp); n.highComp.connect(n.mbOut);
+  }else{
+    n.mbIn.connect(n.mbOut);
+  }
+
+  // MS
+  n.mbOut.connect(n.split);
+
+  // mid sum
+  n.split.connect(n.midL, 0);
+  n.split.connect(n.midR, 1);
+  n.midL.connect(n.midSum);
+  n.midR.connect(n.midSum);
+
+  // side sum
+  n.split.connect(n.sideL, 0);
+  n.split.connect(n.sideR, 1);
+  n.sideL.connect(n.sideSum);
+  n.sideR.connect(n.sideSum);
+  n.sideSum.connect(n.sideHP);
+
+  // L = mid + side
+  n.midSum.connect(n.merge, 0, 0);
+  n.sideHP.connect(n.sideToL);
+  n.sideToL.connect(n.merge, 0, 0);
+
+  // R = mid - side
+  n.midSum.connect(n.merge, 0, 1);
+  n.sideHP.connect(n.sideToR);
+  n.sideToR.connect(n.merge, 0, 1);
+
+  // post MS
+  n.merge.connect(n.warm);
+  n.warm.connect(n.clip);
+  n.clip.connect(n.lim);
+  n.lim.connect(n.out);
+
+  return n;
+}
+
+function makeSaturationCurve(amount){
+  // amount 0..~0.6
+  const k = Math.max(0.0001, amount * 20);
+  const n = 44100;
+  const curve = new Float32Array(n);
+  for(let i=0;i<n;i++){
+    const x = (i/(n-1))*2-1;
+    curve[i] = Math.tanh(k*x) / Math.tanh(k);
+  }
+  return curve;
+}
+
+function makeSoftClipCurve(amount){
+  // amount 0..1
+  const drive = 1 + amount*4;
+  const n = 44100;
+  const curve = new Float32Array(n);
+  for(let i=0;i<n;i++){
+    let x = (i/(n-1))*2-1;
+    x *= drive;
+    // soft clip
+    curve[i] = x / (1 + Math.abs(x));
+  }
+  return curve;
+}
+
+// Render offline mastered buffer
+async function renderMaster(buffer, settings){
+  const channels = buffer.numberOfChannels;
+  const sr = buffer.sampleRate;
+  const length = buffer.length;
+
+  const off = new OfflineAudioContext(channels, length, sr);
+  const src = off.createBufferSource();
+  src.buffer = buffer;
+
+  const chain = buildMasterChain_FIXED(off, settings);
+
+  src.connect(chain.pre);
+  chain.out.connect(off.destination);
 
   src.start(0);
-  const rendered = await offCtx.startRendering();
+  const rendered = await off.startRendering();
+  return rendered;
+}
 
-  const blob = audioBufferToWavBlob(rendered, bitDepth);
+// WAV encoding (16/24-bit)
+function audioBufferToWav(buffer, bitDepth=24){
+  const numCh = buffer.numberOfChannels;
+  const sampleRate = buffer.sampleRate;
+  const numFrames = buffer.length;
+
+  const bytesPerSample = (bitDepth === 24) ? 3 : 2;
+  const blockAlign = numCh * bytesPerSample;
+  const byteRate = sampleRate * blockAlign;
+  const dataSize = numFrames * blockAlign;
+
+  const bufferSize = 44 + dataSize;
+  const view = new DataView(new ArrayBuffer(bufferSize));
+
+  let offset = 0;
+  function writeString(s){
+    for(let i=0;i<s.length;i++) view.setUint8(offset++, s.charCodeAt(i));
+  }
+  function writeUint32(v){ view.setUint32(offset, v, true); offset+=4; }
+  function writeUint16(v){ view.setUint16(offset, v, true); offset+=2; }
+
+  writeString("RIFF");
+  writeUint32(36 + dataSize);
+  writeString("WAVE");
+
+  writeString("fmt ");
+  writeUint32(16);
+  writeUint16(1);               // PCM
+  writeUint16(numCh);
+  writeUint32(sampleRate);
+  writeUint32(byteRate);
+  writeUint16(blockAlign);
+  writeUint16(bitDepth);
+
+  writeString("data");
+  writeUint32(dataSize);
+
+  // Interleave
+  const channels = [];
+  for(let ch=0; ch<numCh; ch++) channels.push(buffer.getChannelData(ch));
+
+  for(let i=0;i<numFrames;i++){
+    for(let ch=0; ch<numCh; ch++){
+      let x = channels[ch][i];
+      x = Math.max(-1, Math.min(1, x));
+
+      if(bitDepth === 24){
+        // signed 24-bit
+        let s = (x < 0 ? x * 0x800000 : x * 0x7FFFFF) | 0;
+        view.setUint8(offset++, (s      ) & 0xFF);
+        view.setUint8(offset++, (s >>  8) & 0xFF);
+        view.setUint8(offset++, (s >> 16) & 0xFF);
+      }else{
+        // signed 16-bit
+        let s = (x < 0 ? x * 0x8000 : x * 0x7FFF) | 0;
+        view.setInt16(offset, s, true);
+        offset += 2;
+      }
+    }
+  }
+  return view.buffer;
+}
+
+function downloadBlob(blob, filename){
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `${fileNameBase}_WU_MASTER_${bitDepth}bit.wav`;
+  a.download = filename;
+  document.body.appendChild(a);
   a.click();
+  a.remove();
+}
 
-  setStatus("Export complete ✅");
+// ---------- Auto settings ----------
+function getSettingsFromUI(){
+  return {
+    headroomDb: parseFloat($("headroom").value),
+    ceilingDb: parseFloat($("ceiling").value),
+    intensity: parseInt($("intensity").value,10),
+    width: parseFloat($("width").value),
+    monoBass: $("monoBass").checked,
+    hpfOn: $("hpfOn").checked,
+    mudOn: $("mudOn").checked,
+    deharshOn: $("deharshOn").checked,
+    airOn: $("airOn").checked,
+    warmOn: $("warmOn").checked,
+    glueOn: $("glueOn").checked,
+    mbOn: $("mbOn").checked,
+    parOn: $("parOn").checked,
+    oversample: $("oversample").value
+  };
+}
+
+function applyStylePreset(){
+  const style = $("styleSel").value;
+
+  // Default "safe"
+  let intensity=35, width=1.15, airOn=true, mudOn=true, deharshOn=true, warmOn=true, glueOn=true, mbOn=true, parOn=true, monoBass=true;
+  let headroom=-4.5, ceiling=-1.0;
+
+  if(style==="streaming"){
+    intensity=28; width=1.12; airOn=true; warmOn=true; parOn=true; mbOn=true;
+    headroom=-5.2; ceiling=-1.0;
+  }
+  if(style==="pop"){
+    intensity=42; width=1.18; airOn=true; warmOn=true;
+    headroom=-4.5; ceiling=-1.0;
+  }
+  if(style==="club"){
+    intensity=55; width=1.14; airOn=true; warmOn=true; deharshOn=true;
+    headroom=-4.0; ceiling=-1.0;
+  }
+  if(style==="worship"){
+    intensity=40; width=1.28; airOn=true; warmOn=true; parOn=true;
+    headroom=-4.8; ceiling=-1.0;
+  }
+  if(style==="rock"){
+    intensity=44; width=1.10; airOn=false; deharshOn=true; mudOn=true; warmOn=true;
+    headroom=-4.5; ceiling=-1.0;
+  }
+
+  $("intensity").value = intensity;
+  $("width").value = width;
+  $("airOn").checked = airOn;
+  $("mudOn").checked = mudOn;
+  $("deharshOn").checked = deharshOn;
+  $("warmOn").checked = warmOn;
+  $("glueOn").checked = glueOn;
+  $("mbOn").checked = mbOn;
+  $("parOn").checked = parOn;
+  $("monoBass").checked = monoBass;
+  $("headroom").value = headroom;
+  $("ceiling").value = ceiling;
+
+  syncLabels();
+}
+
+function syncLabels(){
+  $("headroomVal").textContent = parseFloat($("headroom").value).toFixed(1);
+  $("ceilingVal").textContent  = parseFloat($("ceiling").value).toFixed(1);
+  $("intensityVal").textContent= parseInt($("intensity").value,10);
+  $("widthVal").textContent    = parseFloat($("width").value).toFixed(2);
+}
+
+["headroom","ceiling","intensity","width"].forEach(id=>{
+  $(id).addEventListener("input", syncLabels);
+});
+$("styleSel").addEventListener("change", applyStylePreset);
+
+// ---------- Load handlers ----------
+async function initEssentia(){
+  try{
+    // EssentiaWASM is global from essentia-wasm.web.js
+    const mod = await EssentiaWASM();
+    essentia = new Essentia(mod);
+    essentiaReady = true;
+  }catch(e){
+    essentiaReady = false;
+  }
+}
+
+function updateStatsUI(){
+  $("origStats").textContent = orig.stats ? (
+    ` dur ${fmtSec(orig.stats.dur)} • peak ${fmtDb(orig.stats.peakDb)} • rms ${fmtDb(orig.stats.rmsDb)}${(orig.stats.iLufs!=null?` • LUFS ${orig.stats.iLufs.toFixed(1)}`:"")}`
+  ) : "—";
+  $("mastStats").textContent = mast.stats ? (
+    ` dur ${fmtSec(mast.stats.dur)} • peak ${fmtDb(mast.stats.peakDb)} • rms ${fmtDb(mast.stats.rmsDb)}${(mast.stats.iLufs!=null?` • LUFS ${mast.stats.iLufs.toFixed(1)}`:"")}`
+  ) : "—";
+  $("refStats").textContent = ref.stats ? (
+    ` dur ${fmtSec(ref.stats.dur)} • peak ${fmtDb(ref.stats.peakDb)} • rms ${fmtDb(ref.stats.rmsDb)}${(ref.stats.iLufs!=null?` • LUFS ${ref.stats.iLufs.toFixed(1)}`:"")}`
+  ) : "—";
+}
+
+async function loadOriginalFromFile(file){
+  showWarn("");
+  setStatus("Loading original…", false);
+
+  orig.file = file;
+  orig.url = URL.createObjectURL(file);
+  orig.buffer = await decodeFileToBuffer(file);
+
+  // stats
+  const quick = analyzeBufferQuick(orig.buffer);
+  const iLufs = await analyzeBufferEssentia(orig.buffer);
+  orig.stats = {...quick, iLufs};
+
+  $("origInfo").textContent = `${orig.stats.ch}ch • ${orig.stats.sr/1000} kHz`;
+
+  // wave
+  if(!orig.ws) orig.ws = makeWave("waveOrig");
+  await wsLoad(orig.ws, orig.url);
+
+  // audio
+  orig.audio = makeAudio(orig.url);
+
+  $("playOrig").disabled = false;
+  $("pauseAll").disabled = false;
+  $("stopAll").disabled = false;
+  $("autoBtn").disabled = false;
+
+  setStatus("Original loaded. Hit Auto-Master.", true);
+  updateStatsUI();
+}
+
+async function loadReferenceFromFile(file){
+  showWarn("");
+  setStatus("Loading reference…", false);
+
+  ref.file = file;
+  ref.url = URL.createObjectURL(file);
+  ref.buffer = await decodeFileToBuffer(file);
+
+  const quick = analyzeBufferQuick(ref.buffer);
+  const iLufs = await analyzeBufferEssentia(ref.buffer);
+  ref.stats = {...quick, iLufs};
+
+  $("refInfo").textContent = `${ref.stats.ch}ch • ${ref.stats.sr/1000} kHz`;
+
+  if(!ref.ws) ref.ws = makeWave("waveRef");
+  await wsLoad(ref.ws, ref.url);
+
+  ref.audio = makeAudio(ref.url);
+  $("playRef").disabled = false;
+
+  setStatus("Reference loaded (optional).", true);
+  updateStatsUI();
+}
+
+async function loadReferenceFromUrl(url){
+  showWarn("");
+  setStatus("Fetching reference URL…", false);
+  try{
+    const res = await fetch(url, {mode:"cors"});
+    if(!res.ok) throw new Error("Fetch failed");
+    const blob = await res.blob();
+    const file = new File([blob], "reference_from_url", {type: blob.type || "audio/mpeg"});
+    await loadReferenceFromFile(file);
+  }catch(e){
+    setStatus("Reference URL failed.", false);
+    showWarn("Reference URL blocked (usually CORS). Download the file and upload it instead.");
+  }
+}
+
+// ---------- Auto-master logic ----------
+function computePreGainDbForHeadroom(buffer, targetPeakDb){
+  // Find current peak (from stats) and compute gain to bring it to targetPeakDb
+  const s = analyzeBufferQuick(buffer);
+  const needed = targetPeakDb - s.peakDb; // if peakDb is -2 and target is -5 => needed -3 dB
+  // safety: don't boost insanely
+  return Math.max(-24, Math.min(12, needed));
+}
+
+function pickTargetRmsDbByStyle(style){
+  // This is NOT LUFS, but gives a safer loudness feel target
+  if(style==="streaming") return -16;
+  if(style==="worship")   return -14.5;
+  if(style==="pop")       return -13.2;
+  if(style==="rock")      return -13.4;
+  if(style==="club")      return -12.2;
+  return -14.8;
+}
+
+function computeGainTowardRms(currentRmsDb, targetRmsDb, maxBoostDb){
+  const need = targetRmsDb - currentRmsDb;
+  return Math.max(-24, Math.min(maxBoostDb, need));
+}
+
+async function autoMaster(){
+  if(!orig.buffer) return;
+  showWarn("");
+
+  setStatus("Auto-mastering (offline render)…", false);
+  $("autoBtn").disabled = true;
+  $("exportBtn").disabled = true;
+
+  const style = $("styleSel").value;
+  const ui = getSettingsFromUI();
+  const useRef = $("refMatch").checked && !!ref.buffer;
+
+  // Step 1: bring peak to safe headroom
+  const preGainHeadroomDb = computePreGainDbForHeadroom(orig.buffer, ui.headroomDb);
+
+  // Step 2: gentle push toward RMS target (prevents “too loud” disaster)
+  const origRmsDb = orig.stats?.rmsDb ?? analyzeBufferQuick(orig.buffer).rmsDb;
+  let targetRms = pickTargetRmsDbByStyle(style);
+
+  // If reference exists, nudge toward ref RMS (but not fully copy it)
+  if(useRef && ref.stats){
+    const refRms = ref.stats.iLufs != null ? (ref.stats.iLufs + 3) : ref.stats.rmsDb; // rough mapping
+    // keep within sane window
+    targetRms = clamp(refRms - 1.5, -17.5, -12.0);
+  }
+
+  // add some intensity scaling
+  const maxBoostDb = 3 + (ui.intensity/100)*6; // 3..9 dB
+  const preGainRmsDb = computeGainTowardRms(origRmsDb + preGainHeadroomDb, targetRms, maxBoostDb);
+
+  let preGainDb = preGainHeadroomDb + preGainRmsDb;
+
+  // Absolute guardrails: if it tries to boost too much, warn and cap
+  if(preGainDb > 10){
+    showWarn("Auto-gain tried to boost too hard. I capped it to keep it clean. If your mix is super quiet, re-export hotter (peak around -6 to -3 dBFS).");
+    preGainDb = 10;
+  }
+
+  // Slight reference width alignment (safe)
+  if(useRef && ref.stats){
+    // if ref is stereo, allow a bit more width; if mono, keep tight
+    const refStereo = (ref.stats.ch >= 2);
+    if(refStereo && ui.width < 1.18 && style!=="rock") $("width").value = String(Math.min(1.30, ui.width + 0.06));
+    if(!refStereo) $("width").value = "1.05";
+    syncLabels();
+  }
+
+  // Render
+  const settings = {
+    preGainDb,
+    ceilingDb: ui.ceilingDb,
+    intensity: ui.intensity,
+    width: parseFloat($("width").value),
+    monoBass: ui.monoBass,
+    hpfOn: ui.hpfOn,
+    mudOn: ui.mudOn,
+    deharshOn: ui.deharshOn,
+    airOn: ui.airOn,
+    warmOn: ui.warmOn,
+    glueOn: ui.glueOn,
+    mbOn: ui.mbOn,
+    parOn: ui.parOn,
+    oversample: ui.oversample
+  };
+
+  const rendered = await renderMaster(orig.buffer, settings);
+  mast.buffer = rendered;
+
+  // stats
+  const quick = analyzeBufferQuick(mast.buffer);
+  const iLufs = await analyzeBufferEssentia(mast.buffer);
+  mast.stats = {...quick, iLufs};
+  $("mastInfo").textContent = `${mast.stats.ch}ch • ${mast.stats.sr/1000} kHz`;
+
+  // Create WAV blob for playback + waveform
+  const bd = parseInt($("bitDepth").value,10);
+  const wav = audioBufferToWav(mast.buffer, bd);
+  const blob = new Blob([wav], {type:"audio/wav"});
+  mast.url = URL.createObjectURL(blob);
+  mast.audio = makeAudio(mast.url);
+
+  if(!mast.ws) mast.ws = makeWave("waveMast");
+  await wsLoad(mast.ws, mast.url);
+
+  $("playMast").disabled = false;
+  $("abToggle").disabled = false;
+  $("exportBtn").disabled = false;
+
+  setStatus("Master ready. A/B it (level-matched).", true);
+  updateStatsUI();
+
+  $("autoBtn").disabled = false;
+}
+
+// ---------- UI wiring ----------
+$("origFile").addEventListener("change", async (e)=>{
+  const f = e.target.files?.[0];
+  if(!f) return;
+  try{
+    await loadOriginalFromFile(f);
+  }catch(err){
+    setStatus("Failed to load original.", false);
+    showWarn("Couldn’t decode that file. Try WAV/MP3 from your phone or desktop export.");
+  }
+});
+
+$("refFile").addEventListener("change", async (e)=>{
+  const f = e.target.files?.[0];
+  if(!f) return;
+  try{
+    await loadReferenceFromFile(f);
+  }catch(err){
+    setStatus("Failed to load reference.", false);
+    showWarn("Couldn’t decode that reference file. Try WAV/MP3.");
+  }
+});
+
+$("loadRefUrlBtn").addEventListener("click", async ()=>{
+  const url = $("refUrl").value.trim();
+  if(!url) return;
+  await loadReferenceFromUrl(url);
+});
+
+$("playOrig").addEventListener("click", ()=>playWhich("orig"));
+$("playMast").addEventListener("click", ()=>playWhich("mast"));
+$("playRef").addEventListener("click", ()=>playWhich("ref"));
+$("pauseAll").addEventListener("click", pauseAll);
+$("stopAll").addEventListener("click", stopAll);
+$("abToggle").addEventListener("click", toggleAB);
+
+$("autoBtn").addEventListener("click", autoMaster);
+
+$("exportBtn").addEventListener("click", ()=>{
+  if(!mast.buffer) return;
+  const bd = parseInt($("bitDepth").value,10);
+  const wav = audioBufferToWav(mast.buffer, bd);
+  downloadBlob(new Blob([wav], {type:"audio/wav"}), "WuTang_Master.wav");
+});
+
+$("resetBtn").addEventListener("click", ()=>{
+  pauseAll();
+  stopAll();
+  showWarn("");
+
+  // revoke URLs
+  [orig.url, mast.url, ref.url].forEach(u=>{ if(u) URL.revokeObjectURL(u); });
+
+  orig = {file:null, url:null, buffer:null, ws:orig.ws, audio:null, stats:null};
+  mast = {url:null, buffer:null, ws:mast.ws, audio:null, stats:null};
+  ref  = {file:null, url:null, buffer:null, ws:ref.ws, audio:null, stats:null};
+
+  $("origFile").value = "";
+  $("refFile").value = "";
+  $("refUrl").value = "";
+
+  $("origInfo").textContent = "—";
+  $("mastInfo").textContent = "—";
+  $("refInfo").textContent = "—";
+
+  updateStatsUI();
+
+  ["playOrig","playMast","playRef","abToggle","exportBtn","autoBtn","pauseAll","stopAll"].forEach(id=>{
+    $(id).disabled = true;
+  });
+
+  setStatus("Load an original track", false);
+});
+
+// tiny helper
+function clamp(x,a,b){ return Math.max(a, Math.min(b,x)); }
+
+// init
+syncLabels();
+applyStylePreset();
+setStatus("Loading analysis engine…", false);
+initEssentia().then(()=>{
+  if(essentiaReady){
+    setStatus("Ready. Load an original track.", false);
+  }else{
+    setStatus("Ready (analysis limited). Load an original track.", false);
+  }
 });
 </script>
 </body>
