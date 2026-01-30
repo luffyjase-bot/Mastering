@@ -1,1657 +1,667 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>JaseMaster — Yellow Console</title>
-  <style>
-    :root{
-      --bgA:#f6f6f3;
-      --bgB:#ecece6;
-      --panel:#e9e9e3;
-      --panel2:#deded6;
-      --text:#161616;
-      --muted:#5b5b5b;
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"/>
+<title>AceMaster 5000 — Platinum Publisher</title>
+<script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/browser-id3-writer@4.4.0/dist/browser-id3-writer.min.js"></script>
 
-      --accent:#FFD400; /* Wu-Tang Yellow */
-      --accent2:#f1c600;
+<style>
+  /* --- THEME --- */
+  :root {
+    --chassis: #e0e5ec;
+    --ink: #2b2b2b;
+    --accent: #ffcc00;
+    --accent-dim: #d4b000;
+    --led-off: #444;
+    --led-on: #00ff41;
+    --led-busy: #ffaa00;
+    --led-warn: #ff3333;
+    
+    --shadow-soft: 9px 9px 16px #a3b1c6, -9px -9px 16px #ffffff;
+    --shadow-inset: inset 6px 6px 10px #a3b1c6, inset -6px -6px 10px #ffffff;
+    --knob-shadow: 6px 6px 10px rgba(0,0,0,0.15), -2px -2px 5px rgba(255,255,255,0.8);
+    --bezel-shadow: inset 2px 2px 5px rgba(0,0,0,0.2), 1px 1px 0 rgba(255,255,255,1);
+  }
 
-      --shadow: 0 18px 45px rgba(0,0,0,.18);
-      --shadow2: 0 10px 24px rgba(0,0,0,.12);
-      --inset: inset 0 1px 0 rgba(255,255,255,.75), inset 0 -1px 0 rgba(0,0,0,.08);
+  body { margin: 0; background: #d0d0d0; font-family: ui-sans-serif, system-ui, sans-serif; color: var(--ink); padding: 20px; display: flex; justify-content: center; min-height: 100vh; user-select: none; }
+  .rack { width: 100%; max-width: 1020px; display: flex; flex-direction: column; gap: 25px; position: relative; }
 
-      --border: rgba(0,0,0,.14);
-      --meterBg:#111;
-      --meterGlass: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,0));
-      --radius: 18px;
-      --ok:#0d7a32;
-      --warn:#a06a00;
-      --bad:#b00020;
-    }
+  /* OVERLAYS */
+  .drop-zone {
+    position: absolute; inset: -20px; background: rgba(255,212,0,0.9); z-index: 999;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; font-weight: 900; color: #000; text-transform: uppercase;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s; border-radius: 10px;
+  }
+  .drop-active .drop-zone { opacity: 1; pointer-events: all; }
 
-    body[data-theme="dark"]{
-      --bgA:#0f1012;
-      --bgB:#0b0c0e;
-      --panel:#1a1b1f;
-      --panel2:#141519;
-      --text:#f3f3f3;
-      --muted:#b2b2b2;
-      --border: rgba(255,255,255,.10);
-      --shadow: 0 18px 45px rgba(0,0,0,.55);
-      --shadow2: 0 10px 24px rgba(0,0,0,.45);
-      --inset: inset 0 1px 0 rgba(255,255,255,.06), inset 0 -1px 0 rgba(0,0,0,.35);
-      --meterBg:#0b0b0c;
-      --meterGlass: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,0));
-    }
+  .loading-overlay {
+    position: absolute; inset: 0; background: rgba(255,255,255,0.95); z-index: 500;
+    display: none; align-items: center; justify-content: center; flex-direction: column; gap: 15px;
+    border-radius: 24px; backdrop-filter: blur(5px);
+  }
+  .progress-bar-wrap { width: 200px; height: 6px; background: #ddd; border-radius: 3px; overflow: hidden; }
+  .progress-bar { height: 100%; background: var(--accent-dim); width: 0%; transition: width 0.1s; }
+  .spinner { width: 40px; height: 40px; border: 5px solid #ccc; border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .progress-text { font-family: monospace; font-weight: 700; font-size: 14px; color: #555; }
 
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      color:var(--text);
-      background:
-        radial-gradient(1200px 650px at 50% 0%, rgba(255,212,0,.20), rgba(255,212,0,0)),
-        linear-gradient(180deg, var(--bgA), var(--bgB));
-      padding:16px;
-    }
+  /* FACEPLATE */
+  .faceplate {
+    background: var(--chassis); border: 1px solid #fff; border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25); padding: 30px; position: relative;
+    display: flex; flex-direction: column; gap: 25px;
+  }
+  .screw {
+    position: absolute; width: 14px; height: 14px; background: #888; border-radius: 50%;
+    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.5), 1px 1px 0 rgba(255,255,255,0.8);
+    background-image: linear-gradient(45deg, transparent 46%, #333 46%, #333 54%, transparent 54%);
+  }
+  .tl { top: 12px; left: 12px; } .tr { top: 12px; right: 12px; } .bl { bottom: 12px; left: 12px; } .br { bottom: 12px; right: 12px; }
 
-    .shell{
-      max-width: 1280px;
-      margin: 0 auto;
-      border-radius: 16px;
-      background: var(--panel);
-      border:1px solid var(--border);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-    }
+  /* HEADER */
+  .brand-strip { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid rgba(0,0,0,0.05); padding-bottom: 15px; }
+  .logo { font-size: 26px; font-weight: 900; letter-spacing: -1px; display: flex; align-items: center; gap: 10px; }
+  .logo span { background: #222; color: var(--accent); padding: 2px 8px; border-radius: 4px; font-size: 14px; letter-spacing: 2px; }
+  .model-id { font-family: monospace; font-weight: 700; color: #888; font-size: 12px; }
 
-    header{
-      padding:14px 16px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      background:
-        radial-gradient(800px 220px at 50% 0%, rgba(255,212,0,.30), rgba(255,212,0,0)),
-        linear-gradient(180deg, rgba(255,255,255,.30), rgba(255,255,255,0));
-      border-bottom:1px solid var(--border);
-    }
+  /* METER BRIDGE */
+  .meter-bridge {
+    display: grid; grid-template-columns: 2fr 1fr; gap: 15px; height: 160px;
+    background: #222; padding: 15px; border-radius: 12px; border: 2px solid #444;
+    box-shadow: inset 0 0 20px #000;
+  }
+  .screen-wrap { background: #000; border-radius: 6px; border: 1px solid #333; position: relative; overflow: hidden; }
+  canvas { width: 100%; height: 100%; display: block; }
+  .screen-glare { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.05), transparent 40%); pointer-events: none; }
+  .screen-overlay { position: absolute; top: 10px; left: 15px; right: 15px; display: flex; justify-content: space-between; pointer-events: none; }
+  .badge { background: rgba(255,212,0,0.9); color: #000; padding: 3px 6px; font-size: 10px; font-weight: 900; border-radius: 3px; }
+  .metric { font-family: monospace; color: var(--accent); font-size: 12px; text-shadow: 0 0 5px var(--accent); }
+  .warn-msg { position: absolute; bottom: 10px; left: 15px; color: var(--led-warn); font-weight: 900; font-size: 10px; text-transform: uppercase; animation: blink 1s infinite; display: none; }
 
-    .brand{display:flex;flex-direction:column;gap:4px;}
-    .brandTop{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;}
-    .analog{
-      font-weight:1000;
-      letter-spacing:.6px;
-      text-transform:lowercase;
-      opacity:.9;
-    }
-    .title{
-      font-weight:1000;
-      font-size:26px;
-      letter-spacing:.6px;
-    }
-    .sub{
-      font-size:12px;
-      font-weight:850;
-      color:var(--muted);
-    }
+  .vu-section { display: flex; flex-direction: column; gap: 5px; }
+  .vu-header { display:flex; justify-content:space-between; align-items:center; }
+  .vu-box { flex: 1; background: #e8e8e0; border-radius: 4px; position: relative; overflow: hidden; box-shadow: inset 0 0 15px rgba(0,0,0,0.4); border: 1px solid #000; }
+  .vu-scale { position: absolute; bottom: 10px; left: 10%; right: 10%; height: 2px; background: #333; }
+  .vu-needle { width: 2px; height: 85%; background: #d00; position: absolute; bottom: 0; left: 50%; transform-origin: bottom center; transform: rotate(45deg); transition: transform 0.1s ease-out; box-shadow: 2px 2px 4px rgba(0,0,0,0.3); z-index: 2; }
+  .vu-label { text-align: center; color: #666; font-size: 10px; font-weight: 800; margin-top: -30px; z-index: 1; position: relative; }
+  .vu-title { color: #888; font-size: 10px; text-align: center; font-weight: 700; text-transform: uppercase; }
 
-    .topActions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
-    .pill{
-      padding:8px 10px;
-      border-radius:999px;
-      border:1px solid var(--border);
-      background: rgba(255,255,255,.10);
-      box-shadow: var(--inset);
-      font-size:12px;
-      font-weight:950;
-      white-space:nowrap;
-    }
+  .clip-led { width: 12px; height: 12px; border-radius: 50%; background: #400; border: 1px solid #222; box-shadow: inset 1px 1px 2px rgba(0,0,0,0.5); cursor: pointer; transition: 0.1s; }
+  .clip-led.clipped { background: #ff0000; box-shadow: 0 0 10px #ff0000; }
 
-    .btn{
-      appearance:none;
-      border-radius: 12px;
-      padding:10px 12px;
-      background: rgba(255,255,255,.12);
-      border:1px solid var(--border);
-      box-shadow: var(--inset);
-      font-weight:950;
-      color:var(--text);
-      cursor:pointer;
-      user-select:none;
-    }
-    .btn.primary{
-      background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 55%, #fff 45%), var(--accent2));
-      border-color: color-mix(in srgb, var(--accent2) 70%, #000 30%);
-    }
-    .btn:disabled{opacity:.55;cursor:not-allowed}
+  /* CONTROLS */
+  .toolbar { display: flex; flex-direction: column; gap: 10px; margin: 15px 0; }
+  .preset-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .target-row { display: flex; justify-content: center; gap: 5px; opacity: 0.8; }
+  
+  .preset-btn, .target-btn {
+    background: var(--chassis); color: #666; border: none; padding: 8px 14px; border-radius: 6px;
+    font-size: 10px; font-weight: 800; letter-spacing: 1px; cursor: pointer;
+    box-shadow: var(--shadow-soft); transition: all 0.1s; min-width: 60px;
+  }
+  .preset-btn:active, .preset-btn.active, .target-btn:active {
+    box-shadow: var(--shadow-inset); color: #222; border-left: 3px solid var(--accent); transform: translateY(1px);
+  }
+  .target-btn { background: #ccc; min-width: auto; padding: 4px 8px; }
+  .preset-desc { text-align: center; font-size: 10px; font-weight: 700; color: #777; font-style: italic; min-height: 14px; }
 
-    .toggle{
-      display:flex;gap:8px;align-items:center;
-      padding:8px 10px;
-      border-radius:999px;
-      border:1px solid var(--border);
-      background: rgba(255,255,255,.10);
-      box-shadow: var(--inset);
-      font-weight:900;
-      font-size:12px;
-      user-select:none;
-      white-space:nowrap;
-    }
-    .toggle input{transform:scale(1.15);}
+  .knob-deck { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; background: linear-gradient(to bottom, #f9f9f9, #e0e0e0); padding: 25px; border-radius: 12px; box-shadow: var(--bezel-shadow); border: 1px solid #ccc; transition: opacity 0.3s; }
+  .knob-deck.hidden { opacity: 0.4; pointer-events: none; filter: grayscale(1); }
+  
+  .module { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .mod-name { font-size: 10px; font-weight: 800; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+  .knob-pot { width: 64px; height: 64px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #fff, #ccc); box-shadow: var(--knob-shadow); position: relative; cursor: ns-resize; }
+  .knob-pot::after { content: ''; position: absolute; top: 5px; left: 50%; width: 4px; height: 20px; background: #333; transform: translateX(-50%); border-radius: 2px; }
+  .knob-inner { width: 100%; height: 100%; transition: transform 0.05s; border-radius: 50%; }
+  .knob-val { font-family: monospace; font-size: 11px; font-weight: 700; color: var(--ink); background: #fff; padding: 2px 6px; border-radius: 4px; border: 1px solid #ccc; }
 
-    /* Layout */
-    .grid{
-      display:grid;
-      grid-template-columns: 1.05fr .95fr;
-      gap:14px;
-      padding:14px 14px 16px;
-    }
-    @media (max-width: 980px){
-      .grid{grid-template-columns:1fr;}
-    }
+  /* SWITCHES */
+  .switch-row { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 15px; transition: opacity 0.3s; }
+  .switch-row.hidden { opacity: 0.4; pointer-events: none; filter: grayscale(1); }
+  .push-switch { appearance: none; border: none; background: var(--chassis); color: #666; padding: 8px 14px; border-radius: 8px; font-size: 10px; font-weight: 800; box-shadow: var(--shadow-soft); cursor: pointer; transition: 0.1s; }
+  .push-switch.active { box-shadow: var(--shadow-inset); color: #222; border-left: 3px solid var(--accent); }
 
-    .card{
-      background: var(--panel2);
-      border:1px solid var(--border);
-      border-radius: 16px;
-      box-shadow: var(--inset);
-      overflow:hidden;
-    }
-    .hd{
-      padding:12px 14px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      border-bottom:1px solid var(--border);
-      background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,0));
-    }
-    .hd h2{
-      margin:0;
-      font-size:12px;
-      letter-spacing:.9px;
-      text-transform:uppercase;
-    }
-    .meta{
-      font-size:12px;
-      font-weight:950;
-      color:var(--muted);
-      white-space:nowrap;
-    }
-    .bd{padding:12px 14px;}
-    .divider{height:1px;background: var(--border);opacity:.8;margin:12px 0;}
-    .small{font-size:12px;font-weight:900;color:var(--muted);line-height:1.35;}
+  /* FOOTER */
+  .footer { background: #2a2a2a; border-radius: 12px; padding: 20px; display: flex; justify-content: space-between; align-items: center; color: #fff; margin-top: 20px; }
+  .transport { display: flex; gap: 10px; align-items: center; }
+  .t-btn { width: 40px; height: 40px; border-radius: 6px; border: 1px solid #555; background: #333; color: #888; font-size: 10px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .t-btn.active { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 10px rgba(255,212,0,0.2); }
+  .t-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  
+  .file-group { display: flex; gap: 10px; }
+  .file-btn { background: #444; padding: 10px 14px; border-radius: 6px; font-size: 10px; font-weight: 700; cursor: pointer; position: relative; overflow: hidden; display: flex; align-items: center; gap: 5px; }
+  .file-btn:hover { background: #555; }
+  .file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .big-go { background: var(--accent); color: #000; border: none; padding: 10px 25px; font-weight: 900; font-size: 14px; box-shadow: 0 0 15px var(--accent); cursor: pointer; }
+  .big-go:disabled { background: #555; color: #888; box-shadow: none; cursor: not-allowed; }
+  .bit-select { background: #444; color: #fff; border: 1px solid #666; border-radius: 4px; font-size: 10px; font-weight: 700; padding: 5px; }
 
-    /* Help tooltip */
-    .q{
-      display:inline-grid;place-items:center;
-      width:18px;height:18px;border-radius:50%;
-      background: var(--accent2);
-      border:1px solid rgba(0,0,0,.22);
-      font-weight:1000;
-      font-size:12px;
-      cursor:pointer;
-      user-select:none;
-      color:#111;
-      margin-left:6px;
-    }
-    .q.hidden{display:none}
+  /* DRAWER & MODAL */
+  .drawer { background: #222; margin-top: -5px; border-radius: 0 0 12px 12px; padding: 20px; border: 1px solid #444; border-top: none; display: none; }
+  .drawer-head { color: #666; font-size: 10px; font-weight: 800; margin-bottom: 10px; text-transform: uppercase; }
+  .mixer-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; }
+  .fader-strip { min-width: 60px; background: #1a1a1a; padding: 10px 5px; border-radius: 4px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .mini-fader { -webkit-appearance: slider-vertical; width: 24px; height: 100px; background: #333; }
+  .stem-name { font-size: 9px; color: #888; width: 100%; overflow: hidden; text-overflow: ellipsis; text-align: center; }
+  
+  .led { width: 10px; height: 10px; border-radius: 50%; background: var(--led-off); box-shadow: inset 1px 1px 2px rgba(0,0,0,0.5); border: 1px solid #222; transition: 0.2s; }
+  .led.on { background: var(--led-on); box-shadow: 0 0 8px var(--led-on); }
+  .led.busy { background: var(--led-busy); box-shadow: 0 0 8px var(--led-busy); animation: blink 0.5s infinite; }
+  .led.warn { background: var(--led-warn); box-shadow: 0 0 8px var(--led-warn); }
+  @keyframes blink { 50% { opacity: 0.5; } }
 
-    .tip{
-      position:fixed;z-index:1000;
-      max-width:360px;
-      padding:10px 12px;
-      border-radius:12px;
-      background: color-mix(in srgb, var(--panel) 92%, #000 8%);
-      border:1px solid var(--border);
-      box-shadow: var(--shadow2);
-      color:var(--text);
-      font-size:12px;
-      font-weight:850;
-      line-height:1.35;
-      display:none;
-      white-space:pre-wrap;
-    }
+  .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; display: none; align-items: center; justify-content: center; }
+  .modal-box { background: #eee; padding: 20px; border-radius: 12px; max-width: 450px; width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.8); font-family: ui-monospace, monospace; font-size: 12px; line-height: 1.6; max-height: 90vh; overflow-y: auto; user-select: text; }
+  .report-line { margin-bottom: 5px; border-bottom: 1px dashed #ccc; padding-bottom: 2px; }
+  input { border: 1px solid #ccc; padding: 4px; border-radius: 4px; font-family: inherit; font-size: 12px; }
+  
+  .mode-toggle { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .toggle-switch { position: relative; width: 60px; height: 24px; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 12px; box-shadow: var(--shadow-inset); }
+  .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 1px 1px 3px rgba(0,0,0,0.2); }
+  input:checked + .slider { background-color: var(--ink); }
+  input:checked + .slider:before { transform: translateX(36px); background-color: var(--accent); }
 
-    /* Audio players + spectra */
-    .playerBlock{
-      border:1px solid var(--border);
-      border-radius: 14px;
-      background: rgba(255,255,255,.10);
-      box-shadow: var(--inset);
-      padding:10px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-    audio{width:100%;}
-    .specBox{
-      width:100%;
-      height:90px;
-      border-radius: 10px;
-      background: var(--meterBg);
-      border:1px solid rgba(255,255,255,.06);
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,.30);
-      overflow:hidden;
-      position:relative;
-    }
-    .specBox::after{
-      content:"";
-      position:absolute;inset:0;
-      background: var(--meterGlass);
-      pointer-events:none;
-    }
-    canvas{display:block;width:100%;height:100%;}
-    .kpi{
-      display:flex;gap:10px;flex-wrap:wrap;
-    }
-    .kpi span{
-      padding:8px 10px;
-      border-radius:999px;
-      border:1px solid var(--border);
-      background: rgba(255,255,255,.10);
-      box-shadow: var(--inset);
-      font-weight:950;
-      font-size:12px;
-      color: var(--muted);
-    }
-
-    .warnBox{
-      display:none;
-      padding:10px 12px;border-radius: 12px;
-      border:1px solid var(--border);
-      background: color-mix(in srgb, var(--accent) 35%, rgba(255,255,255,.10));
-      font-weight:950;font-size:12px;
-    }
-    pre.report{
-      margin:0;
-      padding:12px;
-      border-radius: 12px;
-      background: rgba(0,0,0,.08);
-      border:1px solid var(--border);
-      font-size:12px;
-      font-weight:850;
-      line-height:1.35;
-      white-space:pre-wrap;
-      overflow:auto;
-    }
-
-    /* One-click styles */
-    .styles{display:flex;gap:10px;flex-wrap:wrap;}
-    .chip{
-      border-radius:999px;
-      padding:10px 12px;
-      border:1px solid var(--border);
-      background: rgba(255,255,255,.10);
-      box-shadow: var(--inset);
-      font-weight:1000;
-      font-size:12px;
-      cursor:pointer;
-      user-select:none;
-    }
-    .chip.active{
-      outline: 2px solid color-mix(in srgb, var(--accent) 50%, transparent);
-      background: linear-gradient(180deg, rgba(255,255,255,.30), rgba(255,255,255,.10));
-    }
-
-    /* Console sliders */
-    .sliderGrid{
-      display:grid;
-      grid-template-columns: repeat(4, minmax(140px, 1fr));
-      gap:12px;
-    }
-    @media (max-width: 980px){
-      .sliderGrid{grid-template-columns: repeat(2, minmax(140px, 1fr));}
-    }
-    .sCard{
-      border:1px solid var(--border);
-      border-radius: 14px;
-      background: rgba(255,255,255,.10);
-      box-shadow: var(--inset);
-      padding:10px;
-    }
-    .sTop{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;}
-    .sTop b{font-size:12px;letter-spacing:.4px;text-transform:lowercase;}
-    .sVal{font-size:12px;font-weight:1000;color:var(--muted);}
-    input[type=range]{width:100%}
-
-    /* Digital Mixing Desk (always visible) */
-    .deskWrap{
-      border:1px solid var(--border);
-      border-radius: 16px;
-      background: rgba(255,255,255,.10);
-      box-shadow: var(--inset);
-      padding:12px;
-    }
-    .deskHeader{
-      display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
-      margin-bottom:10px;
-    }
-    .deskHeader b{font-size:12px;letter-spacing:.9px;text-transform:uppercase;}
-    .deskNote{font-size:12px;font-weight:900;color:var(--muted);}
-
-    .desk{
-      display:grid;
-      grid-template-columns: repeat(12, minmax(70px, 1fr));
-      gap:10px;
-      overflow-x:auto;
-      padding-bottom:6px;
-    }
-    @media (max-width: 980px){
-      .desk{grid-template-columns: repeat(6, minmax(70px, 1fr));}
-    }
-
-    .chan{
-      border:1px solid var(--border);
-      border-radius: 14px;
-      background: rgba(255,255,255,.10);
-      box-shadow: var(--inset);
-      padding:10px 8px;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      min-width:70px;
-    }
-    .chan.disabled{opacity:.55}
-    .chanTitle{
-      font-size:11px;
-      font-weight:1000;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
-    }
-
-    .miniSpec{
-      height:44px;
-      border-radius: 10px;
-      background: var(--meterBg);
-      position:relative;
-      overflow:hidden;
-      border:1px solid rgba(255,255,255,.06);
-    }
-    .miniSpec::after{
-      content:"";
-      position:absolute;inset:0;
-      background: var(--meterGlass);
-      pointer-events:none;
-    }
-
-    /* “fader strip” */
-    .faderArea{
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      align-items:stretch;
-    }
-    .faderLabel{
-      font-size:11px;font-weight:950;color:var(--muted);
-      display:flex;justify-content:space-between;gap:6px;
-    }
-    .vFader{
-      height:190px;
-      width:100%;
-      writing-mode: bt-lr;
-      -webkit-appearance: slider-vertical;
-      appearance: slider-vertical;
-    }
-    .pan{
-      width:100%;
-    }
-    .btnRow{display:flex;gap:6px;flex-wrap:wrap;justify-content:space-between;}
-    .miniBtn{
-      padding:7px 9px;
-      border-radius: 12px;
-      border:1px solid var(--border);
-      background: rgba(255,255,255,.12);
-      box-shadow: var(--inset);
-      font-weight:1000;
-      font-size:11px;
-      cursor:pointer;
-      user-select:none;
-      width:100%;
-      text-align:center;
-    }
-    .miniBtn.on{
-      background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 45%, #fff 55%), var(--accent2));
-      color:#111;
-    }
-  </style>
+  @media(max-width: 800px) { .knob-deck { grid-template-columns: 1fr 1fr 1fr; } .meter-bridge { grid-template-columns: 1fr; height: auto; } .vu-section { display: none; } .footer { flex-direction: column; gap: 15px; } }
+</style>
 </head>
+<body>
 
-<body data-theme="light">
-  <div class="shell">
-    <header>
-      <div class="brand">
-        <div class="brandTop">
-          <div class="analog">analog obsession</div>
-          <div class="title">JaseMaster</div>
+<script type="module">
+  const workerCode = `
+    import { FFmpeg } from "https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/esm/index.js";
+    import { toBlobURL } from "https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js";
+
+    let ffmpeg = null;
+    let ffReady = false;
+    let cancelled = false;
+
+    function parseLoudnorm(text) {
+      const matches = text.match(/\\{[\\s\\S]*?\\}/g);
+      if (!matches) return null;
+      try { return JSON.parse(matches[matches.length - 1]); } catch { return null; }
+    }
+
+    function parseEbur128(text) {
+      const iMatch = text.match(/\\bI:\\s*([-\\d.]+)\\s*LUFS/i);
+      const tpMatch = text.match(/\\bTP:\\s*([-\\d.]+)\\s*dB(?:TP)?/i);
+      const lraMatch = text.match(/\\bLRA:\\s*([-\\d.]+)\\s*LU/i);
+      return {
+        I: iMatch ? parseFloat(iMatch[1]) : null,
+        TP: tpMatch ? parseFloat(tpMatch[1]) : null,
+        LRA: lraMatch ? parseFloat(lraMatch[1]) : null
+      };
+    }
+
+    async function ensureFFmpeg() {
+      if (ffReady) return true;
+      ffmpeg = new FFmpeg();
+      const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm";
+      await ffmpeg.load({
+        coreURL: await toBlobURL(\`\${baseURL}/ffmpeg-core.js\`, "text/javascript"),
+        wasmURL: await toBlobURL(\`\${baseURL}/ffmpeg-core.wasm\`, "application/wasm"),
+      });
+      ffReady = true;
+      return true;
+    }
+
+    async function analyzeLoudness(wavBytes) {
+      cancelled = false;
+      await ensureFFmpeg();
+      const inName = "scan.wav";
+      await ffmpeg.writeFile(inName, new Uint8Array(wavBytes));
+      let logs = "";
+      ffmpeg.on("log", ({ message }) => { logs += message + "\\n"; });
+      await ffmpeg.exec(["-i", inName, "-af", "ebur128=peak=true", "-f", "null", "-"]);
+      await ffmpeg.deleteFile(inName);
+      if (cancelled) return { cancelled: true };
+      return { cancelled: false, metrics: parseEbur128(logs) };
+    }
+
+    async function applyCompliance(wavBytes, targetI, targetTP) {
+      cancelled = false;
+      await ensureFFmpeg();
+      const inName = "source.wav";
+      const outName = "master.wav";
+      await ffmpeg.writeFile(inName, new Uint8Array(wavBytes));
+      let logs = "";
+      ffmpeg.on("log", ({ message }) => { logs += message + "\\n"; });
+      
+      // Pass 1
+      await ffmpeg.exec(["-i", inName, "-af", \`loudnorm=I=\${targetI}:TP=\${targetTP}:print_format=json\`, "-f", "null", "-"]);
+      const meas = parseLoudnorm(logs);
+      if (!meas) return { cancelled: false, error: "loudnorm measure failed" };
+      if (cancelled) return { cancelled: true };
+
+      // Pass 2
+      await ffmpeg.exec([
+        "-i", inName,
+        "-af", \`loudnorm=I=\${targetI}:TP=\${targetTP}:measured_I=\${meas.input_i}:measured_LRA=\${meas.input_lra}:measured_TP=\${meas.input_tp}:measured_thresh=\${meas.input_thresh}:offset=\${meas.target_offset}:linear=true:print_format=json\`,
+        "-ar", "44100", outName
+      ]);
+
+      const data = await ffmpeg.readFile(outName);
+      await ffmpeg.deleteFile(inName); await ffmpeg.deleteFile(outName);
+      if (cancelled) return { cancelled: true };
+      return { cancelled: false, buffer: data.buffer };
+    }
+
+    self.onmessage = async (e) => {
+      const { id, op, wavBytes, targetI, targetTP } = e.data || {};
+      try {
+        if (op === "cancel") {
+          cancelled = true;
+          self.postMessage({ id, ok: true, cancelled: true });
+          return;
+        }
+        if (op === "analyze") {
+          const res = await analyzeLoudness(wavBytes);
+          self.postMessage({ id, ok: true, ...res });
+          return;
+        }
+        if (op === "compliance") {
+          const res = await applyCompliance(wavBytes, targetI, targetTP);
+          self.postMessage({ id, ok: true, ...res });
+          return;
+        }
+      } catch (err) {
+        self.postMessage({ id, ok: false, error: String(err?.message || err) });
+      }
+    };
+  `;
+
+  const ffWorker = new Worker(URL.createObjectURL(new Blob([workerCode], { type: "text/javascript" })), { type: "module" });
+  let _reqId = 0; const pending = new Map();
+
+  function callWorker(op, payload = {}) {
+    const id = ++_reqId;
+    return new Promise((resolve, reject) => {
+      pending.set(id, { resolve, reject });
+      ffWorker.postMessage({ id, op, ...payload }, payload.wavBytes ? [payload.wavBytes] : []);
+    });
+  }
+
+  ffWorker.onmessage = (e) => {
+    const { id, ok, ...rest } = e.data || {};
+    const p = pending.get(id);
+    if (!p) return;
+    pending.delete(id);
+    ok ? p.resolve(rest) : p.reject(new Error(rest.error || "Worker error"));
+  };
+
+  window.__ff = {
+    analyze: (wavBytes) => callWorker("analyze", { wavBytes }),
+    compliance: (wavBytes, targetI, targetTP) => callWorker("compliance", { wavBytes, targetI, targetTP }),
+    cancel: () => callWorker("cancel", {})
+  };
+</script>
+
+<div class="rack" id="rack">
+  <div class="drop-zone">Drop Files Here</div>
+  <div class="loading-overlay" id="loader">
+    <div class="spinner"></div>
+    <div class="progress-text" id="progressText">PROCESSING...</div>
+    <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    <button class="push-switch" id="cancelBtn" style="margin-top:15px;">CANCEL</button>
+  </div>
+  <div class="faceplate">
+    <div class="screw tl"></div><div class="screw tr"></div><div class="screw bl"></div><div class="screw br"></div>
+    <div class="brand-strip">
+      <div class="logo">AceMaster <span>5000</span></div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div class="mode-toggle">
+          <span style="font-size:10px; font-weight:800; color:#666;">AUTO</span>
+          <label class="toggle-switch" title="Auto hides controls">
+            <input type="checkbox" id="proModeToggle">
+            <span class="slider"></span>
+          </label>
+          <span style="font-size:10px; font-weight:800; color:#222;">PRO</span>
         </div>
-        <div class="sub">Yellow Console Edition • Stereo or 2–12 stems • A/B level-match • per-player spectrum</div>
+        <div id="statusLed" class="led"></div>
       </div>
-
-      <div class="topActions">
-        <label class="toggle" data-tip="Show/hide little help popups. Click the yellow “?” for quick explanations.">
-          <input id="helpToggle" type="checkbox" checked> Help
-        </label>
-        <button class="btn" id="themeBtn" data-tip="Toggle Light/Dark.">Dark</button>
-        <div class="pill" id="statusPill">Load audio to begin</div>
+    </div>
+    <div class="meter-bridge">
+      <div class="screen-wrap">
+        <canvas id="fftCanvas"></canvas>
+        <div class="screen-glare"></div>
+        <div class="screen-overlay">
+          <span class="badge" id="modeBadge">READY</span>
+          <span class="metric" id="kpiMetric">-Inf LUFS</span>
+        </div>
+        <div class="warn-msg" id="warnMsg">⚠️ PHASE ISSUE</div>
       </div>
-    </header>
-
-    <div class="grid">
-      <!-- LEFT -->
-      <div class="card">
-        <div class="hd">
-          <h2>Players</h2>
-          <div class="meta" id="modeMeta">Mode: —</div>
-        </div>
-
-        <div class="bd">
-          <div class="small">
-            <b>Upload</b>
-            <span class="q" data-tip="1 file = Stereo mode.\n2–12 files = Stem mode (mixer becomes active).\nTip: for stems use PCM WAV, same length + sample rate.">?</span>
-          </div>
-          <input id="fileInput" type="file" accept="audio/*" multiple />
-          <div class="warnBox" id="decodeWarn"></div>
-
-          <div class="divider"></div>
-
-          <div class="small"><b>Original</b><span class="q" data-tip="Dry mix (stereo) or the current stem sum (if stems).">?</span></div>
-          <div class="playerBlock">
-            <audio id="audioOriginal" controls></audio>
-            <div class="specBox"><canvas id="specOriginal"></canvas></div>
-            <div class="kpi" id="kpiOriginal"></div>
-          </div>
-
-          <div class="divider"></div>
-
-          <div class="small"><b>Mastered</b><span class="q" data-tip="After Auto-Master, this will fill with the mastered WAV.">?</span></div>
-          <div class="playerBlock">
-            <audio id="audioMastered" controls></audio>
-            <div class="specBox"><canvas id="specMastered"></canvas></div>
-            <div class="kpi" id="kpiMastered"></div>
-          </div>
-
-          <div class="divider"></div>
-
-          <div class="small"><b>Reference (optional)</b><span class="q" data-tip="Load a pro track.\nMatch Tone will nudge settings safely.">?</span></div>
-          <input id="refInput" type="file" accept="audio/*"/>
-          <div class="playerBlock">
-            <audio id="audioReference" controls></audio>
-            <div class="specBox"><canvas id="specReference"></canvas></div>
-            <div class="kpi" id="kpiReference"></div>
-          </div>
-
-          <div class="divider"></div>
-
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;">
-            <label class="toggle" data-tip="Matches loudness so you compare tone, not volume.">
-              <input id="abMatch" type="checkbox" checked> Level-match A/B
-            </label>
-            <button class="btn" id="abSwapBtn" disabled data-tip="Instantly switch between Original and Mastered at the same time position.">A/B Swap</button>
-          </div>
-
-          <div class="divider"></div>
-
-          <div class="small"><b>Mastering Report</b><span class="q" data-tip="Shows before/after stats and what was changed.">?</span></div>
-          <pre class="report" id="reportBox">No master yet.</pre>
-        </div>
+      <div class="vu-section">
+        <div class="vu-header"><div class="vu-title">Reduction</div><div class="clip-led" id="clipLed" title="Clip Warning"></div></div>
+        <div class="vu-box"><div class="vu-scale"></div><div class="vu-needle" id="vuNeedle"></div><div class="vu-label">GR</div></div>
       </div>
-
-      <!-- RIGHT -->
-      <div class="card">
-        <div class="hd">
-          <h2>Console</h2>
-          <div class="meta" id="engineMeta">Engine: —</div>
-        </div>
-
-        <div class="bd">
-          <div class="small"><b>One-Click Styles</b><span class="q" data-tip="Pick a vibe → Auto-Master.\nIf it gets louder but worse, lower Intensity.">?</span></div>
-          <div class="styles" id="styleBar">
-            <div class="chip active" data-style="upbeat" data-tip="Clean vocal sparkle + punchy drums (safe).">Upbeat Worship</div>
-            <div class="chip" data-style="pop" data-tip="Brighter & tighter (radio-ish).">Pop Punch</div>
-            <div class="chip" data-style="rock" data-tip="More mid bite, less top shine.">Rock Edge</div>
-            <div class="chip" data-style="lofi" data-tip="Warm + softened highs.">Lo-Fi Warm</div>
-            <div class="chip" data-style="club" data-tip="Hotter (more risk of crunch).">Club Hot</div>
-          </div>
-
-          <div class="divider"></div>
-
-          <div class="small"><b>Master Controls (mixing-desk sliders)</b><span class="q" data-tip="Target = loudness goal.\nCeiling = max peak.\nIntensity = how hard it pushes.\nWidth = widen high frequencies.">?</span></div>
-
-          <div class="sliderGrid">
-            <div class="sCard">
-              <div class="sTop">
-                <b>Target</b>
-                <span class="sVal" id="targetVal">-14 LUFS-ish</span>
-              </div>
-              <select id="targetPreset" style="width:100%;padding:10px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.12);box-shadow:var(--inset);font-weight:950;">
-                <option value="-14">Streaming (-14)</option>
-                <option value="-11">Hot (-11)</option>
-                <option value="-9">Club (-9)</option>
-              </select>
-            </div>
-
-            <div class="sCard">
-              <div class="sTop">
-                <b>Ceiling</b>
-                <span class="sVal" id="ceilingVal">-1.0 dB</span>
-              </div>
-              <input id="ceiling" type="range" min="-2.0" max="0.0" step="0.1" value="-1.0">
-            </div>
-
-            <div class="sCard">
-              <div class="sTop">
-                <b>Intensity</b>
-                <span class="sVal" id="intensityVal">35%</span>
-              </div>
-              <input id="intensity" type="range" min="0" max="100" step="1" value="35">
-            </div>
-
-            <div class="sCard">
-              <div class="sTop">
-                <b>Width</b>
-                <span class="sVal" id="widthVal">1.10×</span>
-              </div>
-              <input id="width" type="range" min="1.00" max="1.35" step="0.01" value="1.10">
-            </div>
-          </div>
-
-          <div class="divider"></div>
-
-          <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <label class="toggle" data-tip="Removes low rumble below ~30 Hz."><input id="hpf" type="checkbox" checked> Rumble</label>
-            <label class="toggle" data-tip="Gently reduces 250–350 Hz mud."><input id="mud" type="checkbox" checked> Mud</label>
-            <label class="toggle" data-tip="Tames harsh 2–5 kHz."><input id="deharsh" type="checkbox" checked> Harsh</label>
-            <label class="toggle" data-tip="Adds ‘air’ above 10 kHz."><input id="air" type="checkbox" checked> Air</label>
-            <label class="toggle" data-tip="Adds gentle thickness."><input id="warmth" type="checkbox" checked> Warmth</label>
-            <label class="toggle" data-tip="Mono the low end (club safe)."><input id="monoBass" type="checkbox" checked> Mono Bass</label>
-            <label class="toggle" data-tip="Light compression glue."><input id="glue" type="checkbox" checked> Glue</label>
-            <label class="toggle" data-tip="Parallel punch."><input id="parallel" type="checkbox" checked> Parallel</label>
-          </div>
-
-          <div class="divider"></div>
-
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;">
-            <button class="btn primary" id="autoBtn" disabled data-tip="Renders a mastered WAV and generates a report.">Auto-Master</button>
-            <button class="btn" id="matchToneBtn" disabled data-tip="Uses your reference to nudge EQ/intensity safely.">Match Tone</button>
-            <button class="btn" id="exportBtn" disabled data-tip="Download mastered WAV (PCM 16-bit).">Export WAV</button>
-          </div>
-
-          <div class="divider"></div>
-
-          <div class="deskWrap">
-            <div class="deskHeader">
-              <b>Stem Mixer (Digital Desk)</b>
-              <div class="deskNote" id="deskNote">Always visible • Upload 2–12 stems to enable</div>
-            </div>
-            <div class="desk" id="desk"></div>
-          </div>
-
-        </div>
+    </div>
+    <div class="toolbar">
+      <div class="target-row">
+        <button class="target-btn" onclick="setKnobValue('k-target',-14);setKnobValue('k-ceiling',-1.0);">Spotify -14</button>
+        <button class="target-btn" onclick="setKnobValue('k-target',-16);setKnobValue('k-ceiling',-1.0);">Apple -16</button>
+        <button class="target-btn" onclick="setKnobValue('k-target',-9);setKnobValue('k-ceiling',-0.5);">Club -9</button>
+      </div>
+      <div class="preset-row" id="presetRow"></div>
+      <div class="preset-desc" id="presetDesc">Select a preset to begin</div>
+    </div>
+    <div class="knob-deck hidden" id="knobDeck">
+      <div class="module"><div class="mod-name">Target</div><div class="knob-pot" id="k-target" data-min="-18" data-max="-6" data-val="-14" data-step="0.5" title="Integrated LUFS Target"><div class="knob-inner"></div></div><div class="knob-val">-14 LUFS</div></div>
+      <div class="module"><div class="mod-name">Ceiling</div><div class="knob-pot" id="k-ceiling" data-min="-3.0" data-max="0.0" data-val="-1.0" data-step="0.1" title="True Peak Limit"><div class="knob-inner"></div></div><div class="knob-val">-1.0 dB</div></div>
+      <div class="module"><div class="mod-name" style="color:var(--accent-dim)">Drive %</div><div class="knob-pot" id="k-drive" data-min="0" data-max="100" data-val="40" data-step="1" title="Harmonic Saturation"><div class="knob-inner"></div></div><div class="knob-val">40%</div></div>
+      <div class="module"><div class="mod-name">Character</div><div class="knob-pot" id="k-char" data-min="0" data-max="100" data-val="50" data-step="10" title="Punch (Slow) vs Smooth (Fast)"><div class="knob-inner"></div></div><div class="knob-val">Balanced</div></div>
+      <div class="module"><div class="mod-name">Width</div><div class="knob-pot" id="k-width" data-min="100" data-max="150" data-val="110" data-step="1" title="M/S Stereo Widener"><div class="knob-inner"></div></div><div class="knob-val">110%</div></div>
+    </div>
+    <div class="switch-row hidden" id="switchRow">
+      <button class="push-switch active" id="sw-hpf" title="Cut Sub <30Hz">HPF 30</button>
+      <button class="push-switch active" id="sw-mud" title="Clean Low-Mids ~300Hz">Low Clean</button>
+      <button class="push-switch active" id="sw-air" title="Boost Highs + De-Ess">Air 12k</button>
+      <button class="push-switch active" id="sw-multi" title="Linkwitz-Riley Multiband">Multiband</button>
+      <button class="push-switch active" id="sw-tube" title="Tube Saturation (4x OS)">Tube</button>
+      <button class="push-switch active" id="sw-mono" title="Mono Bass <120Hz">Mono Bass</button>
+      <button class="push-switch active" id="sw-dither" title="Add TPDF Dither">Dither</button>
+      <button class="push-switch active" id="sw-abmatch" title="Auto-match A/B level">A/B Match</button>
+    </div>
+    <div class="footer">
+      <div class="file-group">
+        <label class="file-btn"><span>SOURCE</span><input type="file" id="fileInput" accept="audio/*" multiple></label>
+        <label class="file-btn" style="background:#333;"><span>REF TRACK</span><input type="file" id="refInput" accept="audio/*"></label>
+        <button class="push-switch" id="matchBtn" disabled style="padding:6px 10px; font-size:9px;" title="Analyze Reference">MATCH REF</button>
+      </div>
+      <div class="transport">
+        <button class="t-btn" id="playOrig" title="Original (Space)">ORG</button>
+        <button class="t-btn" id="playMast" disabled title="Mastered (Space)">MST</button>
+        <button class="t-btn" id="playRef" disabled title="Reference">REF</button>
+        <button class="t-btn" id="stopBtn" title="Stop">■</button>
+        <button class="t-btn" id="monoCheckBtn" title="Check Mono Compatibility">MONO</button>
+      </div>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <button class="push-switch" id="undoBtn" disabled title="Undo Change">UNDO</button>
+        <button class="push-switch" id="tagsBtn" title="Edit Metadata">TAGS</button>
+        <button class="push-switch" id="resetBtn" title="Reset Preset">RESET</button>
+        <select id="exportFmt" class="bit-select"><option value="wav">WAV</option><option value="mp3">MP3</option></select>
+        <select id="exportBit" class="bit-select"><option value="16">16-bit</option><option value="24">24-bit</option><option value="32">32-bit</option></select>
+        <button class="big-go" id="processBtn" disabled>PROCESS</button>
+        <button class="big-go" id="exportBtn" disabled style="background:#fff; color:#000;">SAVE</button>
+        <button class="push-switch" id="helpBtn" style="padding:10px;">?</button>
       </div>
     </div>
   </div>
-
-  <div class="tip" id="tipBox"></div>
+  <div class="drawer" id="stemDrawer"><div class="drawer-head">12-CHANNEL SUMMING BUS ACTIVE</div><div class="mixer-row" id="mixerBay"></div></div>
+  <div class="modal" id="reportModal"><div class="modal-box" id="reportContent"></div></div>
+  <div class="modal" id="tagsModal"><div class="modal-box"><b>Publisher Metadata</b><br><br><label>Title<br><input id="mTitle" style="width:100%"></label><br><br><label>Artist<br><input id="mArtist" style="width:100%"></label><br><br><label>Album<br><input id="mAlbum" style="width:100%"></label><br><br><div style="display:flex; gap:10px;"><label style="flex:1;">Year<br><input id="mYear" style="width:100%"></label><label style="flex:1;">Genre<br><input id="mGenre" style="width:100%"></label></div><br><label>ISRC<br><input id="mISRC" style="width:100%" placeholder="CC-XXX-YY-NNNNN"></label><br><br><label>Copyright<br><input id="mCopy" style="width:100%"></label><br><br><label>Cover Art (JPG/PNG)<br><input type="file" id="mCover" accept="image/*" style="width:100%"></label><br><br><div style="display:flex; gap:10px; justify-content:flex-end;"><button class="push-switch" id="tagsClose">CLOSE</button><button class="push-switch active" id="tagsSave">SAVE</button></div></div></div>
+</div>
 
 <script>
-/* =========================
-   Helpers
-========================= */
+/* UTILS */
 const $ = id => document.getElementById(id);
-const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
-const dbToGain=db=>Math.pow(10,db/20);
-const gainToDb=g=>20*Math.log10(Math.max(1e-12,g));
-const fmtTime=(sec)=>{ sec=Math.max(0,Math.floor(sec||0)); const m=String(Math.floor(sec/60)).padStart(2,'0'); const s=String(sec%60).padStart(2,'0'); return `${m}:${s}`; };
+const dbToGain = db => Math.pow(10, db/20);
+const gainToDb = g => 20 * Math.log10(Math.max(g, 1e-12));
+const clamp = (x,a,b) => Math.max(a, Math.min(b,x));
+function setProgress(pct, text) { $('progressText').innerText = text || "PROCESSING..."; $('progressBar').style.width = `${clamp(pct,0,100)}%`; }
 
-function setStatus(msg, kind="ok"){
-  const el=$("statusPill");
-  el.textContent=msg;
-  el.style.color = kind==="ok" ? "var(--ok)" : kind==="warn" ? "var(--warn)" : "var(--bad)";
+/* UI */
+const canvas=$('fftCanvas'), ctx=canvas.getContext('2d'); let dims={w:0,h:0};
+function resize() { const r=canvas.getBoundingClientRect(), d=window.devicePixelRatio||1; canvas.width=Math.max(1,Math.floor(r.width*d)); canvas.height=Math.max(1,Math.floor(r.height*d)); ctx.setTransform(d,0,0,d,0,0); dims={w:r.width,h:r.height}; }
+window.addEventListener('resize', resize); resize();
+function updateVU(db) { const d=Math.max(-12,Math.min(0,db)), deg=45+(d/12)*-90; $('vuNeedle').style.transform=`rotate(${deg}deg)`; }
+$('proModeToggle').addEventListener('change', (e) => { const s=e.target.checked; $('knobDeck').classList.toggle('hidden',!s); $('switchRow').classList.toggle('hidden',!s); });
+
+let knobHistory=[]; function setKnobValue(id,val,rec=true){ const el=$(id); if(!el)return; if(rec){knobHistory.push({id,val:parseFloat(el.dataset.val)}); if(knobHistory.length>20)knobHistory.shift(); $('undoBtn').disabled=false;} const min=parseFloat(el.dataset.min), max=parseFloat(el.dataset.max), step=parseFloat(el.dataset.step); val=Math.max(min,Math.min(max,val)); val=Math.round(val/step)*step; el.dataset.val=val; el.dataset.default=el.dataset.default||val; const pct=(val-min)/(max-min), deg=-135+(pct*270); el.querySelector(".knob-inner").style.transform=`rotate(${deg}deg)`; let txt=(val%1===0?val:val.toFixed(1)); if(id==="k-char")txt=val<30?"Punch":val>70?"Smooth":"Balanced"; const sfx=id.includes("target")?" LUFS":id.includes("ceiling")?" dB":(id.includes("width")||id.includes("drive"))?"%":""; el.nextElementSibling.innerText=`${txt}${sfx}`; }
+$('undoBtn').onclick=()=>{if(!knobHistory.length)return; const l=knobHistory.pop(); setKnobValue(l.id,l.val,false); if(!knobHistory.length)$('undoBtn').disabled=true;};
+
+document.querySelectorAll('.knob-pot').forEach(el=>{ setKnobValue(el.id,parseFloat(el.dataset.val),false); let startY,startVal; el.addEventListener('mousedown',e=>{ startY=e.clientY; startVal=parseFloat(el.dataset.val); const min=parseFloat(el.dataset.min), max=parseFloat(el.dataset.max); const onMove=m=>{ const delta=startY-m.clientY; setKnobValue(el.id,startVal+(delta/200)*(max-min)); }; const onUp=()=>{ window.removeEventListener('mousemove',onMove); window.removeEventListener('mouseup',onUp); }; window.addEventListener('mousemove',onMove); window.addEventListener('mouseup',onUp); }); el.addEventListener('dblclick',()=>setKnobValue(el.id,parseFloat(el.dataset.default),true)); });
+function setSwitch(id,on){ const el=$(id); if(el)el.classList.toggle("active",!!on); }
+document.querySelectorAll('.push-switch[id^="sw-"]').forEach(b=>b.onclick=()=>b.classList.toggle('active'));
+
+const meta={title:"",artist:"",album:"",year:"",genre:"",isrc:"",copyright:"",coverBuffer:null,coverMime:"image/jpeg"};
+$('tagsBtn').onclick=()=>{ $('mTitle').value=meta.title; $('mArtist').value=meta.artist; $('mAlbum').value=meta.album; $('mYear').value=meta.year; $('mGenre').value=meta.genre; $('mISRC').value=meta.isrc; $('mCopy').value=meta.copyright; $('tagsModal').style.display='flex'; };
+$('tagsClose').onclick=()=>$('tagsModal').style.display='none';
+$('tagsSave').onclick=()=>{ meta.title=$('mTitle').value; meta.artist=$('mArtist').value; meta.album=$('mAlbum').value; meta.year=$('mYear').value; meta.genre=$('mGenre').value; meta.isrc=$('mISRC').value; meta.copyright=$('mCopy').value; const f=$('mCover').files[0]; if(f){meta.coverMime=f.type||'image/jpeg'; const r=new FileReader(); r.onload=e=>meta.coverBuffer=e.target.result; r.readAsArrayBuffer(f);} $('tagsModal').style.display='none'; };
+
+const PRESETS=[{key:"pop",name:"POP",desc:"Clean loud, shiny top",knobs:{target:-10.5,ceiling:-0.9,drive:35,width:115,char:55},switches:{hpf:true,mud:true,air:true,multi:true,tube:false,mono:true,dither:true}},{key:"trap",name:"TRAP",desc:"808 weight + snap",knobs:{target:-9.5,ceiling:-0.8,drive:55,width:108,char:35},switches:{hpf:true,mud:true,air:false,multi:true,tube:true,mono:true,dither:true}},{key:"edm",name:"EDM",desc:"Bright, wide, club loud",knobs:{target:-8.5,ceiling:-0.5,drive:50,width:135,char:45},switches:{hpf:true,mud:false,air:true,multi:true,tube:false,mono:true,dither:true}},{key:"rock",name:"ROCK",desc:"Punchy glue, guitars fwd",knobs:{target:-10.0,ceiling:-0.8,drive:45,width:110,char:25},switches:{hpf:true,mud:true,air:true,multi:true,tube:true,mono:true,dither:true}},{key:"rnb",name:"R&B",desc:"Warm + smooth",knobs:{target:-11.5,ceiling:-1.0,drive:40,width:120,char:75},switches:{hpf:true,mud:true,air:true,multi:false,tube:true,mono:true,dither:true}}];
+const pr=$('presetRow'); pr.innerHTML=PRESETS.map(p=>`<button class="preset-btn" data-key="${p.key}" title="${p.desc}">${p.name}</button>`).join("");
+let curPreset='pop';
+const applyPreset=(k)=>{ const p=PRESETS.find(x=>x.key===k); setKnobValue("k-target",p.knobs.target,false); setKnobValue("k-ceiling",p.knobs.ceiling,false); setKnobValue("k-drive",p.knobs.drive,false); setKnobValue("k-width",p.knobs.width,false); setKnobValue("k-char",p.knobs.char,false); setSwitch("sw-hpf",p.switches.hpf); setSwitch("sw-mud",p.switches.mud); setSwitch("sw-air",p.switches.air); setSwitch("sw-multi",p.switches.multi); setSwitch("sw-tube",p.switches.tube); setSwitch("sw-mono",p.switches.mono); setSwitch("sw-dither",p.switches.dither); document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active')); pr.querySelector(`[data-key="${k}"]`).classList.add('active'); $('presetDesc').innerText=p.desc; $('modeBadge').innerText=p.name; curPreset=k; knobHistory=[]; $('undoBtn').disabled=true; };
+document.querySelectorAll('.preset-btn').forEach(b=>b.onclick=()=>applyPreset(b.dataset.key)); $('resetBtn').onclick=()=>applyPreset(curPreset); applyPreset('pop');
+
+/* AUDIO */
+const audioCtx=new(window.AudioContext||window.webkitAudioContext)(); let audioUnlocked=false; let renderToken=0; let exportToken=0;
+async function unlockAudio(){if(audioUnlocked)return; try{if(audioCtx.state==='suspended')await audioCtx.resume(); const o=audioCtx.createOscillator(),g=audioCtx.createGain(); g.gain.value=0.00001; o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+0.01); audioUnlocked=true;}catch(e){}}
+['pointerdown','touchstart','click','keydown'].forEach(e=>window.addEventListener(e,unlockAudio,{once:true,passive:true}));
+
+let state={buffers:[],sumBuffer:null,masterBuffer:null,refBuffer:null,activeSrc:null,analyser:null,analyserL:null,analyserR:null,isPlaying:false,monoMode:false,stats:{input:null,output:null},nowPlaying:'none',currentTime:0,startTime:0};
+
+function applyGain(buf,g){for(let c=0;c<buf.numberOfChannels;c++){const d=buf.getChannelData(c);for(let i=0;i<d.length;i++)d[i]*=g;}}
+function makeTubeCurve(d){const n=44100,c=new Float32Array(n),k=d*10;for(let i=0;i<n;i++){let x=i*2/n-1;if(x<-0.5)x+=0.2*(x+0.5)*(x+0.5);c[i]=Math.tanh(k*x)/Math.tanh(k);}return c;}
+function makeSoftClipCurve(){const n=44100,c=new Float32Array(n);for(let i=0;i<n;i++){let x=i*2/n-1;c[i]=(3*x-x*x*x)/2;}return c;}
+function audioBufferToWavBytes(b){const nc=Math.min(2,b.numberOfChannels),sr=b.sampleRate,l=b.length,bps=2,ba=nc*bps,ds=l*ba; const ab=new ArrayBuffer(44+ds),v=new DataView(ab); const w=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i));}; w(0,"RIFF"); v.setUint32(4,36+ds,true); w(8,"WAVE"); w(12,"fmt "); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,nc,true); v.setUint32(24,sr,true); v.setUint32(28,sr*ba,true); v.setUint16(32,ba,true); v.setUint16(34,16,true); w(36,"data"); v.setUint32(40,ds,true); const c=[]; for(let i=0;i<nc;i++)c.push(b.getChannelData(i)); let p=44; for(let i=0;i<l;i++){for(let j=0;j<nc;j++){let s=Math.max(-1,Math.min(1,c[j][i])); v.setInt16(p,s<0?s*0x8000:s*0x7FFF,true); p+=2;}} return ab;}
+
+/* IO */
+const rack=$('rack'); ['dragenter','dragover'].forEach(e=>rack.addEventListener(e,v=>{v.preventDefault();rack.classList.add('drop-active');})); ['dragleave','drop'].forEach(e=>rack.addEventListener(e,v=>{v.preventDefault();rack.classList.remove('drop-active');})); rack.addEventListener('drop',e=>loadFiles(e.dataTransfer.files)); $('fileInput').onchange=e=>loadFiles(e.target.files);
+
+async function loadFiles(files){
+  await unlockAudio(); files=Array.from(files).filter(f=>/\.(wav|mp3|m4a|aac|ogg|flac|aif)$/i.test(f.name||"")); if(!files.length)return;
+  $('kpiMetric').innerText="ANALYZING..."; $('warnMsg').style.display='none'; state.buffers=[]; $('mixerBay').innerHTML='';
+  try{
+    for(let f of files){const ab=await f.arrayBuffer(); const b=await audioCtx.decodeAudioData(ab); state.buffers.push({buffer:b,name:f.name,gain:0});}
+    $('stemDrawer').style.display=state.buffers.length>1?'block':'none'; if(state.buffers.length>1)buildMixer();
+    state.sumBuffer=await renderMix(state.buffers);
+    
+    // FFmpeg Analyze Input
+    const wav=audioBufferToWavBytes(state.sumBuffer);
+    const m=await window.__ff.analyze(wav);
+    if(m.metrics) {
+      state.stats.input={peakDb:m.metrics.TP, rmsDb:m.metrics.I};
+      $('kpiMetric').innerText=`IN: ${m.metrics.TP.toFixed(1)} dBTP / ${m.metrics.I.toFixed(1)} LUFS`;
+    } else {
+      $('kpiMetric').innerText="ANALYZE FAIL"; state.stats.input={peakDb:0,rmsDb:-14};
+    }
+    
+    // Guard
+    const s=state.stats.input; const cr=s.peakDb-s.rmsDb; let w="";
+    if(s.peakDb>-0.5)w="⚠️ HOT INPUT"; else if(cr>18)w="⚠️ DYNAMIC"; else if(cr<6)w="⚠️ SQUASHED";
+    if(w){$('warnMsg').innerText=w; $('warnMsg').style.display='block';}
+    
+    $('processBtn').disabled=false; $('playOrig').disabled=false; $('modeBadge').innerText="LOADED"; $('statusLed').className='led on';
+    resetTransport(); $('playOrig').classList.add('active'); state.nowPlaying='orig';
+  } catch(e){ alert("Decode/Analyze Error"); }
 }
+$('refInput').onchange=async(e)=>{const f=e.target.files[0]; if(f){try{const ab=await f.arrayBuffer(); state.refBuffer=await audioCtx.decodeAudioData(ab); $('playRef').disabled=false; $('matchBtn').disabled=false;}catch(e){}}};
 
-/* =========================
-   Help tips
-========================= */
-let helpOn=true;
-const tipBox=$("tipBox");
-function showTip(el, text){
-  if(!helpOn || !text) return;
-  tipBox.textContent=text;
-  tipBox.style.display="block";
-  const r=el.getBoundingClientRect();
-  const pad=10;
-  let x=r.left + r.width/2 - tipBox.offsetWidth/2;
-  let y=r.bottom + 10;
-  x=clamp(x, pad, window.innerWidth - tipBox.offsetWidth - pad);
-  if(y + tipBox.offsetHeight > window.innerHeight - pad) y=r.top - tipBox.offsetHeight - 10;
-  tipBox.style.left=`${x}px`;
-  tipBox.style.top=`${y}px`;
-}
-function hideTip(){ tipBox.style.display="none"; }
+function buildMixer(){ state.buffers.forEach(s=>{ const d=document.createElement('div'); d.className='fader-strip'; d.innerHTML=`<input type="range" class="mini-fader" min="-24" max="6" value="0"><div class="stem-name">${s.name.substring(0,6)}</div>`; d.querySelector('input').oninput=e=>{s.gain=parseFloat(e.target.value); renderMix(state.buffers).then(b=>state.sumBuffer=b);}; $('mixerBay').appendChild(d); }); }
+async function renderMix(stems){ if(stems.length===1)return stems[0].buffer; const maxLen=Math.max(...stems.map(s=>s.buffer.length)); const off=new OfflineAudioContext(2,maxLen,stems[0].buffer.sampleRate); stems.forEach(s=>{const src=off.createBufferSource(); src.buffer=s.buffer; const g=off.createGain(); g.gain.value=dbToGain(s.gain); src.connect(g).connect(off.destination); src.start(0);}); return await off.startRendering(); }
 
-function wireTips(){
-  document.querySelectorAll("[data-tip]").forEach(el=>{
-    el.addEventListener("mouseenter",()=>showTip(el, el.getAttribute("data-tip")));
-    el.addEventListener("mouseleave",hideTip);
-  });
-  document.querySelectorAll(".q").forEach(q=>{
-    q.addEventListener("click",(e)=>{
-      e.stopPropagation();
-      showTip(q, q.getAttribute("data-tip"));
-      setTimeout(hideTip, 3200);
-    });
-  });
-  document.addEventListener("click", hideTip);
-}
-wireTips();
+/* DSP */
+$('cancelBtn').onclick=()=>{renderToken++; $('loader').style.display='none'; $('modeBadge').innerText="CANCELLED"; $('statusLed').className='led warn';};
+$('processBtn').onclick=async()=>{
+  await unlockAudio(); if(!state.sumBuffer)return;
+  $('loader').style.display='flex'; $('statusLed').className='led busy';
+  const p={target:parseFloat($('k-target').dataset.val), ceil:parseFloat($('k-ceiling').dataset.val), drive:parseFloat($('k-drive').dataset.val)/100, width:parseFloat($('k-width').dataset.val)/100, char:parseFloat($('k-char').dataset.val), hpf:$('sw-hpf').classList.contains('active'), mud:$('sw-mud').classList.contains('active'), air:$('sw-air').classList.contains('active'), multi:$('sw-multi').classList.contains('active'), tube:$('sw-tube').classList.contains('active'), mono:$('sw-mono').classList.contains('active')};
+  const tok=++renderToken;
+  setTimeout(async()=>{
+    if(p.target>-9){if(!p.multi)p.multi=true;if(!p.mono)p.mono=true;}
+    const off=new OfflineAudioContext(2,state.sumBuffer.length,state.sumBuffer.sampleRate); const src=off.createBufferSource(); src.buffer=state.sumBuffer; let chain=src;
+    // DC
+    const dc=off.createBiquadFilter(); dc.type='highpass'; dc.frequency.value=10; chain.connect(dc); chain=dc;
+    // Trim
+    if(state.stats.input.peakDb>-0.5){const tr=off.createGain(); tr.gain.value=dbToGain(-3); chain.connect(tr); chain=tr;}
+    // Gain
+    let gn=p.target-state.stats.input.rmsDb; gn=clamp(gn,-4,16); const pre=off.createGain(); pre.gain.value=dbToGain(gn); chain.connect(pre); chain=pre;
+    // EQ
+    setProgress(20,"EQ & DYNAMICS...");
+    if(p.hpf){const f=off.createBiquadFilter(); f.type='highpass'; f.frequency.value=30; chain.connect(f); chain=f;}
+    if(p.mud){const f=off.createBiquadFilter(); f.type='peaking'; f.frequency.value=300; f.gain.value=-2.5*p.drive; chain.connect(f); chain=f;}
+    if(p.air){const f=off.createBiquadFilter(); f.type='highshelf'; f.frequency.value=10000; f.gain.value=3*p.drive; chain.connect(f); chain=f; const de=off.createDynamicsCompressor(); de.threshold.value=-20; de.ratio.value=4; de.attack.value=0.005; de.release.value=0.05; chain.connect(de); chain=de;}
+    // Multi
+    if(p.multi){
+      const lo=off.createBiquadFilter(); lo.type='lowpass'; lo.frequency.value=200; const hi=off.createBiquadFilter(); hi.type='highpass'; hi.frequency.value=200;
+      const cL=off.createDynamicsCompressor(); cL.threshold.value=-12; cL.ratio.value=4; cL.attack.value=0.03;
+      const cH=off.createDynamicsCompressor(); cH.threshold.value=-24; cH.ratio.value=2; cH.attack.value=0.01;
+      const m=off.createGain(); chain.connect(lo); lo.connect(cL); cL.connect(m); chain.connect(hi); hi.connect(cH); cH.connect(m); chain=m;
+    }
+    // M/S
+    if(p.width!==1.0||p.mono){
+      const sp=off.createChannelSplitter(2), mg=off.createChannelMerger(2); chain.connect(sp);
+      const mid=off.createGain(), gl=off.createGain(); gl.gain.value=0.5; sp.connect(gl,0); gl.connect(mid); const gr=off.createGain(); gr.gain.value=0.5; sp.connect(gr,1); gr.connect(mid);
+      const sid=off.createGain(), sl=off.createGain(); sl.gain.value=0.5; sp.connect(sl,0); sl.connect(sid); const sr=off.createGain(); sr.gain.value=-0.5; sp.connect(sr,1); sr.connect(sid);
+      let sproc=sid; if(p.mono){const f=off.createBiquadFilter(); f.type='highpass'; f.frequency.value=120; sid.connect(f); sproc=f;}
+      const wg=off.createGain(); wg.gain.value=p.width; sproc.connect(wg);
+      mid.connect(mg,0,0); mid.connect(mg,0,1); wg.connect(mg,0,0); const inv=off.createGain(); inv.gain.value=-1; wg.connect(inv); inv.connect(mg,0,1); chain=mg;
+    }
+    // Sat
+    if(p.tube){const ws=off.createWaveShaper(); ws.curve=makeTubeCurve(p.drive); ws.oversample='4x'; chain.connect(ws); chain=ws;}
+    // Clip
+    setProgress(50,"LIMITING...");
+    const clp=off.createWaveShaper(); clp.curve=makeSoftClipCurve(); clp.oversample='4x'; chain.connect(clp); chain=clp;
+    // Limit (Lookahead Sim)
+    const lim=off.createDynamicsCompressor(); lim.threshold.value=p.ceil; lim.ratio.value=20; lim.attack.value=0.03-(p.char/100*0.029); lim.release.value=0.1; chain.connect(lim); chain=lim;
+    lim.connect(off.destination); src.start(0);
+    
+    const ren=await off.startRendering(); if(tok!==renderToken)return;
+    const fd=Math.floor(ren.sampleRate*0.01);
+    for(let c=0;c<ren.numberOfChannels;c++){const d=ren.getChannelData(c); for(let i=0;i<fd;i++){d[i]*=(i/fd); d[d.length-1-i]*=(i/fd);}}
+    
+    // Compliance (Web Worker)
+    setProgress(75,"COMPLIANCE...");
+    const rawWav=audioBufferToWavBytes(ren);
+    const comp=await window.__ff.compliance(rawWav, p.target, p.ceil);
+    
+    if(comp.buffer) {
+        state.masterBuffer = await audioCtx.decodeAudioData(comp.buffer);
+        // Verify
+        const outWav=audioBufferToWavBytes(state.masterBuffer);
+        const mOut=await window.__ff.analyze(outWav);
+        if(mOut.metrics) {
+            state.stats.output={peakDb:mOut.metrics.TP, rmsDb:mOut.metrics.I};
+            $('kpiMetric').innerText=`OUT: ${mOut.metrics.TP.toFixed(1)} dBTP / ${mOut.metrics.I.toFixed(1)} LUFS`;
+        }
+    } else {
+        state.masterBuffer=ren; $('kpiMetric').innerText="COMPLIANCE FAILED";
+    }
 
-$("helpToggle").addEventListener("change",(e)=>{
-  helpOn=e.target.checked;
-  document.querySelectorAll(".q").forEach(q=>q.classList.toggle("hidden", !helpOn));
-  if(!helpOn) hideTip();
-});
-
-$("themeBtn").addEventListener("click", ()=>{
-  const b=document.body;
-  const isLight=b.getAttribute("data-theme")!=="dark";
-  b.setAttribute("data-theme", isLight?"dark":"light");
-  $("themeBtn").textContent = isLight ? "Light":"Dark";
-});
-
-/* =========================
-   Audio state
-========================= */
-const state={
-  ctx:null,
-  mode:"none",
-  engine:"—",
-  style:"upbeat",
-  buffers:[],
-  stemSettings:[],
-  sumDryBuffer:null,
-  masterBuffer:null,
-  refBuffer:null,
-  masteredBlob:null,
-  analysis:{orig:null,mast:null,ref:null},
-  urls:{orig:null,mast:null},
-  media:{orig:null,mast:null,ref:null},
-  specRAF:{orig:0,mast:0,ref:0},
-  stemThumbs:[] // static FFT thumbnails for each stem
+    $('loader').style.display='none'; $('playMast').disabled=false; $('exportBtn').disabled=false; $('modeBadge').innerText="MASTERED"; $('statusLed').className='led on';
+    stop(); playBuffer(state.masterBuffer); $('playMast').classList.add('active'); state.nowPlaying='mast';
+    $('reportContent').innerHTML=`<b>Final Stats:</b><br>Loudness: ${state.stats.output?.rmsDb.toFixed(1)} LUFS<br>True Peak: ${state.stats.output?.peakDb.toFixed(1)} dB<br><br><button class="push-switch" onclick="$('reportModal').style.display='none'">CLOSE</button>`;
+    $('reportModal').style.display='flex';
+  },100);
 };
 
-function ensureCtx(){
-  if(!state.ctx) state.ctx = new (window.AudioContext||window.webkitAudioContext)();
-  return state.ctx;
-}
-async function decodeFile(file){
-  const ctx=ensureCtx();
-  if(ctx.state==="suspended") await ctx.resume().catch(()=>{});
-  const arr=await file.arrayBuffer();
-  return await ctx.decodeAudioData(arr.slice(0));
-}
-function revoke(url){ try{ if(url) URL.revokeObjectURL(url); }catch(e){} }
-
-/* =========================
-   Analysis / KPI
-========================= */
-function analyzeBuffer(buf){
-  const ch0=buf.getChannelData(0);
-  const ch1=buf.numberOfChannels>1 ? buf.getChannelData(1) : null;
-  let peak=0, sumSq=0;
-  const n=ch0.length;
-  for(let i=0;i<n;i++){
-    const v = ch1 ? 0.5*(ch0[i]+ch1[i]) : ch0[i];
-    const a=Math.abs(v);
-    if(a>peak) peak=a;
-    sumSq += v*v;
+/* PLAY */
+$('monoCheckBtn').onclick=()=>{ state.monoMode=!state.monoMode; $('monoCheckBtn').classList.toggle('active',state.monoMode); };
+function playBuffer(buf,isRef=false){
+  if(!buf)return;
+  const res=state.isPlaying?(audioCtx.currentTime-state.startTime)%buf.duration:0;
+  if(state.activeSrc)try{state.activeSrc.stop()}catch(e){}
+  state.isPlaying=true; state.startTime=audioCtx.currentTime-res;
+  const src=audioCtx.createBufferSource(); src.buffer=buf; const gain=audioCtx.createGain();
+  if(!isRef && buf===state.masterBuffer && $('sw-abmatch').classList.contains('active')) {
+     const diff=state.stats.input.rmsDb-state.stats.output.rmsDb; gain.gain.value=dbToGain(diff);
   }
-  const rms=Math.sqrt(sumSq/n);
-  const peakDbfs = gainToDb(Math.min(peak,1.0));
-  const over = peak > 1.00001;
-  const rmsDb=gainToDb(rms);
-  return {ch:buf.numberOfChannels,sr:buf.sampleRate,dur:buf.duration,peak,over,peakDbfs,rmsDb,lufsIsh:rmsDb};
+  const splitMeter=audioCtx.createChannelSplitter(2); state.anL=audioCtx.createAnalyser(); state.anL.fftSize=1024; state.anR=audioCtx.createAnalyser(); state.anR.fftSize=1024;
+  state.analyser=state.anL; // reuse for visual
+  src.connect(gain); gain.connect(splitMeter); splitMeter.connect(state.anL,0); splitMeter.connect(state.anR,1);
+  if(state.monoMode){
+      const sp=audioCtx.createChannelSplitter(2), mg=audioCtx.createChannelMerger(2), sm=audioCtx.createGain(); sm.gain.value=0.5;
+      gain.connect(sp); const l=audioCtx.createGain(),r=audioCtx.createGain();
+      sp.connect(l,0); sp.connect(r,1); l.connect(sm); r.connect(sm); sm.connect(mg,0,0); sm.connect(mg,0,1); mg.connect(audioCtx.destination);
+  } else gain.connect(audioCtx.destination);
+  state.activeSrc=src; src.start(0,res); draw(); src.onended=()=>{};
 }
-function setKpi(which, info){
-  const el = which==="orig"?$("kpiOriginal"):which==="mast"?$("kpiMastered"):$("kpiReference");
-  if(!info){ el.innerHTML=""; return; }
-  el.innerHTML = `
-    <span>${info.ch}ch</span>
-    <span>${Math.round(info.sr/1000)} kHz</span>
-    <span>${fmtTime(info.dur)}</span>
-    <span>Peak ${info.peakDbfs.toFixed(1)} dBFS${info.over?" • OVER":""}</span>
-    <span>RMS ${info.rmsDb.toFixed(1)} dB</span>
-    <span>LUFS-ish ${info.lufsIsh.toFixed(1)}</span>
-  `;
-}
-
-/* =========================
-   WAV encode (PCM 16-bit)
-========================= */
-function encodeWav16(buffer){
-  const numCh=buffer.numberOfChannels;
-  const sr=buffer.sampleRate;
-  const n=buffer.length;
-  const bits=16;
-  const blockAlign=numCh*(bits/8);
-  const byteRate=sr*blockAlign;
-  const dataSize=n*blockAlign;
-  const ab=new ArrayBuffer(44+dataSize);
-  const view=new DataView(ab);
-  let o=0;
-  const wstr=s=>{ for(let i=0;i<s.length;i++) view.setUint8(o++, s.charCodeAt(i)); };
-  const u32=v=>{ view.setUint32(o,v,true); o+=4; };
-  const u16=v=>{ view.setUint16(o,v,true); o+=2; };
-
-  wstr("RIFF"); u32(36+dataSize); wstr("WAVE");
-  wstr("fmt "); u32(16);
-  u16(1); u16(numCh);
-  u32(sr); u32(byteRate);
-  u16(blockAlign); u16(bits);
-  wstr("data"); u32(dataSize);
-
-  const chans=[];
-  for(let c=0;c<numCh;c++) chans.push(buffer.getChannelData(c));
-  for(let i=0;i<n;i++){
-    for(let c=0;c<numCh;c++){
-      const x=clamp(chans[c][i],-1,1);
-      view.setInt16(o, x<0? x*0x8000 : x*0x7FFF, true);
-      o+=2;
-    }
-  }
-  return new Uint8Array(ab);
-}
-
-/* =========================
-   UI bindings
-========================= */
-function setMode(mode){
-  state.mode=mode;
-  $("modeMeta").textContent = `Mode: ${mode==="stems"?"Stems (Desk)":mode==="stereo"?"Stereo":"—"}`;
-  $("engineMeta").textContent = `Engine: ${state.engine}`;
-  $("deskNote").textContent = mode==="stems"
-    ? "Enabled • Move faders to rebalance stems"
-    : "Always visible • Upload 2–12 stems to enable";
-}
-function bindRange(id,out,fmt){
-  const r=$(id), o=$(out);
-  const f=()=>o.textContent=fmt(r.value);
-  r.addEventListener("input",f); f();
-}
-bindRange("ceiling","ceilingVal",v=>`${Number(v).toFixed(1)} dB`);
-bindRange("intensity","intensityVal",v=>`${v|0}%`);
-bindRange("width","widthVal",v=>`${Number(v).toFixed(2)}×`);
-$("targetPreset").addEventListener("change",()=> $("targetVal").textContent = `${$("targetPreset").value} LUFS-ish`);
-
-$("styleBar").addEventListener("click",(e)=>{
-  const chip=e.target.closest(".chip");
-  if(!chip) return;
-  document.querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));
-  chip.classList.add("active");
-  state.style=chip.dataset.style;
-
-  if(state.style==="upbeat"){ $("targetPreset").value="-14"; $("intensity").value="35"; $("width").value="1.10"; }
-  if(state.style==="pop"){ $("targetPreset").value="-11"; $("intensity").value="42"; $("width").value="1.14"; }
-  if(state.style==="rock"){ $("targetPreset").value="-11"; $("intensity").value="40"; $("width").value="1.08"; $("air").checked=false; }
-  if(state.style==="lofi"){ $("targetPreset").value="-14"; $("intensity").value="28"; $("width").value="1.05"; $("air").checked=false; $("warmth").checked=true; }
-  if(state.style==="club"){ $("targetPreset").value="-9"; $("intensity").value="48"; $("width").value="1.12"; }
-
-  $("targetVal").textContent = `${$("targetPreset").value} LUFS-ish`;
-  $("intensityVal").textContent = `${$("intensity").value|0}%`;
-  $("widthVal").textContent = `${Number($("width").value).toFixed(2)}×`;
+function stop(){if(state.activeSrc)try{state.activeSrc.stop()}catch(e){} state.isPlaying=false; resetTransport();}
+function resetTransport(){['playOrig','playMast','playRef'].forEach(id=>$(id).classList.remove('active'));}
+$('stopBtn').onclick=stop;
+document.addEventListener('keydown',e=>{
+  if((document.activeElement?.tagName||'').toLowerCase().match(/input|textarea/))return;
+  if(e.code==='Space' && state.masterBuffer){ e.preventDefault(); if(state.nowPlaying==='mast')$('playOrig').click(); else $('playMast').click(); }
 });
 
-/* =========================
-   Read settings
-========================= */
-function readSettings(){
-  const style=state.style;
-  const tweak=({upbeat:1.0,pop:1.05,rock:1.0,lofi:0.9,club:1.1}[style]||1.0);
-  return {
-    style,
-    target: clamp(Number($("targetPreset").value)*tweak, -14, -9),
-    ceiling: Number($("ceiling").value),
-    intensity: Number($("intensity").value)/100,
-    width: Number($("width").value),
-    hpf:$("hpf").checked,
-    mud:$("mud").checked,
-    deharsh:$("deharsh").checked,
-    air:$("air").checked,
-    warmth:$("warmth").checked,
-    monoBass:$("monoBass").checked,
-    glue:$("glue").checked,
-    parallel:$("parallel").checked
-  };
+/* DRAW */
+function getCorr(anL,anR){
+    const l=new Uint8Array(anL.fftSize), r=new Uint8Array(anR.fftSize); anL.getByteTimeDomainData(l); anR.getByteTimeDomainData(r);
+    let slr=0,sl2=0,sr2=0; for(let i=0;i<l.length;i++){const a=(l[i]-128)/128, b=(r[i]-128)/128; slr+=a*b; sl2+=a*a; sr2+=b*b;}
+    return slr/(Math.sqrt(sl2*sr2)+1e-9);
 }
-
-/* =========================
-   Static FFT thumbnail (for stem channels)
-   - quick average spectrum from a short segment
-========================= */
-async function makeSpectrumThumbnail(buffer, canvas){
-  const sr=buffer.sampleRate;
-  const segSec=Math.min(6, buffer.duration);
-  const segLen=Math.max(1, Math.floor(segSec*sr));
-  const start=Math.max(0, Math.floor((buffer.length-segLen)*0.45));
-
-  // mono segment
-  const mono=new Float32Array(segLen);
-  const ch0=buffer.getChannelData(0);
-  const ch1=buffer.numberOfChannels>1 ? buffer.getChannelData(1) : null;
-  for(let i=0;i<segLen;i++){
-    const v = ch1 ? 0.5*(ch0[start+i]+ch1[start+i]) : ch0[start+i];
-    mono[i]=v;
-  }
-
-  // simple FFT-ish bars via browser Analyser in OfflineAudioContext
-  const off=new OfflineAudioContext(1, segLen, sr);
-  const src=off.createBufferSource();
-  const buf=new AudioBuffer({length:segLen,numberOfChannels:1,sampleRate:sr});
-  buf.getChannelData(0).set(mono);
-  src.buffer=buf;
-
-  const analyser=off.createAnalyser();
-  analyser.fftSize=2048;
-  src.connect(analyser);
-  analyser.connect(off.destination);
-
-  const fd=new Uint8Array(analyser.frequencyBinCount);
-  src.start(0);
-
-  // render (we don't need output, just to advance)
-  await off.startRendering();
-
-  analyser.getByteFrequencyData(fd);
-
-  drawBars(canvas, fd);
+function draw(){
+  if(!state.isPlaying)return;
+  const bins=new Uint8Array(state.analyser.frequencyBinCount); state.analyser.getByteFrequencyData(bins);
+  ctx.clearRect(0,0,dims.w,dims.h); const bw=dims.w/bins.length;
+  for(let i=0;i<bins.length;i++){ const h=(bins[i]/255)*dims.h; ctx.fillStyle=`hsl(${i*2},100%,50%)`; ctx.fillRect(i*bw,dims.h-h,bw,h); }
+  // Corr
+  const c=getCorr(state.anL,state.anR); if(c<0) $('warnMsg').style.display='block'; else $('warnMsg').style.display='none';
+  // Fake GR
+  if(state.nowPlaying==='mast'){updateVU((bins[10]/255)*-12);} else updateVU(0);
+  if(bins[5]>250)$('clipLed').classList.add('clipped');
+  requestAnimationFrame(draw);
 }
+$('clipLed').onclick=()=>$('clipLed').classList.remove('clipped');
 
-function fitCanvas(c){
-  const r=c.getBoundingClientRect();
-  c.width=Math.max(2, Math.floor(r.width*devicePixelRatio));
-  c.height=Math.max(2, Math.floor(r.height*devicePixelRatio));
-}
-function drawBars(canvas, fd){
-  fitCanvas(canvas);
-  const ctx=canvas.getContext("2d");
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  const bins=32;
-  const step=Math.floor(fd.length/bins);
-  for(let b=0;b<bins;b++){
-    let sum=0;
-    for(let i=0;i<step;i++) sum += fd[b*step+i]||0;
-    const v=(sum/(step*255));
-    const x0=(b/bins)*canvas.width;
-    const x1=((b+1)/bins)*canvas.width;
-    const w=Math.max(1, x1-x0-1*devicePixelRatio);
-    const h=v*canvas.height;
-    ctx.fillStyle="rgba(255,255,255,0.70)";
-    ctx.fillRect(x0, canvas.height-h, w, h);
-  }
-}
-
-/* =========================
-   Digital desk (always visible 12 channels)
-========================= */
-function initDesk(){
-  const desk=$("desk");
-  desk.innerHTML="";
-  for(let i=0;i<12;i++){
-    const chan=document.createElement("div");
-    chan.className="chan disabled";
-    chan.dataset.idx=String(i);
-    chan.innerHTML=`
-      <div class="chanTitle">—</div>
-      <div class="miniSpec"><canvas></canvas></div>
-
-      <div class="faderArea">
-        <div class="faderLabel"><span>gain</span><span class="gVal">—</span></div>
-        <input class="vFader" type="range" min="-36" max="6" step="0.1" value="0" disabled>
-        <div class="faderLabel"><span>pan</span><span class="pVal">—</span></div>
-        <input class="pan" type="range" min="-1" max="1" step="0.01" value="0" disabled>
-        <div class="btnRow">
-          <button class="miniBtn" disabled>Mute</button>
-        </div>
-      </div>
-    `;
-    desk.appendChild(chan);
-  }
-}
-initDesk();
-
-function updateDeskFromState(){
-  const desk=$("desk");
-  const channels=[...desk.querySelectorAll(".chan")];
-
-  const enabled = (state.mode==="stems" && state.stemSettings.length>=2);
-  channels.forEach((ch,i)=>{
-    const s=state.stemSettings[i] || null;
-    const title=ch.querySelector(".chanTitle");
-    const cSpec=ch.querySelector("canvas");
-    const fader=ch.querySelector(".vFader");
-    const pan=ch.querySelector(".pan");
-    const muteBtn=ch.querySelector(".miniBtn");
-    const gVal=ch.querySelector(".gVal");
-    const pVal=ch.querySelector(".pVal");
-
-    if(s){
-      title.textContent = `${i+1} ${s.name}`;
-      ch.classList.toggle("disabled", !enabled);
-      fader.disabled = !enabled;
-      pan.disabled = !enabled;
-      muteBtn.disabled = !enabled;
-
-      fader.value = s.gainDb;
-      pan.value = s.pan;
-      gVal.textContent = `${Number(s.gainDb).toFixed(1)} dB`;
-      pVal.textContent = `${Number(s.pan).toFixed(2)}`;
-
-      muteBtn.textContent = s.mute ? "Muted" : "Mute";
-      muteBtn.classList.toggle("on", !!s.mute);
-
-      // spectrum thumb
-      if(state.stemThumbs[i]) drawBars(cSpec, state.stemThumbs[i]);
-      else {
-        // blank
-        fitCanvas(cSpec);
-        const ctx=cSpec.getContext("2d"); ctx.clearRect(0,0,cSpec.width,cSpec.height);
-      }
-
-      // listeners (once)
-      if(!ch.dataset.wired){
-        ch.dataset.wired="1";
-        fader.addEventListener("input", ()=>{
-          const idx=Number(ch.dataset.idx);
-          const ss=state.stemSettings[idx]; if(!ss) return;
-          ss.gainDb=Number(fader.value);
-          gVal.textContent = `${ss.gainDb.toFixed(1)} dB`;
-        });
-        pan.addEventListener("input", ()=>{
-          const idx=Number(ch.dataset.idx);
-          const ss=state.stemSettings[idx]; if(!ss) return;
-          ss.pan=Number(pan.value);
-          pVal.textContent = `${ss.pan.toFixed(2)}`;
-        });
-        muteBtn.addEventListener("click", ()=>{
-          const idx=Number(ch.dataset.idx);
-          const ss=state.stemSettings[idx]; if(!ss) return;
-          ss.mute=!ss.mute;
-          muteBtn.textContent = ss.mute ? "Muted" : "Mute";
-          muteBtn.classList.toggle("on", ss.mute);
-        });
-      }
-    } else {
-      title.textContent = "—";
-      ch.classList.add("disabled");
-      fader.disabled=true; pan.disabled=true; muteBtn.disabled=true;
-      gVal.textContent="—"; pVal.textContent="—";
-      muteBtn.textContent="Mute"; muteBtn.classList.remove("on");
-      fitCanvas(cSpec);
-      const ctx=cSpec.getContext("2d"); ctx.clearRect(0,0,cSpec.width,cSpec.height);
+/* EXPORT */
+function floatTo16BitPCM(f){const o=new Int16Array(f.length);for(let i=0;i<f.length;i++){let s=Math.max(-1,Math.min(1,f[i]));o[i]=s<0?s*0x8000:s*0x7FFF;}return o;}
+async function encodeMp3(buf,kbps){
+    const l=floatTo16BitPCM(buf.getChannelData(0)), r=floatTo16BitPCM(buf.getChannelData(1));
+    const enc=new lamejs.Mp3Encoder(2,buf.sampleRate,kbps), mp3=[];
+    const sz=1152; 
+    for(let i=0;i<l.length;i+=sz){
+        if(exportToken!==myTokenForExport)throw new Error("Cancelled");
+        const mb=enc.encodeBuffer(l.subarray(i,i+sz),r.subarray(i,i+sz));
+        if(mb.length)mp3.push(new Uint8Array(mb));
+        if(i%(sz*50)===0){setProgress((i/l.length*100)|0,"ENCODING..."); await new Promise(r=>setTimeout(r,0));}
     }
-  });
+    const end=enc.flush(); if(end.length)mp3.push(new Uint8Array(end));
+    return new Blob(mp3,{type:"audio/mpeg"});
+}
+async function tagMp3(blob){
+    const b=await blob.arrayBuffer(), w=new ID3Writer(b);
+    if(meta.title)w.setFrame('TIT2',meta.title); if(meta.artist)w.setFrame('TPE1',[meta.artist]); if(meta.album)w.setFrame('TALB',meta.album);
+    if(meta.year)w.setFrame('TYER',meta.year); if(meta.coverBuffer)w.setFrame('APIC',{type:3,data:meta.coverBuffer,description:'Cover',mimeType:meta.coverMime});
+    w.addTag(); return new Blob([w.arrayBuffer],{type:"audio/mpeg"});
 }
 
-/* =========================
-   Offline sum (stems)
-========================= */
-async function renderDrySumFromStems(buffers){
-  const sr=buffers[0].sampleRate;
-  const len=buffers[0].length;
-  const off=new OfflineAudioContext(2, len, sr);
-  const bus=off.createGain(); bus.gain.value=1;
-
-  buffers.forEach((b,idx)=>{
-    const src=off.createBufferSource(); src.buffer=b;
-    const g=off.createGain();
-    const p=off.createStereoPanner();
-    const s=state.stemSettings[idx];
-    g.gain.value = s.mute ? 0 : dbToGain(s.gainDb);
-    p.pan.value = s.pan;
-    src.connect(g).connect(p).connect(bus);
-    src.start(0);
-  });
-
-  bus.connect(off.destination);
-  return await off.startRendering();
-}
-
-/* =========================
-   Master chain (same “safe” approach)
-========================= */
-function makeSaturationCurve(amount){
-  const n=65536;
-  const curve=new Float32Array(n);
-  const k=clamp(amount,0.01,2.0)*2.2;
-  const norm=Math.tanh(k);
-  for(let i=0;i<n;i++){
-    const x=(i/(n-1))*2-1;
-    curve[i]=Math.tanh(k*x)/norm;
-  }
-  return curve;
-}
-
-async function offlineMasterFromBuffer(input, settings){
-  const preA=analyzeBuffer(input);
-  const preTargetPeakDb=-6.0;
-  const preGainDb=clamp(preTargetPeakDb - preA.peakDbfs, -30, 12);
-
-  const sr=input.sampleRate;
-  const len=input.length;
-  const off=new OfflineAudioContext(2, len, sr);
-
-  let inBuf=input;
-  if(input.numberOfChannels===1){
-    const bb=new AudioBuffer({length:input.length, numberOfChannels:2, sampleRate:sr});
-    bb.getChannelData(0).set(input.getChannelData(0));
-    bb.getChannelData(1).set(input.getChannelData(0));
-    inBuf=bb;
-  }
-
-  const src=off.createBufferSource(); src.buffer=inBuf;
-  const pre=off.createGain(); pre.gain.value=dbToGain(preGainDb);
-
-  const hpf=off.createBiquadFilter(); hpf.type="highpass"; hpf.frequency.value=30;
-  const mud=off.createBiquadFilter(); mud.type="peaking"; mud.frequency.value=300; mud.Q.value=1;
-  const harsh=off.createBiquadFilter(); harsh.type="peaking"; harsh.frequency.value=3500; harsh.Q.value=1.2;
-  const air=off.createBiquadFilter(); air.type="highshelf"; air.frequency.value=12000;
-
-  mud.gain.value   = settings.mud ? (-1.3*settings.intensity) : 0;
-  harsh.gain.value = settings.deharsh ? (-1.1*settings.intensity) : 0;
-  air.gain.value   = settings.air ? (0.9*settings.intensity) : 0;
-
-  const glue=off.createDynamicsCompressor();
-  glue.threshold.value=-18; glue.knee.value=20; glue.ratio.value=2.2;
-  glue.attack.value=0.03; glue.release.value=0.18;
-
-  const punch=off.createDynamicsCompressor();
-  punch.threshold.value=-30; punch.knee.value=10; punch.ratio.value=8;
-  punch.attack.value=0.01; punch.release.value=0.22;
-
-  const dry=off.createGain(); dry.gain.value=1.0;
-  const wet=off.createGain(); wet.gain.value = settings.parallel ? (0.08 + 0.18*settings.intensity) : 0.0;
-  const sum=off.createGain();
-
-  // M/S widen highs
-  const split=off.createChannelSplitter(2);
-  const merge=off.createChannelMerger(2);
-
-  const gL=off.createGain(); gL.gain.value=0.5;
-  const gR=off.createGain(); gR.gain.value=0.5;
-  const gL2=off.createGain(); gL2.gain.value=0.5;
-  const invR=off.createGain(); invR.gain.value=-0.5;
-
-  const mid=off.createGain();
-  const side=off.createGain();
-  const sideHP=off.createBiquadFilter(); sideHP.type="highpass"; sideHP.frequency.value=120;
-  const sideW=off.createGain(); sideW.gain.value=settings.width;
-
-  const toL_mid=off.createGain(); toL_mid.gain.value=1;
-  const toL_side=off.createGain(); toL_side.gain.value=1;
-  const toR_mid=off.createGain(); toR_mid.gain.value=1;
-  const toR_side=off.createGain(); toR_side.gain.value=-1;
-
-  const sat=off.createWaveShaper();
-  sat.curve = makeSaturationCurve(0.50 + 0.70*settings.intensity);
-  sat.oversample="4x";
-
-  src.connect(pre);
-  let n=pre;
-  if(settings.hpf){ n.connect(hpf); n=hpf; }
-  n.connect(mud); n=mud;
-  n.connect(harsh); n=harsh;
-  n.connect(air); n=air;
-  if(settings.glue){ n.connect(glue); n=glue; }
-
-  n.connect(split);
-
-  split.connect(gL,0); gL.connect(mid);
-  split.connect(gR,1); gR.connect(mid);
-
-  split.connect(gL2,0); gL2.connect(side);
-  split.connect(invR,1); invR.connect(side);
-
-  if(settings.monoBass){
-    side.connect(sideHP);
-    sideHP.connect(sideW);
-  } else {
-    side.connect(sideW);
-  }
-
-  mid.connect(toL_mid); toL_mid.connect(merge,0,0);
-  sideW.connect(toL_side); toL_side.connect(merge,0,0);
-
-  mid.connect(toR_mid); toR_mid.connect(merge,0,1);
-  sideW.connect(toR_side); toR_side.connect(merge,0,1);
-
-  merge.connect(dry);
-  merge.connect(punch);
-  punch.connect(wet);
-  dry.connect(sum);
-  wet.connect(sum);
-
-  if(settings.warmth) sum.connect(sat).connect(off.destination);
-  else sum.connect(off.destination);
-
-  src.start(0);
-  const rendered=await off.startRendering();
-
-  const postA=analyzeBuffer(rendered);
-  const makeUpDb = clamp((settings.target - postA.rmsDb) * (0.45 + 0.55*settings.intensity), -10, 8);
-  const makeUp = dbToGain(makeUpDb);
-
-  const out=new AudioBuffer({length:rendered.length, numberOfChannels:2, sampleRate:rendered.sampleRate});
-  for(let c=0;c<2;c++){
-    const s=rendered.getChannelData(c);
-    const d=out.getChannelData(c);
-    for(let i=0;i<s.length;i++) d[i]=s[i]*makeUp;
-  }
-
-  const afterMake=analyzeBuffer(out);
-  const ceil = dbToGain(settings.ceiling);
-  let limiterScale=1.0;
-  if(afterMake.peak > ceil){
-    limiterScale = ceil / afterMake.peak;
-    for(let c=0;c<2;c++){
-      const d=out.getChannelData(c);
-      for(let i=0;i<d.length;i++) d[i]*=limiterScale;
+$('exportBtn').onclick=async()=>{
+    if(!state.masterBuffer)return;
+    const fmt=$('exportFmt').value, safe=(meta.title||"AceMaster").replace(/[^\w\s-]/g,"").trim()||"Track", fn=`${safe}_${$('modeBadge').innerText}_${$('k-target').dataset.val}LUFS`;
+    
+    if(fmt==='mp3'){
+        $('loader').style.display='flex'; $('statusLed').className='led busy'; myTokenForExport=++exportToken;
+        try{
+            const b=await encodeMp3(state.masterBuffer,320);
+            setProgress(90,"TAGGING...");
+            const tb=await tagMp3(b);
+            const u=URL.createObjectURL(tb), a=document.createElement('a'); a.href=u; a.download=fn+".mp3"; a.click(); setTimeout(()=>URL.revokeObjectURL(u),2000);
+        }catch(e){if(e.message!=='Cancelled')alert(e);}
+        $('loader').style.display='none'; $('statusLed').className='led on'; return;
     }
-  }
-
-  const finalA=analyzeBuffer(out);
-
-  return {
-    buffer: out,
-    stats: {preA, postA, afterMake, finalA},
-    moves: {
-      style: settings.style,
-      preGainDb, makeUpDb, limiterScale,
-      width: settings.width.toFixed(2),
-      monoBass: settings.monoBass ? "On (<120Hz mono)" : "Off",
-      warmth: settings.warmth ? "On" : "Off",
-      glue: settings.glue ? "On" : "Off",
-      parallel: settings.parallel ? `On (${(0.08 + 0.18*settings.intensity).toFixed(2)} mix)` : "Off",
-      eq: {
-        hpf: settings.hpf ? "On @30Hz" : "Off",
-        mud: settings.mud ? `-${(1.3*settings.intensity).toFixed(2)} dB @300Hz` : "Off",
-        deharsh: settings.deharsh ? `-${(1.1*settings.intensity).toFixed(2)} dB @3.5kHz` : "Off",
-        air: settings.air ? `+${(0.9*settings.intensity).toFixed(2)} dB @12kHz` : "Off",
-      },
-      target: settings.target,
-      ceiling: settings.ceiling
+    // WAV
+    myTokenForExport=++exportToken; $('loader').style.display='flex'; $('statusLed').className='led busy';
+    await new Promise(r=>setTimeout(r,50));
+    const b=state.masterBuffer, is24=$('exportBit').value==='24', is32=$('exportBit').value==='32', dither=$('sw-dither').classList.contains('active');
+    const bps=is32?4:is24?3:2, len=b.length*2*bps, view=new DataView(new ArrayBuffer(44+len));
+    const s=(o,str)=>{for(let i=0;i<str.length;i++)view.setUint8(o+i,str.charCodeAt(i));};
+    s(0,'RIFF'); view.setUint32(4,36+len,true); s(8,'WAVE'); s(12,'fmt '); view.setUint32(16,16,true); view.setUint16(20,is32?3:1,true); view.setUint16(22,2,true); view.setUint32(24,b.sampleRate,true); view.setUint32(28,b.sampleRate*2*bps,true); view.setUint16(32,2*bps,true); view.setUint16(34,bps*8,true); s(36,'data'); view.setUint32(40,len,true);
+    const L=b.getChannelData(0), R=b.getChannelData(1); let p=44; const chk=48000;
+    for(let i=0;i<b.length;i++){
+        if(exportToken!==myTokenForExport){$('loader').style.display='none'; return;}
+        let l=L[i], r=R[i]; if(dither&&!is32){l+=(Math.random()-0.5)*0.00003; r+=(Math.random()-0.5)*0.00003;}
+        if(is32){view.setFloat32(p,l,true); view.setFloat32(p+4,r,true); p+=8;}
+        else if(is24){
+            l=Math.max(-1,Math.min(1,l)); r=Math.max(-1,Math.min(1,r));
+            let sl=Math.round(l*0x7FFFFF), sr=Math.round(r*0x7FFFFF);
+            if(sl<0)sl+=0x1000000; if(sr<0)sr+=0x1000000;
+            view.setUint8(p,sl&0xFF); view.setUint8(p+1,(sl>>8)&0xFF); view.setUint8(p+2,(sl>>16)&0xFF);
+            view.setUint8(p+3,sr&0xFF); view.setUint8(p+4,(sr>>8)&0xFF); view.setUint8(p+5,(sr>>16)&0xFF); p+=6;
+        } else {
+            l=Math.max(-1,Math.min(1,l)); r=Math.max(-1,Math.min(1,r));
+            view.setInt16(p,l<0?l*0x8000:l*0x7FFF,true); view.setInt16(p+2,r<0?r*0x8000:r*0x7FFF,true); p+=4;
+        }
+        if(i%chk===0){ setProgress((i/b.length*100)|0,"WRITING WAV..."); await new Promise(r=>setTimeout(r,0)); }
     }
-  };
-}
-
-/* =========================
-   Reference match (safe)
-========================= */
-async function bandProfile(buffer){
-  const sr=buffer.sampleRate;
-  const segSec=Math.min(10, buffer.duration);
-  const segLen=Math.max(1, Math.floor(segSec*sr));
-  const start=Math.max(0, Math.floor((buffer.length-segLen)*0.5));
-
-  const seg=new AudioBuffer({length:segLen, numberOfChannels:buffer.numberOfChannels, sampleRate:sr});
-  for(let c=0;c<seg.numberOfChannels;c++){
-    const src=buffer.getChannelData(c), dst=seg.getChannelData(c);
-    for(let i=0;i<segLen;i++) dst[i]=src[start+i]||0;
-  }
-
-  const off=new OfflineAudioContext(3, segLen, sr);
-  const src=off.createBufferSource(); src.buffer=seg;
-
-  const mono=off.createGain();
-  if(seg.numberOfChannels>1){
-    const sp=off.createChannelSplitter(2);
-    const gL=off.createGain(); gL.gain.value=0.5;
-    const gR=off.createGain(); gR.gain.value=0.5;
-    src.connect(sp);
-    sp.connect(gL,0); sp.connect(gR,1);
-    gL.connect(mono); gR.connect(mono);
-  } else src.connect(mono);
-
-  const low=off.createBiquadFilter(); low.type="lowpass"; low.frequency.value=200;
-  const mid=off.createBiquadFilter(); mid.type="bandpass"; mid.frequency.value=1000; mid.Q.value=0.8;
-  const high=off.createBiquadFilter(); high.type="highpass"; high.frequency.value=6000;
-
-  const merge=off.createChannelMerger(3);
-  mono.connect(low); low.connect(merge,0,0);
-  mono.connect(mid); mid.connect(merge,0,1);
-  mono.connect(high); high.connect(merge,0,2);
-
-  merge.connect(off.destination);
-  src.start(0);
-  const r=await off.startRendering();
-
-  const bandRmsDb=(arr)=>{
-    let sum=0; for(let i=0;i<arr.length;i++) sum+=arr[i]*arr[i];
-    const rms=Math.sqrt(sum/arr.length);
-    return gainToDb(rms);
-  };
-  return {lowDb: bandRmsDb(r.getChannelData(0)), midDb: bandRmsDb(r.getChannelData(1)), highDb: bandRmsDb(r.getChannelData(2))};
-}
-
-/* =========================
-   A/B match (HTML audio)
-========================= */
-function applyABMatch(){
-  if(!$("abMatch").checked){
-    $("audioOriginal").volume=1;
-    $("audioMastered").volume=1;
-    return;
-  }
-  const o=state.analysis.orig, m=state.analysis.mast;
-  if(!o || !m){ $("audioOriginal").volume=1; $("audioMastered").volume=1; return; }
-  const diffDb = o.rmsDb - m.rmsDb;
-  $("audioOriginal").volume=1.0;
-  $("audioMastered").volume=clamp(dbToGain(diffDb), 0.2, 1.0);
-}
-$("abMatch").addEventListener("change", applyABMatch);
-
-$("abSwapBtn").addEventListener("click", async ()=>{
-  const ao=$("audioOriginal"), am=$("audioMastered");
-  if(!ao.src || !am.src) return;
-  applyABMatch();
-  const oPlaying=!ao.paused;
-  const mPlaying=!am.paused;
-  if(!oPlaying && !mPlaying){
-    ao.currentTime=0; am.currentTime=0;
-    await ao.play();
-    return;
-  }
-  if(oPlaying){
-    const t=ao.currentTime; ao.pause();
-    am.currentTime=t; await am.play();
-  } else {
-    const t=am.currentTime; am.pause();
-    ao.currentTime=t; await ao.play();
-  }
-});
-
-/* =========================
-   Real-time spectra per player (MediaElement analysers)
-========================= */
-function setupMediaAnalyser(which, audioEl, canvasEl){
-  const ctx=ensureCtx();
-  // kill old
-  if(state.media[which]?.srcNode){
-    try{ state.media[which].srcNode.disconnect(); }catch(e){}
-  }
-  const srcNode=ctx.createMediaElementSource(audioEl);
-  const analyser=ctx.createAnalyser();
-  analyser.fftSize=2048;
-  srcNode.connect(analyser);
-  analyser.connect(ctx.destination);
-
-  state.media[which]={srcNode, analyser, canvas:canvasEl};
-
-  const fd=new Uint8Array(analyser.frequencyBinCount);
-
-  function draw(){
-    state.specRAF[which]=requestAnimationFrame(draw);
-    analyser.getByteFrequencyData(fd);
-    drawBars(canvasEl, fd);
-  }
-
-  const start=()=>{ cancelAnimationFrame(state.specRAF[which]); draw(); };
-  const stop=()=>{ cancelAnimationFrame(state.specRAF[which]); state.specRAF[which]=0; };
-
-  audioEl.addEventListener("play", async ()=>{
-    if(ctx.state==="suspended") await ctx.resume().catch(()=>{});
-    start();
-  });
-  audioEl.addEventListener("pause", stop);
-  audioEl.addEventListener("ended", stop);
-
-  // initial blank
-  fitCanvas(canvasEl);
-  const c=canvasEl.getContext("2d"); c.clearRect(0,0,canvasEl.width,canvasEl.height);
-}
-
-setupMediaAnalyser("orig", $("audioOriginal"), $("specOriginal"));
-setupMediaAnalyser("mast", $("audioMastered"), $("specMastered"));
-setupMediaAnalyser("ref", $("audioReference"), $("specReference"));
-
-/* =========================
-   Report
-========================= */
-function buildReport(moves, stats){
-  const a0=stats.preA;
-  const a1=stats.finalA;
-  const lines=[];
-  lines.push(`MASTERING SUMMARY (${new Date().toLocaleString()})`);
-  lines.push(`Mode: ${state.mode==="stems" ? "Stems (desk sum)" : "Stereo"}`);
-  lines.push(`Style: ${moves.style}`);
-  lines.push("");
-  lines.push("BEFORE:");
-  lines.push(`  Peak: ${a0.peakDbfs.toFixed(1)} dBFS${a0.over ? " (OVER)" : ""}`);
-  lines.push(`  RMS:  ${a0.rmsDb.toFixed(1)} dB`);
-  lines.push(`  LUFS-ish: ${a0.lufsIsh.toFixed(1)}`);
-  lines.push("");
-  lines.push("AFTER:");
-  lines.push(`  Peak: ${a1.peakDbfs.toFixed(1)} dBFS (ceiling ${moves.ceiling.toFixed(1)} dB)`);
-  lines.push(`  RMS:  ${a1.rmsDb.toFixed(1)} dB`);
-  lines.push(`  LUFS-ish: ${a1.lufsIsh.toFixed(1)} (target ${moves.target.toFixed(1)})`);
-  lines.push("");
-  lines.push("WHAT CHANGED:");
-  lines.push(`  Pre-gain (headroom): ${moves.preGainDb.toFixed(1)} dB`);
-  lines.push(`  Makeup gain: ${moves.makeUpDb.toFixed(1)} dB`);
-  lines.push(`  Ceiling scale: ${moves.limiterScale.toFixed(3)}×`);
-  lines.push(`  Width: ${moves.width}×`);
-  lines.push(`  Mono bass: ${moves.monoBass}`);
-  lines.push(`  Warmth: ${moves.warmth}`);
-  lines.push(`  Glue: ${moves.glue}`);
-  lines.push(`  Parallel: ${moves.parallel}`);
-  lines.push("  EQ:");
-  lines.push(`    HPF: ${moves.eq.hpf}`);
-  lines.push(`    Mud: ${moves.eq.mud}`);
-  lines.push(`    De-harsh: ${moves.eq.deharsh}`);
-  lines.push(`    Air: ${moves.eq.air}`);
-
-  if(state.mode==="stems"){
-    lines.push("");
-    lines.push("STEM DESK (render-time):");
-    state.stemSettings.forEach((s,i)=>{
-      lines.push(`  ${i+1}. ${s.name} | gain ${s.gainDb.toFixed(1)} dB | pan ${s.pan.toFixed(2)} | ${s.mute?"MUTED":"on"}`);
-    });
-  }
-  return lines.join("\n");
-}
-
-/* =========================
-   Load audio (1–12)
-========================= */
-$("fileInput").addEventListener("change", async (e)=>{
-  const files=Array.from(e.target.files||[]);
-  $("decodeWarn").style.display="none";
-  $("decodeWarn").textContent="";
-
-  state.buffers=[];
-  state.stemSettings=[];
-  state.sumDryBuffer=null;
-  state.masterBuffer=null;
-  state.masteredBlob=null;
-  state.analysis.orig=null;
-  state.analysis.mast=null;
-  state.stemThumbs=[];
-
-  setKpi("orig", null);
-  setKpi("mast", null);
-  $("reportBox").textContent="No master yet.";
-
-  revoke(state.urls.orig); revoke(state.urls.mast);
-  state.urls.orig=null; state.urls.mast=null;
-
-  $("audioOriginal").removeAttribute("src"); $("audioOriginal").load();
-  $("audioMastered").removeAttribute("src"); $("audioMastered").load();
-
-  $("autoBtn").disabled=true;
-  $("exportBtn").disabled=true;
-  $("abSwapBtn").disabled=true;
-
-  if(files.length===0){
-    state.engine="—";
-    setMode("none");
-    updateDeskFromState();
-    setStatus("Load audio to begin","ok");
-    return;
-  }
-  if(files.length>12){
-    setStatus("Max 12 stems. Remove extras.","bad");
-    return;
-  }
-
-  setStatus("Decoding…","warn");
-  try{
-    const bufs=[];
-    for(const f of files) bufs.push(await decodeFile(f));
-    state.buffers=bufs;
-
-    if(files.length>1){
-      const sr=bufs[0].sampleRate;
-      const len=bufs[0].length;
-      for(const b of bufs){
-        if(b.sampleRate!==sr) throw new Error("Stems must share the same sample rate.");
-        if(Math.abs(b.length-len) > Math.max(32, Math.floor(sr*0.01))) throw new Error("Stems must be the same length to stay in sync.");
-      }
-    }
-
-    if(files.length===1){
-      // Stereo mode
-      state.engine="Offline (fast)";
-      setMode("stereo");
-
-      let b=bufs[0];
-      if(b.numberOfChannels===1){
-        const bb=new AudioBuffer({length:b.length, numberOfChannels:2, sampleRate:b.sampleRate});
-        bb.getChannelData(0).set(b.getChannelData(0));
-        bb.getChannelData(1).set(b.getChannelData(0));
-        b=bb;
-      }
-      state.sumDryBuffer=b;
-      state.analysis.orig=analyzeBuffer(state.sumDryBuffer);
-      setKpi("orig", state.analysis.orig);
-
-      const wav=encodeWav16(state.sumDryBuffer);
-      const blob=new Blob([wav],{type:"audio/wav"});
-      state.urls.orig=URL.createObjectURL(blob);
-      $("audioOriginal").src=state.urls.orig;
-      $("audioOriginal").load();
-
-      $("autoBtn").disabled=false;
-
-      // desk stays visible, but disabled
-      updateDeskFromState();
-
-      setStatus("Ready (Stereo).","ok");
-      return;
-    }
-
-    // Stem mode
-    state.engine="Offline (stems + master)";
-    setMode("stems");
-
-    state.stemSettings = files.map(f=>({name:f.name, gainDb:0.0, pan:0.0, mute:false}));
-
-    // precompute stem thumbnails
-    setStatus("Building stem thumbnails…","warn");
-    for(let i=0;i<state.buffers.length;i++){
-      // grab canvas from desk channel i and fill after thumb calc
-      const chanCanvas = $("desk").querySelectorAll(".chan")[i].querySelector("canvas");
-      const ctx=ensureCtx();
-      // Build "fd" via offline analyser and store fd array for draw later:
-      // We'll simply use makeSpectrumThumbnail but we want stored fd.
-      // Easiest: run makeSpectrumThumbnail into a temp canvas then read back? Nah.
-      // Instead: re-run analyser and keep fd.
-      const b=state.buffers[i];
-      const sr=b.sampleRate;
-      const segSec=Math.min(6, b.duration);
-      const segLen=Math.max(1, Math.floor(segSec*sr));
-      const start=Math.max(0, Math.floor((b.length-segLen)*0.45));
-
-      const mono=new Float32Array(segLen);
-      const ch0=b.getChannelData(0);
-      const ch1=b.numberOfChannels>1 ? b.getChannelData(1) : null;
-      for(let j=0;j<segLen;j++){
-        mono[j]= ch1 ? 0.5*(ch0[start+j]+ch1[start+j]) : ch0[start+j];
-      }
-
-      const off=new OfflineAudioContext(1, segLen, sr);
-      const src=off.createBufferSource();
-      const bb=new AudioBuffer({length:segLen,numberOfChannels:1,sampleRate:sr});
-      bb.getChannelData(0).set(mono);
-      src.buffer=bb;
-      const analyser=off.createAnalyser(); analyser.fftSize=2048;
-      src.connect(analyser); analyser.connect(off.destination);
-      const fd=new Uint8Array(analyser.frequencyBinCount);
-      src.start(0);
-      await off.startRendering();
-      analyser.getByteFrequencyData(fd);
-      state.stemThumbs[i]=fd;
-      drawBars(chanCanvas, fd);
-    }
-
-    setStatus("Summing stems…","warn");
-    state.sumDryBuffer = await renderDrySumFromStems(state.buffers);
-    state.analysis.orig=analyzeBuffer(state.sumDryBuffer);
-    setKpi("orig", state.analysis.orig);
-
-    const wav=encodeWav16(state.sumDryBuffer);
-    const blob=new Blob([wav],{type:"audio/wav"});
-    state.urls.orig=URL.createObjectURL(blob);
-    $("audioOriginal").src=state.urls.orig;
-    $("audioOriginal").load();
-
-    $("autoBtn").disabled=false;
-    updateDeskFromState();
-
-    setStatus("Ready (Stems). Desk enabled.","ok");
-  }catch(err){
-    console.error(err);
-    $("decodeWarn").style.display="block";
-    $("decodeWarn").textContent="Decode failed. For stems: export as standard PCM WAV (16/24-bit), same sample rate + same length.";
-    state.engine="—";
-    setMode("none");
-    updateDeskFromState();
-    setStatus("Decode failed. Try PCM WAV.","bad");
-  }
-});
-
-/* =========================
-   Reference load
-========================= */
-$("refInput").addEventListener("change", async (e)=>{
-  const f=e.target.files?.[0];
-  state.refBuffer=null;
-  state.analysis.ref=null;
-  setKpi("ref", null);
-  $("matchToneBtn").disabled=true;
-  $("audioReference").removeAttribute("src"); $("audioReference").load();
-
-  if(!f) return;
-
-  $("audioReference").src=URL.createObjectURL(f);
-  $("audioReference").load();
-
-  try{
-    setStatus("Decoding reference…","warn");
-    state.refBuffer=await decodeFile(f);
-    state.analysis.ref=analyzeBuffer(state.refBuffer);
-    setKpi("ref", state.analysis.ref);
-    $("matchToneBtn").disabled = !state.sumDryBuffer;
-    setStatus("Reference ready.","ok");
-  }catch(err){
-    console.warn(err);
-    setStatus("Reference plays, but decode failed (Match Tone disabled).","warn");
-  }
-});
-
-$("matchToneBtn").addEventListener("click", async ()=>{
-  if(!state.refBuffer || !state.sumDryBuffer) return;
-  try{
-    setStatus("Matching tone…","warn");
-    const t=await bandProfile(state.sumDryBuffer);
-    const r=await bandProfile(state.refBuffer);
-
-    const lowD=r.lowDb-t.lowDb, midD=r.midDb-t.midDb, highD=r.highDb-t.highDb;
-
-    if(highD > 1.0) $("air").checked=true;
-    if(highD < -1.0) $("deharsh").checked=true;
-    if(midD < -0.8) $("mud").checked=true;
-    if(lowD < -1.0) $("hpf").checked=true;
-
-    let intensity=Number($("intensity").value);
-    intensity += clamp(((r.midDb+r.highDb)-(t.midDb+t.highDb))*2.0, -8, 5);
-    intensity=clamp(intensity, 10, 60);
-    $("intensity").value=intensity;
-    $("intensityVal").textContent=`${intensity|0}%`;
-
-    setStatus("Tone matched ✅","ok");
-  }catch(err){
-    console.error(err);
-    setStatus("Match Tone failed.","bad");
-  }
-});
-
-/* =========================
-   Auto-Master
-========================= */
-$("autoBtn").addEventListener("click", async ()=>{
-  if(!state.sumDryBuffer) return;
-
-  try{
-    $("autoBtn").disabled=true;
-    $("exportBtn").disabled=true;
-    $("abSwapBtn").disabled=true;
-    setStatus("Rendering master…","warn");
-
-    // If stems: re-sum with current desk faders
-    if(state.mode==="stems"){
-      state.sumDryBuffer = await renderDrySumFromStems(state.buffers);
-      state.analysis.orig=analyzeBuffer(state.sumDryBuffer);
-      setKpi("orig", state.analysis.orig);
-
-      const wav0=encodeWav16(state.sumDryBuffer);
-      const blob0=new Blob([wav0],{type:"audio/wav"});
-      revoke(state.urls.orig);
-      state.urls.orig=URL.createObjectURL(blob0);
-      $("audioOriginal").src=state.urls.orig;
-      $("audioOriginal").load();
-    }
-
-    const settings=readSettings();
-    const result=await offlineMasterFromBuffer(state.sumDryBuffer, settings);
-
-    state.masterBuffer=result.buffer;
-    state.analysis.mast=analyzeBuffer(state.masterBuffer);
-    setKpi("mast", state.analysis.mast);
-
-    const wav=encodeWav16(state.masterBuffer);
-    const blob=new Blob([wav],{type:"audio/wav"});
-    state.masteredBlob=blob;
-
-    revoke(state.urls.mast);
-    state.urls.mast=URL.createObjectURL(blob);
-    $("audioMastered").src=state.urls.mast;
-    $("audioMastered").load();
-
-    $("exportBtn").disabled=false;
-    $("abSwapBtn").disabled=false;
-    applyABMatch();
-
-    $("reportBox").textContent = buildReport(result.moves, result.stats);
-
-    setStatus("Master ready ✅","ok");
-  }catch(err){
-    console.error(err);
-    setStatus("Master failed. Lower Intensity.","bad");
-  }finally{
-    $("autoBtn").disabled=false;
-  }
-});
-
-/* =========================
-   Export
-========================= */
-$("exportBtn").addEventListener("click", ()=>{
-  if(!state.masteredBlob) return;
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(state.masteredBlob);
-  a.download=`JaseMaster_${state.style}_${state.mode}.wav`;
-  a.click();
-  setStatus("Exported WAV ✅","ok");
-});
-
-/* =========================
-   Boot
-========================= */
-state.engine="—";
-setMode("none");
-updateDeskFromState();
-setStatus("Load audio to begin","ok");
+    const u=URL.createObjectURL(new Blob([view],{type:'audio/wav'})), a=document.createElement('a'); a.href=u; a.download=fn+".wav"; a.click(); setTimeout(()=>URL.revokeObjectURL(u),2000);
+    $('loader').style.display='none'; $('statusLed').className='led on';
+};
 </script>
 </body>
-              </html>
+</html>
