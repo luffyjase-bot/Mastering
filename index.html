@@ -3,95 +3,75 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Wu Master — Auto Mastering</title>
+  <title>Wu Master — Auto A/B + Reference</title>
 
-  <!-- WaveSurfer (pinned) -->
+  <!-- WaveSurfer pinned -->
   <script src="https://unpkg.com/wavesurfer.js@6.6.3/dist/wavesurfer.js"></script>
 
   <style>
     :root{
+      --wu:#ffcc00;
+      --wu2:#ffe27a;
+      --ink:#0a0a0a;
+
       --bg:#ffffff;
       --panel:#ffffff;
-      --panel2:#fffaf0;
-      --line:#e8e8e8;
+      --panel2:#fffdf2;
+      --line:#e7e7e7;
 
-      --text:#0a0a0a;
       --muted:#4b5563;
-
-      /* Wu-Tang vibes */
-      --wu:#ffcc00;      /* bright yellow */
-      --wu2:#ffd84d;     /* lighter */
-      --ink:#0a0a0a;     /* black */
-
-      --radius:18px;
       --shadow: 0 12px 40px rgba(0,0,0,.10);
+      --radius:18px;
     }
-
     *{ box-sizing:border-box; }
     body{
       margin:0; padding:14px;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      color:var(--text);
+      color:var(--ink);
       background:
-        radial-gradient(900px 500px at 15% 0%, rgba(255,204,0,.40), transparent 60%),
-        radial-gradient(900px 500px at 85% 15%, rgba(255,204,0,.22), transparent 60%),
+        radial-gradient(900px 520px at 15% 0%, rgba(255,204,0,.42), transparent 60%),
+        radial-gradient(900px 520px at 85% 15%, rgba(255,204,0,.22), transparent 60%),
         var(--bg);
       display:flex;
       justify-content:center;
     }
-
     .app{
-      width: min(1100px, 100%);
+      width:min(1150px, 100%);
       display:grid;
-      grid-template-columns: 1.35fr 1fr 1fr;
+      grid-template-columns: 1.4fr 1fr 1fr;
       gap:14px;
     }
-
     .card{
       background: linear-gradient(180deg, var(--panel) 0%, var(--panel2) 100%);
-      border: 1px solid var(--line);
+      border:1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       padding: 14px;
       overflow:hidden;
     }
-
     .hero{ grid-column: 1 / -1; padding:16px; }
-    .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin:10px 0; flex-wrap:wrap; }
 
-    .brand{
-      display:flex; flex-direction:column; gap:4px;
-    }
-    .brand .title{
-      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-      font-weight: 900; letter-spacing: .5px;
-      font-size: 16px;
-    }
+    .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+    .brand{ display:flex; flex-direction:column; gap:4px; }
+    .title{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-weight:900; letter-spacing:.5px; font-size:16px; }
     .badge{
       background: var(--wu);
       color: var(--ink);
-      border-radius: 999px;
-      padding: 4px 10px;
-      font-size: 11px;
-      font-weight: 900;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      border: 1px solid rgba(0,0,0,.12);
+      border-radius:999px;
+      padding:4px 10px;
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:1px;
+      text-transform:uppercase;
+      border:1px solid rgba(0,0,0,.12);
     }
-    .subtitle{
-      color:var(--muted);
-      font-size: 12px;
-      font-weight: 600;
-    }
+    .subtitle{ color:var(--muted); font-size:12px; font-weight:700; }
 
-    .btnbar{
-      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-    }
-
+    .btnbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
     .btn{
-      border: 1px solid rgba(0,0,0,.14);
-      background: #fff;
-      color: var(--ink);
+      border:1px solid rgba(0,0,0,.14);
+      background:#fff;
+      color:var(--ink);
       padding: 12px 14px;
       border-radius: 14px;
       font-weight: 900;
@@ -106,17 +86,19 @@
     .btn:hover{ transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0,0,0,.10); }
     .btn:active{ transform: translateY(0); }
     .btn:disabled{ opacity:.55; cursor:not-allowed; transform:none; }
+    .btn.primary{ background:var(--wu); border-color: rgba(0,0,0,.18); }
+    .btn.ghost{ background:#fff; }
+    .btn.pill{ border-radius:999px; padding: 10px 14px; }
 
-    .btn.primary{
-      background: var(--wu);
-      border-color: rgba(0,0,0,.18);
-    }
-    .btn.ghost{
-      background: #fff;
-    }
-    .btn.danger{
-      background:#fff;
-      border-color: rgba(255,0,0,.25);
+    .status{
+      font-weight: 900;
+      color: var(--ink);
+      background: rgba(255,204,0,.22);
+      border: 1px solid rgba(0,0,0,.12);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      white-space:nowrap;
     }
 
     .file{
@@ -126,15 +108,15 @@
       border-radius: 16px;
       padding: 12px;
       min-height: 44px;
-      font-weight: 700;
+      font-weight: 800;
     }
 
     #waveform{
       width:100%;
       height: 120px;
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 16px;
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:16px;
       margin: 12px 0;
       overflow:hidden;
     }
@@ -148,26 +130,23 @@
       font-weight: 900;
       color: var(--ink);
     }
-    .hint{ color: var(--muted); font-weight: 700; font-size: 11px; }
-
-    .select, input[type="range"]{
-      min-height: 44px;
-    }
+    .hint{ color:var(--muted); font-weight: 800; font-size: 11px; }
 
     .select{
       padding: 11px 12px;
       border-radius: 14px;
       border:1px solid rgba(0,0,0,.14);
       background:#fff;
-      font-weight: 800;
+      font-weight: 900;
       color: var(--ink);
       width: 100%;
+      min-height: 44px;
       box-shadow: 0 6px 18px rgba(0,0,0,.05);
     }
 
     .toggleLine{
       display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-      font-size: 12px; color: var(--muted); font-weight: 800;
+      font-size: 12px; color: var(--muted); font-weight: 900;
     }
     .toggle{
       display:flex; gap:8px; align-items:center; user-select:none;
@@ -179,10 +158,17 @@
     }
     .toggle input{ width:18px; height:18px; accent-color: var(--wu); }
 
+    .sliderLine{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px; margin: 10px 0;
+    }
+    .sliderLine label{ font-size:12px; color:var(--muted); font-weight: 900; }
+    input[type="range"]{ width: 240px; min-height:44px; accent-color: var(--wu); }
+
     .meterGrid{
       display:grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      gap:12px;
       margin-top: 10px;
     }
     .meter{
@@ -202,49 +188,29 @@
     }
     canvas{ width:100%; height:68px; display:block; }
 
-    .status{
-      font-weight: 900;
-      color: var(--ink);
-      background: rgba(255,204,0,.22);
-      border: 1px solid rgba(0,0,0,.12);
-      border-radius: 999px;
-      padding: 6px 10px;
-      font-size: 12px;
-    }
-
     .bigAuto{
       display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;
-      background: linear-gradient(90deg, rgba(255,204,0,.65), rgba(255,255,255,.00));
+      background: linear-gradient(90deg, rgba(255,204,0,.72), rgba(255,255,255,0));
       border:1px solid rgba(0,0,0,.12);
       border-radius: 18px;
       padding: 12px;
       margin-top: 10px;
     }
-    .bigAuto .text{
-      display:flex; flex-direction:column; gap:2px;
-      min-width: 220px;
-    }
+    .bigAuto .text{ display:flex; flex-direction:column; gap:2px; min-width: 240px; }
     .bigAuto .text b{ font-size: 13px; letter-spacing: .4px; }
-    .bigAuto .text small{ font-size: 11px; color: var(--muted); font-weight: 800; }
+    .bigAuto .text small{ font-size: 11px; color:var(--muted); font-weight: 900; }
 
-    .sliderLine{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      margin: 10px 0;
-    }
-    .sliderLine label{
-      font-size: 12px; color: var(--muted); font-weight: 900;
-      letter-spacing: .2px;
-    }
-    input[type="range"]{
-      width: 220px;
-      accent-color: var(--wu);
+    .abPills{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .pillActive{
+      background: var(--wu);
+      border-color: rgba(0,0,0,.18);
     }
 
     @media(max-width: 980px){
       .app{ grid-template-columns: 1fr; }
       #waveform{ height: 90px; }
       .meterGrid{ grid-template-columns: 1fr; }
-      input[type="range"]{ width: 240px; }
+      input[type="range"]{ width: 250px; }
     }
   </style>
 </head>
@@ -255,18 +221,17 @@
     <div class="card hero">
       <div class="row">
         <div class="brand">
-          <div class="title">
-            Wu Master <span class="badge">AUTO MASTER</span>
-          </div>
-          <div class="subtitle">
-            Upload → Auto → Export. Built for mobile. (Best in Chrome)
-          </div>
+          <div class="title">Wu Master <span class="badge">AUTO • A/B • REF</span></div>
+          <div class="subtitle">Upload → Auto master → A/B compare (level-matched) → Export WAV</div>
         </div>
 
         <div class="btnbar">
           <span class="status" id="status">Load a track</span>
           <button class="btn ghost" id="playBtn" disabled>Play / Pause</button>
-          <button class="btn ghost" id="bypassBtn" disabled>Bypass</button>
+          <div class="abPills">
+            <button class="btn pill ghost pillActive" id="abMasterBtn" disabled>MASTERED</button>
+            <button class="btn pill ghost" id="abOriginalBtn" disabled>ORIGINAL</button>
+          </div>
           <button class="btn primary" id="autoBtn" disabled>AUTO MASTER</button>
           <button class="btn ghost" id="resetBtn" disabled>Reset</button>
           <button class="btn primary" id="exportBtn" disabled>Export WAV</button>
@@ -274,27 +239,37 @@
       </div>
 
       <div class="row">
-        <input class="file" type="file" id="fileInput" accept="audio/*" />
+        <div style="flex:1; min-width:280px;">
+          <div class="sectionTitle">Your Track <span class="hint">master this</span></div>
+          <input class="file" type="file" id="fileInput" accept="audio/*" />
+        </div>
+        <div style="flex:1; min-width:280px;">
+          <div class="sectionTitle">Reference Track <span class="hint">match vibe (optional)</span></div>
+          <input class="file" type="file" id="refInput" accept="audio/*" />
+        </div>
       </div>
 
       <div id="waveform"></div>
 
       <div class="row">
         <div style="flex:1; min-width:230px;">
-          <div class="sectionTitle">Master Target <span class="hint">loudness vibe</span></div>
-          <select class="select" id="target">
-            <option value="stream">Streaming Clean (-14-ish)</option>
-            <option value="hot">Hot Pop / Loud (-11-ish)</option>
-            <option value="club">Club Smash (-9-ish)</option>
+          <div class="sectionTitle">Auto Style / Feel <span class="hint">character</span></div>
+          <select class="select" id="style">
+            <option value="radio">Radio Pop (clean + bright)</option>
+            <option value="warm90">Warm Tape 90s (round + thick)</option>
+            <option value="rock">Rock Punch (transients + mids)</option>
+            <option value="club">Club Loud (tight + loud)</option>
+            <option value="lofi">Lo-Fi Cassette (grit + rolloff)</option>
+            <option value="sunoFix" selected>Suno Fix (de-harsh + de-hiss + space)</option>
           </select>
         </div>
 
         <div style="flex:1; min-width:230px;">
-          <div class="sectionTitle">Tone <span class="hint">color</span></div>
-          <select class="select" id="tone">
-            <option value="neutral">Neutral</option>
-            <option value="bright">Bright</option>
-            <option value="warm">Warm</option>
+          <div class="sectionTitle">Target <span class="hint">loudness vibe</span></div>
+          <select class="select" id="target">
+            <option value="stream" selected>Streaming Clean (-14-ish)</option>
+            <option value="hot">Hot Pop / Loud (-11-ish)</option>
+            <option value="clubhot">Club Smash (-9-ish)</option>
           </select>
         </div>
 
@@ -310,13 +285,14 @@
       <div class="bigAuto">
         <div class="text">
           <b>Auto Intensity</b>
-          <small>Safe → Aggressive (controls comp / clip / brightness)</small>
+          <small>Safe → Aggressive (comp / clip / sparkle / width)</small>
         </div>
         <div style="flex:1; min-width:260px;">
           <div class="sliderLine">
             <label for="intensity">Intensity</label>
-            <input type="range" id="intensity" min="0" max="100" value="55">
+            <input type="range" id="intensity" min="0" max="100" value="60">
           </div>
+
           <div class="toggleLine">
             <div class="toggle">
               <input type="checkbox" id="levelMatch" checked>
@@ -330,42 +306,41 @@
               <input type="checkbox" id="widenAir" checked>
               <label for="widenAir">Widen Highs</label>
             </div>
+            <div class="toggle">
+              <input type="checkbox" id="spaceFX" checked>
+              <label for="spaceFX">Air/Space</label>
+            </div>
           </div>
         </div>
       </div>
 
       <div class="meterGrid">
         <div class="meter">
-          <header><span>Post Peak</span><span id="peakRead">-- dBFS</span></header>
+          <header><span>Peak (Wet)</span><span id="peakRead">-- dBFS</span></header>
           <canvas id="peakCanvas" width="900" height="140"></canvas>
         </div>
         <div class="meter">
-          <header><span>RMS (Dry/Wet)</span><span id="rmsRead">-- dB</span></header>
+          <header><span>RMS (Orig vs Master)</span><span id="rmsRead">-- dB</span></header>
           <canvas id="rmsCanvas" width="900" height="140"></canvas>
         </div>
       </div>
     </div>
 
     <div class="card">
-      <div class="sectionTitle">What it does <span class="hint">automatic chain</span></div>
-      <div style="color:var(--muted); font-weight:800; font-size:12px; line-height:1.55;">
-        • Gain staging to safe headroom<br>
-        • HPF @ 30 Hz (rumble cleanup)<br>
-        • Smart EQ: mud cut, harsh control, air shelf<br>
-        • Glue compression + parallel weight<br>
-        • Saturation (warmth) + soft clipper (transients)<br>
-        • Limiter ceiling (true-peak-ish) @ -1.0<br>
-        • Optional mono bass + widened highs<br>
+      <div class="sectionTitle">What’s new <span class="hint">based on your video extract</span></div>
+      <div style="color:var(--muted); font-weight:900; font-size:12px; line-height:1.55;">
+        • <b>A/B bus mindset</b>: Original vs Mastered is a real toggle (like “Suno mix” vs “mastered bus”).<br>
+        • <b>Get loud first</b>: Auto pushes into the target loudness vibe, then shapes tone while loud.<br>
+        • <b>Suno artifacts fix</b>: De-hiss + de-harsh dynamic band, plus rumble cleanup + smarter top end.<br>
+        • <b>Drum punch logic</b>: Soft clipper before limiter helps transients get loud without pumping.<br>
       </div>
     </div>
 
     <div class="card">
-      <div class="sectionTitle">Pro tips <span class="hint">best results</span></div>
-      <div style="color:var(--muted); font-weight:800; font-size:12px; line-height:1.55;">
-        • Feed it a mix that isn’t clipping (no red meters).<br>
-        • If vocals get crispy: set Tone → Warm, lower intensity.<br>
-        • If it’s dull: Tone → Bright, intensity 60–75.<br>
-        • Club target is loud—expect less dynamics.<br>
+      <div class="sectionTitle">Reality check <span class="hint">browser limits</span></div>
+      <div style="color:var(--muted); font-weight:900; font-size:12px; line-height:1.55;">
+        Web Audio can’t do “true” LUFS / linear-phase EQ like Ozone, but this chain is designed to be <b>consistent</b> and <b>better than raw Suno</b>.<br><br>
+        If you want “near-pro” matching, upload a <b>reference file</b> (not a link) — the app can analyze it and steer the master toward its tilt/width.
       </div>
     </div>
 
@@ -380,9 +355,7 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const db = (x)=>20*Math.log10(Math.max(1e-9,x));
 const lin = (d)=>Math.pow(10,d/20);
 
-function setStatus(msg){
-  ui("status").textContent = msg;
-}
+function setStatus(msg){ ui("status").textContent = msg; }
 
 function makeSaturationCurve(amount){
   const n=2048, curve=new Float32Array(n);
@@ -395,7 +368,7 @@ function makeSaturationCurve(amount){
 }
 function makeClipCurve(amount){
   const n=2048, curve=new Float32Array(n);
-  const a=1+amount*10;
+  const a=1+amount*12;
   for(let i=0;i<n;i++){
     const x=(i*2/n)-1;
     curve[i]=amount===0?x:(Math.atan(a*x)/Math.atan(a));
@@ -410,11 +383,15 @@ let audioCtx = null;
 let mediaEl = null;
 let mediaSource = null;
 let wavesurfer = null;
-let audioBuffer = null;
+
+let audioBuffer = null;     // your track (decoded)
+let refBuffer = null;       // reference (decoded)
 let fileNameBase = "WU_MASTER";
 
 const nodes = {};
 let rafId = null;
+
+let currentAB = "master";   // "master" or "orig"
 
 /* =========================
    WaveSurfer
@@ -426,18 +403,15 @@ function initWaveSurfer(){
     waveColor:"#0a0a0a",
     progressColor:"#ffcc00",
     cursorColor:"#ffcc00",
-    height: uiWidthMobile() ? 90 : 120,
+    height: matchMedia("(max-width: 980px)").matches ? 90 : 120,
     normalize:true,
     responsive:true,
     backend:"MediaElement"
   });
 }
-function uiWidthMobile(){
-  return matchMedia("(max-width: 980px)").matches;
-}
 
 /* =========================
-   Analysis (fast + simple)
+   Quick FFT (lightweight)
 ========================= */
 function fftMag(x){
   const N=x.length;
@@ -475,6 +449,7 @@ function analyzeBuffer(buf){
   const ch0 = buf.getChannelData(0);
   const ch1 = buf.numberOfChannels>1 ? buf.getChannelData(1) : null;
 
+  // peak + RMS
   let peak=0, sumSq=0;
   for(let i=0;i<ch0.length;i++){
     const a=Math.abs(ch0[i]); if(a>peak) peak=a;
@@ -484,35 +459,51 @@ function analyzeBuffer(buf){
   const n = ch1 ? ch0.length*2 : ch0.length;
   const rms = Math.sqrt(sumSq/Math.max(1,n));
 
-  // quick spectrum snapshot
+  // short-ish loudness proxy: find loudest RMS window
   const sr = buf.sampleRate;
-  const N = 4096;
-  const segment = new Float32Array(N);
-  const take = Math.min(ch0.length, sr*8);
-  const step = Math.max(1, Math.floor(take/N));
-  for(let i=0;i<N;i++){
-    const idx = Math.min(ch0.length-1, i*step);
-    segment[i] = ch0[idx];
+  const win = Math.max(2048, Math.floor(sr*0.25));
+  const step = Math.floor(win/2);
+  let best = 0;
+  for(let i=0;i<ch0.length-win;i+=step){
+    let s=0;
+    for(let k=0;k<win;k++){
+      const v = ch0[i+k];
+      s += v*v;
+      if(ch1){ const w = ch1[i+k]; s += w*w; }
+    }
+    const r = Math.sqrt(s/(win*(ch1?2:1)));
+    if(r>best) best=r;
   }
-  const mags = fftMag(segment);
+
+  // spectrum snapshot
+  const N = 4096;
+  const seg = new Float32Array(N);
+  const take = Math.min(ch0.length, sr*8);
+  const stride = Math.max(1, Math.floor(take/N));
+  for(let i=0;i<N;i++){
+    const idx = Math.min(ch0.length-1, i*stride);
+    seg[i] = ch0[idx];
+  }
+  const mags = fftMag(seg);
   const hzPerBin = sr/N;
 
   const band = (lo,hi)=>{
     const a=Math.floor(lo/hzPerBin);
     const b=Math.floor(hi/hzPerBin);
-    let s=0, c=0;
+    let s=0,c=0;
     for(let i=a;i<=b && i<mags.length;i++){ s+=mags[i]; c++; }
     return s/Math.max(1,c);
   };
 
   const low = band(30,120);
   const mud = band(200,400);
+  const mid = band(800,2000);
   const harsh = band(2500,5500);
   const air = band(10000,16000);
-  const mid = band(800,2000);
+  const hiss = band(12000,20000); // proxy for noise/hiss
 
   // stereo correlation proxy
-  let corr = 0.6;
+  let corr = 0.65;
   if(ch1){
     let num=0,denA=0,denB=0;
     const limit = Math.min(ch0.length, sr*3);
@@ -526,14 +517,14 @@ function analyzeBuffer(buf){
   return {
     peakDb: db(peak),
     rmsDb: db(rms),
-    low,mud,harsh,air,mid,
+    loudRmsDb: db(best),
+    low,mud,mid,harsh,air,hiss,
     corr
   };
 }
 
 /* =========================
-   Build Mastering Graph
-   (Realtime preview chain)
+   Graph: Dry vs Wet (A/B)
 ========================= */
 function clearNodes(){
   try{ mediaSource?.disconnect(); }catch{}
@@ -546,50 +537,65 @@ function clearNodes(){
 function buildGraph(){
   clearNodes();
 
-  // output
-  nodes.master = audioCtx.createGain();
-  nodes.master.gain.value = 1;
-  nodes.master.connect(audioCtx.destination);
+  nodes.masterOut = audioCtx.createGain();
+  nodes.masterOut.gain.value = 1;
+  nodes.masterOut.connect(audioCtx.destination);
 
-  // dry/wet + AB
-  nodes.dryGain = audioCtx.createGain(); nodes.dryGain.gain.value = 0;
+  // A/B busses
+  nodes.dryGain = audioCtx.createGain(); nodes.dryGain.gain.value = 0; // start on mastered
   nodes.wetGain = audioCtx.createGain(); nodes.wetGain.gain.value = 1;
 
-  // input gain + cleanup
+  // Analysis meters
+  nodes.anWet = audioCtx.createAnalyser(); nodes.anWet.fftSize=2048;
+  nodes.anDry = audioCtx.createAnalyser(); nodes.anDry.fftSize=1024;
+
+  // === Wet chain (AUTO MASTER BUS) ===
   nodes.inGain = audioCtx.createGain();
+
+  // Foundation
   nodes.hpf = audioCtx.createBiquadFilter(); nodes.hpf.type="highpass"; nodes.hpf.Q.value=0.707;
 
-  // smart EQ (simple but effective)
-  nodes.eqMud = audioCtx.createBiquadFilter(); nodes.eqMud.type="peaking"; nodes.eqMud.frequency.value=280; nodes.eqMud.Q.value=1.0;
-  nodes.eqHarsh = audioCtx.createBiquadFilter(); nodes.eqHarsh.type="peaking"; nodes.eqHarsh.frequency.value=3800; nodes.eqHarsh.Q.value=1.2;
-  nodes.eqAir = audioCtx.createBiquadFilter(); nodes.eqAir.type="highshelf"; nodes.eqAir.frequency.value=12000; nodes.eqAir.Q.value=0.707;
+  // Tonal/Surgical EQ
   nodes.eqLow = audioCtx.createBiquadFilter(); nodes.eqLow.type="lowshelf"; nodes.eqLow.frequency.value=90; nodes.eqLow.Q.value=0.707;
+  nodes.eqMud = audioCtx.createBiquadFilter(); nodes.eqMud.type="peaking"; nodes.eqMud.frequency.value=280; nodes.eqMud.Q.value=1.0;
+  nodes.eqHarsh = audioCtx.createBiquadFilter(); nodes.eqHarsh.type="peaking"; nodes.eqHarsh.frequency.value=3800; nodes.eqHarsh.Q.value=1.25;
+  nodes.eqAir = audioCtx.createBiquadFilter(); nodes.eqAir.type="highshelf"; nodes.eqAir.frequency.value=12000; nodes.eqAir.Q.value=0.707;
 
-  // De-harsh dynamic (bandpass -> comp -> mix)
-  nodes.dhBand = audioCtx.createBiquadFilter(); nodes.dhBand.type="bandpass"; nodes.dhBand.frequency.value=3500; nodes.dhBand.Q.value=2.2;
+  // De-hiss / De-harsh dynamic band (Suno-ish artifacts helper)
+  nodes.dhBand = audioCtx.createBiquadFilter(); nodes.dhBand.type="bandpass"; nodes.dhBand.frequency.value=7000; nodes.dhBand.Q.value=2.6;
   nodes.dhComp = audioCtx.createDynamicsCompressor();
-  nodes.dhComp.threshold.value=-28; nodes.dhComp.knee.value=18; nodes.dhComp.ratio.value=6;
-  nodes.dhComp.attack.value=0.003; nodes.dhComp.release.value=0.12;
-  nodes.dhMix = audioCtx.createGain(); nodes.dhMix.gain.value = 0.55;
+  nodes.dhComp.threshold.value=-30; nodes.dhComp.knee.value=20; nodes.dhComp.ratio.value=8;
+  nodes.dhComp.attack.value=0.002; nodes.dhComp.release.value=0.11;
+  nodes.dhMix = audioCtx.createGain();
 
-  // Glue comp (slow-ish attack)
+  // Multiband-ish compression (3-band split)
+  nodes.lowSplit = audioCtx.createBiquadFilter(); nodes.lowSplit.type="lowpass"; nodes.lowSplit.frequency.value=140; nodes.lowSplit.Q.value=0.707;
+  nodes.midSplit = audioCtx.createBiquadFilter(); nodes.midSplit.type="bandpass"; nodes.midSplit.frequency.value=900; nodes.midSplit.Q.value=0.9;
+  nodes.highSplit = audioCtx.createBiquadFilter(); nodes.highSplit.type="highpass"; nodes.highSplit.frequency.value=3200; nodes.highSplit.Q.value=0.707;
+
+  nodes.compLow = audioCtx.createDynamicsCompressor();
+  nodes.compMid = audioCtx.createDynamicsCompressor();
+  nodes.compHigh = audioCtx.createDynamicsCompressor();
+
+  // Glue (serial comp after multiband)
   nodes.glue = audioCtx.createDynamicsCompressor();
   nodes.glue.knee.value=18; nodes.glue.attack.value=0.03; nodes.glue.release.value=0.25;
 
-  // Parallel comp (NY)
+  // Parallel “New York”
   nodes.nySend = audioCtx.createGain();
   nodes.nyComp = audioCtx.createDynamicsCompressor();
   nodes.nyComp.threshold.value=-30; nodes.nyComp.knee.value=12; nodes.nyComp.ratio.value=8;
   nodes.nyComp.attack.value=0.01; nodes.nyComp.release.value=0.12;
   nodes.nyReturn = audioCtx.createGain();
 
-  // Mid/Side width (simple)
+  // Mid/Side width (realtime)
   nodes.msIn = audioCtx.createGain();
   nodes.msOut = audioCtx.createGain();
-  nodes.widthGain = audioCtx.createGain(); nodes.widthGain.gain.value = 1.15;
+  nodes.widthGain = audioCtx.createGain();
 
   const split = audioCtx.createChannelSplitter(2);
   const merge = audioCtx.createChannelMerger(2);
+
   const Lh = audioCtx.createGain(); Lh.gain.value=0.5;
   const Rh = audioCtx.createGain(); Rh.gain.value=0.5;
   const RhInv = audioCtx.createGain(); RhInv.gain.value=-0.5;
@@ -601,20 +607,20 @@ function buildGraph(){
 
   nodes.sideHPF = audioCtx.createBiquadFilter(); nodes.sideHPF.type="highpass"; nodes.sideHPF.Q.value=0.707;
   nodes.sideHighHP = audioCtx.createBiquadFilter(); nodes.sideHighHP.type="highpass"; nodes.sideHighHP.frequency.value=8000; nodes.sideHighHP.Q.value=0.707;
-  nodes.sideHighGain = audioCtx.createGain(); nodes.sideHighGain.gain.value=1;
+  nodes.sideHighGain = audioCtx.createGain();
 
   nodes.msIn.connect(split);
   split.connect(Lh,0); split.connect(Rh,1); split.connect(RhInv,1);
   Lh.connect(M); Rh.connect(M);
   Lh.connect(S); RhInv.connect(S);
 
-  // side chain: mono bass option + widen highs option
-  S.connect(nodes.sideHPF);
-  const sideBase = audioCtx.createGain(); sideBase.gain.value=1;
-  const sideHighMix = audioCtx.createGain(); sideHighMix.gain.value=1;
+  const sideBase = audioCtx.createGain();
+  const sideHighMix = audioCtx.createGain();
   const sideTotal = audioCtx.createGain();
 
+  S.connect(nodes.sideHPF);
   nodes.sideHPF.connect(sideBase);
+
   nodes.sideHPF.connect(nodes.sideHighHP);
   nodes.sideHighHP.connect(nodes.sideHighGain);
   nodes.sideHighGain.connect(nodes.widthGain);
@@ -630,22 +636,25 @@ function buildGraph(){
   Rout.connect(merge,0,1);
   merge.connect(nodes.msOut);
 
-  // color + safety
+  // Character + Finish
   nodes.tape = audioCtx.createWaveShaper(); nodes.tape.oversample="2x";
   nodes.clip = audioCtx.createWaveShaper(); nodes.clip.oversample="4x";
   nodes.limiter = audioCtx.createDynamicsCompressor();
   nodes.limiter.knee.value=0; nodes.limiter.ratio.value=20; nodes.limiter.attack.value=0.002; nodes.limiter.release.value=0.08;
 
-  // analyser
-  nodes.anWet = audioCtx.createAnalyser(); nodes.anWet.fftSize=2048;
-  nodes.anDry = audioCtx.createAnalyser(); nodes.anDry.fftSize=1024;
+  // Subtle space (optional, inspired by “added delay/reverb” in your extract)
+  nodes.spaceSend = audioCtx.createGain();
+  nodes.spaceDelay = audioCtx.createDelay(0.5);
+  nodes.spaceFb = audioCtx.createGain();
+  nodes.spaceLP = audioCtx.createBiquadFilter(); nodes.spaceLP.type="lowpass"; nodes.spaceLP.frequency.value=6000;
+  nodes.spaceMix = audioCtx.createGain();
 
-  // ROUTING
+  // routing
   mediaSource.connect(nodes.dryGain);
-  mediaSource.connect(nodes.inGain);
-
   nodes.dryGain.connect(nodes.anDry);
-  nodes.anDry.connect(nodes.master);
+  nodes.anDry.connect(nodes.masterOut);
+
+  mediaSource.connect(nodes.inGain);
 
   nodes.inGain.connect(nodes.hpf);
   nodes.hpf.connect(nodes.eqLow);
@@ -653,13 +662,32 @@ function buildGraph(){
   nodes.eqMud.connect(nodes.eqHarsh);
   nodes.eqHarsh.connect(nodes.eqAir);
 
+  // dynamic de-hiss band (parallel)
   nodes.eqAir.connect(nodes.dhBand);
   nodes.dhBand.connect(nodes.dhComp);
   nodes.dhComp.connect(nodes.dhMix);
 
-  nodes.eqAir.connect(nodes.glue);
-  nodes.dhMix.connect(nodes.glue);
+  // multiband split
+  nodes.eqAir.connect(nodes.lowSplit);
+  nodes.eqAir.connect(nodes.midSplit);
+  nodes.eqAir.connect(nodes.highSplit);
 
+  nodes.lowSplit.connect(nodes.compLow);
+  nodes.midSplit.connect(nodes.compMid);
+  nodes.highSplit.connect(nodes.compHigh);
+
+  nodes.mbSum = audioCtx.createGain();
+  nodes.compLow.connect(nodes.mbSum);
+  nodes.compMid.connect(nodes.mbSum);
+  nodes.compHigh.connect(nodes.mbSum);
+
+  // add de-hiss mixed in
+  nodes.dhMix.connect(nodes.mbSum);
+
+  // glue
+  nodes.mbSum.connect(nodes.glue);
+
+  // parallel NY
   nodes.glue.connect(nodes.nySend);
   nodes.nySend.connect(nodes.nyComp);
   nodes.nyComp.connect(nodes.nyReturn);
@@ -668,194 +696,262 @@ function buildGraph(){
   nodes.glue.connect(nodes.sum);
   nodes.nyReturn.connect(nodes.sum);
 
+  // optional space FX on wet bus
+  nodes.sum.connect(nodes.spaceSend);
+  nodes.spaceSend.connect(nodes.spaceDelay);
+  nodes.spaceDelay.connect(nodes.spaceLP);
+  nodes.spaceLP.connect(nodes.spaceFb);
+  nodes.spaceFb.connect(nodes.spaceDelay);
+  nodes.spaceLP.connect(nodes.spaceMix);
+
+  // main path
   nodes.sum.connect(nodes.msIn);
   nodes.msOut.connect(nodes.tape);
   nodes.tape.connect(nodes.clip);
   nodes.clip.connect(nodes.limiter);
 
+  // blend space in near the end (kept subtle)
+  nodes.spaceMix.connect(nodes.limiter);
+
   nodes.limiter.connect(nodes.wetGain);
   nodes.wetGain.connect(nodes.anWet);
-  nodes.anWet.connect(nodes.master);
+  nodes.anWet.connect(nodes.masterOut);
 
-  applyParamsFromAuto(); // apply initial
+  applyAuto(); // initialize
   startMeters();
 }
 
 /* =========================
-   Auto Master Parameters
+   Style presets (feel settings)
+   + Ref steering
 ========================= */
-let autoParams = null; // computed after analysis
-
-function defaultParams(){
-  return {
-    // core
-    prePeakTargetDb: -4.5,
-    hpfHz: 30,
-    lowShelfDb: 0.0,
-    mudDb: -1.6,
-    harshDb: -0.8,
-    airDb: 1.2,
-
-    deharshMix: 0.55,
-
-    glueThreshold: -24,
-    glueRatio: 2.0,
-
-    nyReturn: 0.16, // parallel amount
-
-    sideHPFHz: 200,
-    widenGain: 1.15,
-    widenOn: true,
-
-    satAmt: 0.45,
-    clipAmt: 0.55,
-
-    ceilingDb: -1.0,
-
-    bypass: false
-  };
+function baseStyle(style){
+  // These are baselines; auto analysis then nudges them
+  switch(style){
+    case "radio":
+      return { air:+2.2, mud:-1.6, harsh:-1.0, low:+0.3, sat:0.35, clip:0.45, width:1.22, space:0.05 };
+    case "warm90":
+      return { air:+0.7, mud:-0.8, harsh:-0.6, low:+0.8, sat:0.55, clip:0.40, width:1.10, space:0.10 };
+    case "rock":
+      return { air:+1.2, mud:-1.2, harsh:-0.7, low:+0.4, sat:0.42, clip:0.62, width:1.15, space:0.06 };
+    case "club":
+      return { air:+1.0, mud:-2.2, harsh:-1.2, low:+0.9, sat:0.55, clip:0.78, width:1.12, space:0.03 };
+    case "lofi":
+      return { air:-0.6, mud:+0.2, harsh:-0.2, low:+0.3, sat:0.70, clip:0.35, width:1.05, space:0.12 };
+    case "sunoFix":
+    default:
+      return { air:+1.4, mud:-2.0, harsh:-1.6, low:+0.4, sat:0.40, clip:0.55, width:1.15, space:0.08 };
+  }
 }
 
 function computeAutoParams(){
-  if(!audioBuffer) return defaultParams();
-  const a = analyzeBuffer(audioBuffer);
+  if(!audioBuffer) return null;
 
+  const a = analyzeBuffer(audioBuffer);
+  const style = ui("style").value;
   const target = ui("target").value;
-  const tone = ui("tone").value;
   const intensity = Number(ui("intensity").value)/100;
   const monoBass = ui("monoBass").checked;
   const widenAir = ui("widenAir").checked;
+  const spaceFX = ui("spaceFX").checked;
 
-  const p = defaultParams();
+  const s = baseStyle(style);
 
-  // Loudness vibe / punch
-  if(target==="stream"){
-    p.prePeakTargetDb = -5.0;
-    p.glueThreshold = -22;
-    p.glueRatio = 1.8;
-    p.nyReturn = 0.12 + intensity*0.08;
-    p.satAmt = 0.30 + intensity*0.25;
-    p.clipAmt = 0.30 + intensity*0.35;
-  }else if(target==="hot"){
-    p.prePeakTargetDb = -4.0;
-    p.glueThreshold = -24 - intensity*2;
-    p.glueRatio = 2.1 + intensity*0.6;
-    p.nyReturn = 0.16 + intensity*0.12;
-    p.satAmt = 0.40 + intensity*0.35;
-    p.clipAmt = 0.55 + intensity*0.30;
-  }else{ // club
-    p.prePeakTargetDb = -3.2;
-    p.glueThreshold = -26 - intensity*3;
-    p.glueRatio = 2.4 + intensity*0.9;
-    p.nyReturn = 0.22 + intensity*0.18;
-    p.satAmt = 0.55 + intensity*0.35;
-    p.clipAmt = 0.70 + intensity*0.25;
-  }
+  // Loudness target proxy (we use loudest RMS window and then push limiter/drive)
+  // (Not true LUFS; but consistent across your own tracks)
+  const desiredLoudRmsDb = (target==="stream") ? -16 : (target==="hot") ? -13 : -11;
+  const pushDb = clamp(desiredLoudRmsDb - a.loudRmsDb, -6, 10);
 
-  // spectrum decisions
+  // Gain staging target headroom: aim peak around -4 dB before final
+  const prePeakTarget = -4.5 + (target==="clubhot" ? 0.6 : 0) - intensity*0.4;
+  const inputGainDb = clamp(prePeakTarget - a.peakDb, -12, 12);
+
+  // Spectrum ratios
   const mudRatio = a.mud / Math.max(1e-9, a.mid);
   const harshRatio = a.harsh / Math.max(1e-9, a.mid);
   const airRatio = a.air / Math.max(1e-9, a.mid);
-  const lowRatio = a.low / Math.max(1e-9, a.mid);
+  const hissRatio = a.hiss / Math.max(1e-9, a.air);
 
-  // mud/harsh/air scaling with intensity
-  p.mudDb = -clamp(0.8 + (mudRatio*2.2) + intensity*1.8, 0.6, 4.2);
-  p.harshDb = -clamp(0.4 + (harshRatio*2.0) + intensity*1.6, 0.4, 4.0);
-
-  // "air" if dull; less if already airy
-  p.airDb = clamp((1.2 + intensity*1.2) - (airRatio*1.4), 0.0, 3.8);
-
-  // Low shelf: tighten or add weight depending on lowRatio
-  if(target==="club"){
-    // club wants controlled but present low end
-    p.lowShelfDb = clamp(0.8 - (lowRatio*0.9) + intensity*0.3, -1.2, 1.4);
-  }else{
-    p.lowShelfDb = clamp(0.4 - (lowRatio*0.8), -1.4, 1.2);
+  // Reference steering (optional): match tilt/width tendencies
+  let ref = null;
+  if(refBuffer){
+    const r = analyzeBuffer(refBuffer);
+    ref = {
+      airToMid: r.air / Math.max(1e-9, r.mid),
+      lowToMid: r.low / Math.max(1e-9, r.mid),
+      corr: r.corr,
+      harshToMid: r.harsh / Math.max(1e-9, r.mid),
+      hissToAir: r.hiss / Math.max(1e-9, r.air)
+    };
   }
 
-  // Tone preset nudges
-  if(tone==="bright"){
-    p.airDb = clamp(p.airDb + 1.0, 0, 4.5);
-    p.harshDb = p.harshDb - 0.3; // more control so brightness isn't painful
-  }else if(tone==="warm"){
-    p.airDb = clamp(p.airDb - 0.8, 0, 4.5);
-    p.mudDb = p.mudDb - 0.2; // less cut
-    p.satAmt = clamp(p.satAmt + 0.15, 0, 1);
+  // EQ: style baseline + auto correction
+  let mudDb   = s.mud - clamp(mudRatio*1.2 + intensity*1.2, 0.4, 3.8);
+  let harshDb = s.harsh - clamp(harshRatio*1.1 + intensity*1.2, 0.3, 3.5);
+  let airDb   = s.air + clamp((1.4 + intensity*1.6) - airRatio*1.2, -0.6, 3.6);
+  let lowDb   = s.low + clamp(0.6 - (a.low/Math.max(1e-9,a.mid))*0.8, -1.2, 1.6);
+
+  // Suno-fix: extra de-hiss tendency
+  const dehissMix = clamp(0.25 + (style==="sunoFix" ? 0.25 : 0.10) + hissRatio*0.25 + intensity*0.20, 0.15, 0.80);
+
+  // Reference influence (gentle)
+  if(ref){
+    const steer = 0.35; // keep it subtle
+    const wantAir = clamp((ref.airToMid - airRatio), -1.0, 1.0);
+    const wantLow = clamp((ref.lowToMid - (a.low/Math.max(1e-9,a.mid))), -1.0, 1.0);
+    const wantHarsh = clamp((ref.harshToMid - harshRatio), -1.0, 1.0);
+
+    airDb   += wantAir * 2.0 * steer;
+    lowDb   += wantLow * 1.6 * steer;
+    harshDb -= wantHarsh * 1.5 * steer; // more harsh -> tame more
   }
 
-  // Deharsh mix (dynamic harsh control)
-  p.deharshMix = clamp(0.35 + harshRatio*0.35 + intensity*0.25, 0.25, 0.85);
+  // Compression settings (serial + multiband)
+  const glueThresh = -22 - intensity*4 - (target==="clubhot" ? 2 : 0);
+  const glueRatio  = 1.8 + intensity*1.0 + (target==="clubhot" ? 0.3 : 0);
 
-  // Width logic based on correlation
-  const corr = a.corr;
-  let widen = 1.15;
-  if(corr > 0.8) widen = 1.25;          // very mono -> safe widen
-  else if(corr < 0.2) widen = 1.08;     // already very wide -> chill
-  else widen = 1.18;
+  // Multiband thresholds: low controlled more, highs more open
+  const lowT  = -24 - intensity*4 - (target==="clubhot" ? 2 : 0);
+  const midT  = -22 - intensity*3;
+  const highT = -20 - intensity*2;
 
-  p.widenOn = widenAir;
-  p.widenGain = widenAir ? widen : 1.0;
+  // Parallel NY
+  const nyReturn = clamp(0.10 + intensity*0.25 + (style==="rock" ? 0.08 : 0), 0.08, 0.45);
 
-  // Mono bass / side HPF
-  p.sideHPFHz = monoBass ? 200 : 5;
+  // Width
+  let width = s.width;
+  if(ref){
+    // if ref is wider and ours is too mono -> widen slightly
+    const refWide = (ref.corr < 0.45) ? 1.22 : 1.10;
+    width = width + (refWide - width)*0.35;
+  }
+  width = widenAir ? width : 1.0;
 
-  // Ceiling fixed -1.0 dBTP-ish
-  p.ceilingDb = -1.0;
+  // Mono bass using side HPF
+  const sideHPFHz = monoBass ? 200 : 5;
 
-  // Gain staging to target peak
-  const gainDb = clamp(p.prePeakTargetDb - a.peakDb, -12, 12);
-  p.inputGainDb = gainDb;
+  // Saturation + clipping
+  let satAmt = clamp(s.sat + intensity*0.35 + (target==="clubhot" ? 0.12 : 0), 0, 1);
+  let clipAmt = clamp(s.clip + intensity*0.30 + (target==="clubhot" ? 0.12 : 0), 0, 1);
 
-  return p;
+  // Space FX (tiny)
+  const spaceAmt = spaceFX ? clamp(s.space + intensity*0.12, 0.0, 0.22) : 0.0;
+
+  // Limiter ceiling (safe)
+  const ceilingDb = -1.0;
+
+  return {
+    inputGainDb,
+    pushDb,
+    lowDb, mudDb, harshDb, airDb,
+    dehissMix,
+    glueThresh, glueRatio,
+    lowT, midT, highT,
+    nyReturn,
+    sideHPFHz,
+    width,
+    satAmt,
+    clipAmt,
+    spaceAmt,
+    ceilingDb
+  };
 }
 
-function applyParamsFromAuto(){
-  if(!audioCtx || !nodes.inGain) return;
+function applyAuto(){
+  if(!audioCtx || !nodes.inGain || !audioBuffer) return;
 
-  autoParams = computeAutoParams();
+  const p = computeAutoParams();
+  if(!p) return;
 
-  // input gain to hit sweet spot
-  nodes.inGain.gain.value = lin(autoParams.inputGainDb ?? 0);
+  nodes.inGain.gain.value = lin(p.inputGainDb);
 
-  // cleanup
-  nodes.hpf.frequency.value = autoParams.hpfHz;
+  nodes.hpf.frequency.value = 30;
 
-  // EQ
-  nodes.eqLow.gain.value = autoParams.lowShelfDb;
-  nodes.eqMud.gain.value = autoParams.mudDb;
-  nodes.eqHarsh.gain.value = autoParams.harshDb;
-  nodes.eqAir.gain.value = autoParams.airDb;
+  nodes.eqLow.gain.value = p.lowDb;
+  nodes.eqMud.gain.value = p.mudDb;
+  nodes.eqHarsh.gain.value = p.harshDb;
+  nodes.eqAir.gain.value = p.airDb;
 
-  // deharsh mix
-  nodes.dhMix.gain.value = autoParams.deharshMix;
+  // de-hiss dynamic band mixed in
+  nodes.dhMix.gain.value = p.dehissMix;
 
-  // glue
-  nodes.glue.threshold.value = autoParams.glueThreshold;
-  nodes.glue.ratio.value = autoParams.glueRatio;
+  // Multiband comps
+  // Low: solid, more control
+  nodes.compLow.threshold.value = p.lowT;
+  nodes.compLow.knee.value = 18;
+  nodes.compLow.ratio.value = 3.2;
+  nodes.compLow.attack.value = 0.03;   // slowish attack preserves kick
+  nodes.compLow.release.value = 0.18;
 
-  // parallel return
-  nodes.nyReturn.gain.value = autoParams.nyReturn;
+  // Mid: gentle glue
+  nodes.compMid.threshold.value = p.midT;
+  nodes.compMid.knee.value = 18;
+  nodes.compMid.ratio.value = 2.2;
+  nodes.compMid.attack.value = 0.025;
+  nodes.compMid.release.value = 0.20;
 
-  // width
-  nodes.sideHPF.frequency.value = autoParams.sideHPFHz;
-  nodes.widthGain.gain.value = autoParams.widenGain;
+  // High: light control (avoid dulling)
+  nodes.compHigh.threshold.value = p.highT;
+  nodes.compHigh.knee.value = 18;
+  nodes.compHigh.ratio.value = 1.8;
+  nodes.compHigh.attack.value = 0.015;
+  nodes.compHigh.release.value = 0.14;
 
-  // color
-  nodes.tape.curve = makeSaturationCurve(autoParams.satAmt);
-  nodes.clip.curve = makeClipCurve(autoParams.clipAmt);
+  // Glue
+  nodes.glue.threshold.value = p.glueThresh;
+  nodes.glue.ratio.value = p.glueRatio;
 
-  // limiter ceiling
-  nodes.limiter.threshold.value = autoParams.ceilingDb;
+  // Parallel
+  nodes.nyReturn.gain.value = p.nyReturn;
 
-  // bypass (preview)
-  const bypassed = (autoParams.bypass === true);
-  nodes.wetGain.gain.value = bypassed ? 0 : 1;
-  nodes.dryGain.gain.value = bypassed ? 1 : 0;
+  // Width
+  nodes.sideHPF.frequency.value = p.sideHPFHz;
+  nodes.widthGain.gain.value = p.width;
+  nodes.sideHighGain.gain.value = 1; // controlled by widthGain
+
+  // Character
+  nodes.tape.curve = makeSaturationCurve(p.satAmt);
+  nodes.clip.curve = makeClipCurve(p.clipAmt);
+
+  // Space FX
+  nodes.spaceSend.gain.value = p.spaceAmt;
+  nodes.spaceDelay.delayTime.value = 0.12;        // short slap
+  nodes.spaceFb.gain.value = 0.20 + p.spaceAmt;   // gentle feedback
+  nodes.spaceMix.gain.value = 0.35 * p.spaceAmt;  // keep subtle
+
+  // Limiter
+  nodes.limiter.threshold.value = p.ceilingDb;
+
+  // Ensure current AB routing
+  setAB(currentAB, false);
 }
 
 /* =========================
-   Meters + Level Match
+   A/B + Level Match
 ========================= */
+function setAB(mode, updateUI=true){
+  currentAB = mode;
+  if(!nodes.wetGain || !nodes.dryGain) return;
+
+  if(mode==="master"){
+    nodes.wetGain.gain.value = 1;
+    nodes.dryGain.gain.value = 0;
+    if(updateUI){
+      ui("abMasterBtn").classList.add("pillActive");
+      ui("abOriginalBtn").classList.remove("pillActive");
+      setStatus("A/B: MASTERED");
+    }
+  }else{
+    nodes.wetGain.gain.value = 0;
+    nodes.dryGain.gain.value = 1;
+    if(updateUI){
+      ui("abOriginalBtn").classList.add("pillActive");
+      ui("abMasterBtn").classList.remove("pillActive");
+      setStatus("A/B: ORIGINAL");
+    }
+  }
+}
+
 function startMeters(){
   if(rafId) cancelAnimationFrame(rafId);
 
@@ -867,7 +963,7 @@ function startMeters(){
   const wetTime = new Float32Array(nodes.anWet.fftSize);
   const dryTime = new Float32Array(nodes.anDry.fftSize);
 
-  function drawBar(ctx, label, valueDb, y, h, color){
+  function drawBar(ctx, valueDb, y, h, color){
     const w = ctx.canvas.width;
     ctx.fillStyle = "rgba(0,0,0,0.04)";
     ctx.fillRect(12, y, w-24, h);
@@ -877,7 +973,6 @@ function startMeters(){
   }
 
   function loop(){
-    // peak
     nodes.anWet.getFloatTimeDomainData(wetTime);
     let peak=0, wetSum=0;
     for(let i=0;i<wetTime.length;i++){
@@ -885,12 +980,10 @@ function startMeters(){
       const a = Math.abs(v); if(a>peak) peak=a;
       wetSum += v*v;
     }
-    const peakDb = db(peak);
+    const wetPeakDb = db(peak);
     const wetRms = Math.sqrt(wetSum / wetTime.length);
     const wetDb = db(wetRms);
-    ui("peakRead").textContent = `${peakDb.toFixed(1)} dBFS`;
 
-    // dry rms
     nodes.anDry.getFloatTimeDomainData(dryTime);
     let drySum=0;
     for(let i=0;i<dryTime.length;i++){
@@ -899,35 +992,39 @@ function startMeters(){
     }
     const dryRms = Math.sqrt(drySum / dryTime.length);
     const dryDb = db(dryRms);
-    ui("rmsRead").textContent = `Dry ${dryDb.toFixed(1)} • Wet ${wetDb.toFixed(1)} dB`;
 
-    // level match (so you aren’t fooled by loud)
-    if(ui("levelMatch").checked && nodes.wetGain && nodes.dryGain){
-      // when wet is active, match wet to dry RMS
-      if(nodes.wetGain.gain.value > 0.5){
-        const diff = wetDb - dryDb;
-        const target = clamp(lin(-diff), 0.6, 1.6);
+    ui("peakRead").textContent = `${wetPeakDb.toFixed(1)} dBFS`;
+    ui("rmsRead").textContent = `Orig ${dryDb.toFixed(1)} • Master ${wetDb.toFixed(1)} dB`;
+
+    // Level match so A/B isn't a loudness trick
+    if(ui("levelMatch").checked){
+      if(currentAB==="master"){
+        const diff = wetDb - dryDb; // if wet louder, turn wet down
+        const target = clamp(lin(-diff), 0.55, 1.8);
         nodes.wetGain.gain.value += (target - nodes.wetGain.gain.value)*0.08;
-      }
-      // when dry is active, match dry to wet RMS
-      if(nodes.dryGain.gain.value > 0.5){
+        nodes.dryGain.gain.value = 0;
+      }else{
         const diff = dryDb - wetDb;
-        const target = clamp(lin(-diff), 0.6, 1.6);
+        const target = clamp(lin(-diff), 0.55, 1.8);
         nodes.dryGain.gain.value += (target - nodes.dryGain.gain.value)*0.08;
+        nodes.wetGain.gain.value = 0;
       }
+    }else{
+      // keep hard A/B
+      if(currentAB==="master"){ nodes.wetGain.gain.value = 1; nodes.dryGain.gain.value=0; }
+      else{ nodes.wetGain.gain.value = 0; nodes.dryGain.gain.value=1; }
     }
 
-    // draw peak canvas
+    // draw
     pctx.clearRect(0,0,peakC.width,peakC.height);
-    drawBar(pctx, "PEAK", peakDb, 40, 44, peakDb > -1 ? "#ef4444" : (peakDb > -6 ? "#f59e0b" : "#10b981"));
+    drawBar(pctx, wetPeakDb, 40, 44, wetPeakDb > -1 ? "#ef4444" : (wetPeakDb > -6 ? "#f59e0b" : "#10b981"));
     pctx.fillStyle = "rgba(0,0,0,0.75)";
     pctx.font = "24px system-ui";
     pctx.fillText("PEAK", 12, 28);
 
-    // draw rms canvas
     rctx.clearRect(0,0,rmsC.width,rmsC.height);
-    drawBar(rctx, "DRY", dryDb, 28, 32, "rgba(0,0,0,0.35)");
-    drawBar(rctx, "WET", wetDb, 78, 32, "#ffcc00");
+    drawBar(rctx, dryDb, 28, 32, "rgba(0,0,0,0.35)");
+    drawBar(rctx, wetDb, 78, 32, "#ffcc00");
     rctx.fillStyle = "rgba(0,0,0,0.75)";
     rctx.font = "20px system-ui";
     rctx.fillText("RMS", 12, 22);
@@ -938,11 +1035,12 @@ function startMeters(){
 }
 
 /* =========================
-   Load + Transport
+   Loading
 ========================= */
 function enableControls(on){
   ui("playBtn").disabled = !on;
-  ui("bypassBtn").disabled = !on;
+  ui("abMasterBtn").disabled = !on;
+  ui("abOriginalBtn").disabled = !on;
   ui("autoBtn").disabled = !on;
   ui("resetBtn").disabled = !on;
   ui("exportBtn").disabled = !on;
@@ -956,12 +1054,10 @@ ui("fileInput").addEventListener("change", async (e)=>{
 
   if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
 
-  // Decode for analysis + offline export
-  setStatus("Loading…");
+  setStatus("Loading track…");
   const arr = await file.arrayBuffer();
   audioBuffer = await audioCtx.decodeAudioData(arr.slice(0));
 
-  // Media element for realtime
   if(!mediaEl){
     mediaEl = new Audio();
     mediaEl.crossOrigin = "anonymous";
@@ -976,8 +1072,6 @@ ui("fileInput").addEventListener("change", async (e)=>{
   initWaveSurfer();
   wavesurfer.load(url);
 
-  // Important: createMediaElementSource only once per Audio element per context
-  // so recreate mediaEl if needed
   try{
     if(mediaSource) { try{ mediaSource.disconnect(); }catch{} }
     mediaSource = audioCtx.createMediaElementSource(mediaEl);
@@ -988,10 +1082,25 @@ ui("fileInput").addEventListener("change", async (e)=>{
   }
 
   buildGraph();
+  setAB("master", true);
   enableControls(true);
   setStatus("Ready. Hit AUTO MASTER.");
 });
 
+ui("refInput").addEventListener("change", async (e)=>{
+  const file = e.target.files?.[0];
+  if(!file) { refBuffer=null; return; }
+  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  setStatus("Loading reference…");
+  const arr = await file.arrayBuffer();
+  refBuffer = await audioCtx.decodeAudioData(arr.slice(0));
+  setStatus("Reference loaded ✓ (Auto will steer toward it)");
+  if(audioBuffer) applyAuto();
+});
+
+/* =========================
+   Transport + Buttons
+========================= */
 ui("playBtn").addEventListener("click", async ()=>{
   if(!mediaEl || !audioCtx) return;
   if(audioCtx.state==="suspended") await audioCtx.resume();
@@ -1007,47 +1116,38 @@ ui("playBtn").addEventListener("click", async ()=>{
   }
 });
 
-ui("bypassBtn").addEventListener("click", ()=>{
-  if(!nodes.wetGain || !nodes.dryGain) return;
-  const wetOn = nodes.wetGain.gain.value > 0.5;
-  if(wetOn){
-    nodes.wetGain.gain.value = 0;
-    nodes.dryGain.gain.value = 1;
-    setStatus("Bypass: ON (dry)");
-  }else{
-    nodes.wetGain.gain.value = 1;
-    nodes.dryGain.gain.value = 0;
-    setStatus("Bypass: OFF (master)");
-    applyParamsFromAuto(); // restore intended gains
-  }
-});
+ui("abMasterBtn").addEventListener("click", ()=> setAB("master", true));
+ui("abOriginalBtn").addEventListener("click", ()=> setAB("orig", true));
 
 ui("autoBtn").addEventListener("click", ()=>{
   if(!audioBuffer) return;
   setStatus("Auto mastering…");
-  applyParamsFromAuto();
-  setStatus("Auto master ✓ Export when ready.");
+  applyAuto();
+  setStatus("Auto master ✓ A/B it (level matched).");
 });
 
 ui("resetBtn").addEventListener("click", ()=>{
-  if(!audioBuffer) return;
+  ui("style").value = "sunoFix";
   ui("target").value = "stream";
-  ui("tone").value = "neutral";
-  ui("intensity").value = 55;
+  ui("intensity").value = 60;
   ui("monoBass").checked = true;
   ui("widenAir").checked = true;
+  ui("spaceFX").checked = true;
   ui("levelMatch").checked = true;
-  applyParamsFromAuto();
+  refBuffer = null;
+  ui("refInput").value = "";
+  applyAuto();
+  setAB("master", true);
   setStatus("Reset ✓");
 });
 
-["target","tone","intensity","monoBass","widenAir"].forEach(id=>{
-  ui(id).addEventListener("change", ()=>{ if(audioBuffer) applyParamsFromAuto(); });
-  ui(id).addEventListener("input", ()=>{ if(audioBuffer) applyParamsFromAuto(); });
+["style","target","intensity","monoBass","widenAir","spaceFX","levelMatch"].forEach(id=>{
+  ui(id).addEventListener("change", ()=>{ if(audioBuffer) applyAuto(); });
+  ui(id).addEventListener("input", ()=>{ if(audioBuffer) applyAuto(); });
 });
 
 /* =========================
-   Offline Export (WAV 16/24)
+   Export (Offline render)
 ========================= */
 function removeDCOffset(buf){
   const out = new AudioBuffer({ length: buf.length, numberOfChannels: buf.numberOfChannels, sampleRate: buf.sampleRate });
@@ -1109,7 +1209,6 @@ function audioBufferToWavBlob(buffer, bitDepth=24){
       view.setUint8(o++, (v>>16)&255);
     }
   }
-
   return new Blob([ab], {type:"audio/wav"});
 }
 
@@ -1120,68 +1219,102 @@ ui("exportBtn").addEventListener("click", async ()=>{
   const bitDepth = Number(ui("bitDepth").value);
   const cleaned = removeDCOffset(audioBuffer);
 
-  // Compute params once, then apply in offline render
   const p = computeAutoParams();
+  if(!p){ setStatus("Export failed (no params)."); return; }
 
   const offCtx = new OfflineAudioContext(cleaned.numberOfChannels, cleaned.length, cleaned.sampleRate);
   const src = offCtx.createBufferSource();
   src.buffer = cleaned;
 
-  const inGain = offCtx.createGain();
-  inGain.gain.value = lin(p.inputGainDb ?? 0);
+  const inGain = offCtx.createGain(); inGain.gain.value = lin(p.inputGainDb);
 
-  const hpf = offCtx.createBiquadFilter(); hpf.type="highpass"; hpf.Q.value=0.707; hpf.frequency.value = p.hpfHz;
+  const hpf = offCtx.createBiquadFilter(); hpf.type="highpass"; hpf.Q.value=0.707; hpf.frequency.value=30;
 
-  const eqLow = offCtx.createBiquadFilter(); eqLow.type="lowshelf"; eqLow.frequency.value=90; eqLow.gain.value=p.lowShelfDb;
+  const eqLow = offCtx.createBiquadFilter(); eqLow.type="lowshelf"; eqLow.frequency.value=90; eqLow.Q.value=0.707; eqLow.gain.value=p.lowDb;
   const eqMud = offCtx.createBiquadFilter(); eqMud.type="peaking"; eqMud.frequency.value=280; eqMud.Q.value=1.0; eqMud.gain.value=p.mudDb;
-  const eqHarsh = offCtx.createBiquadFilter(); eqHarsh.type="peaking"; eqHarsh.frequency.value=3800; eqHarsh.Q.value=1.2; eqHarsh.gain.value=p.harshDb;
+  const eqHarsh = offCtx.createBiquadFilter(); eqHarsh.type="peaking"; eqHarsh.frequency.value=3800; eqHarsh.Q.value=1.25; eqHarsh.gain.value=p.harshDb;
   const eqAir = offCtx.createBiquadFilter(); eqAir.type="highshelf"; eqAir.frequency.value=12000; eqAir.Q.value=0.707; eqAir.gain.value=p.airDb;
 
-  const dhBand = offCtx.createBiquadFilter(); dhBand.type="bandpass"; dhBand.frequency.value=3500; dhBand.Q.value=2.2;
+  const dhBand = offCtx.createBiquadFilter(); dhBand.type="bandpass"; dhBand.frequency.value=7000; dhBand.Q.value=2.6;
   const dhComp = offCtx.createDynamicsCompressor();
-  dhComp.threshold.value=-28; dhComp.knee.value=18; dhComp.ratio.value=6; dhComp.attack.value=0.003; dhComp.release.value=0.12;
-  const dhMix = offCtx.createGain(); dhMix.gain.value = p.deharshMix;
+  dhComp.threshold.value=-30; dhComp.knee.value=20; dhComp.ratio.value=8; dhComp.attack.value=0.002; dhComp.release.value=0.11;
+  const dhMix = offCtx.createGain(); dhMix.gain.value=p.dehissMix;
+
+  // 3-band comp
+  const lowSplit = offCtx.createBiquadFilter(); lowSplit.type="lowpass"; lowSplit.frequency.value=140; lowSplit.Q.value=0.707;
+  const midSplit = offCtx.createBiquadFilter(); midSplit.type="bandpass"; midSplit.frequency.value=900; midSplit.Q.value=0.9;
+  const highSplit = offCtx.createBiquadFilter(); highSplit.type="highpass"; highSplit.frequency.value=3200; highSplit.Q.value=0.707;
+
+  const compLow = offCtx.createDynamicsCompressor();
+  compLow.threshold.value=p.lowT; compLow.knee.value=18; compLow.ratio.value=3.2; compLow.attack.value=0.03; compLow.release.value=0.18;
+
+  const compMid = offCtx.createDynamicsCompressor();
+  compMid.threshold.value=p.midT; compMid.knee.value=18; compMid.ratio.value=2.2; compMid.attack.value=0.025; compMid.release.value=0.20;
+
+  const compHigh = offCtx.createDynamicsCompressor();
+  compHigh.threshold.value=p.highT; compHigh.knee.value=18; compHigh.ratio.value=1.8; compHigh.attack.value=0.015; compHigh.release.value=0.14;
+
+  const mbSum = offCtx.createGain();
 
   const glue = offCtx.createDynamicsCompressor();
-  glue.threshold.value=p.glueThreshold; glue.knee.value=18; glue.ratio.value=p.glueRatio;
-  glue.attack.value=0.03; glue.release.value=0.25;
+  glue.threshold.value=p.glueThresh; glue.knee.value=18; glue.ratio.value=p.glueRatio; glue.attack.value=0.03; glue.release.value=0.25;
 
-  const nySend = offCtx.createGain(); nySend.gain.value=1;
   const nyComp = offCtx.createDynamicsCompressor();
   nyComp.threshold.value=-30; nyComp.knee.value=12; nyComp.ratio.value=8; nyComp.attack.value=0.01; nyComp.release.value=0.12;
-  const nyReturn = offCtx.createGain(); nyReturn.gain.value = p.nyReturn;
+  const nyReturn = offCtx.createGain(); nyReturn.gain.value=p.nyReturn;
 
   const sum = offCtx.createGain();
 
-  // We keep offline MS width simple: widen highs by a touch (not full M/S math here to keep export stable)
-  // If you want true offline M/S, I can extend this with channel split/merge as well.
   const tape = offCtx.createWaveShaper(); tape.oversample="2x"; tape.curve = makeSaturationCurve(p.satAmt);
   const clip = offCtx.createWaveShaper(); clip.oversample="4x"; clip.curve = makeClipCurve(p.clipAmt);
 
   const limiter = offCtx.createDynamicsCompressor();
-  limiter.threshold.value=p.ceilingDb; limiter.knee.value=0; limiter.ratio.value=20;
-  limiter.attack.value=0.002; limiter.release.value=0.08;
+  limiter.threshold.value=p.ceilingDb; limiter.knee.value=0; limiter.ratio.value=20; limiter.attack.value=0.002; limiter.release.value=0.08;
+
+  // light space
+  const spaceSend = offCtx.createGain(); spaceSend.gain.value = p.spaceAmt;
+  const spaceDelay = offCtx.createDelay(0.5); spaceDelay.delayTime.value=0.12;
+  const spaceLP = offCtx.createBiquadFilter(); spaceLP.type="lowpass"; spaceLP.frequency.value=6000;
+  const spaceFb = offCtx.createGain(); spaceFb.gain.value=0.20 + p.spaceAmt;
+  const spaceMix = offCtx.createGain(); spaceMix.gain.value = 0.35*p.spaceAmt;
 
   // route
   src.connect(inGain);
   inGain.connect(hpf);
   hpf.connect(eqLow); eqLow.connect(eqMud); eqMud.connect(eqHarsh); eqHarsh.connect(eqAir);
 
+  // de-hiss parallel
   eqAir.connect(dhBand); dhBand.connect(dhComp); dhComp.connect(dhMix);
 
-  eqAir.connect(glue);
-  dhMix.connect(glue);
+  // multiband
+  eqAir.connect(lowSplit); eqAir.connect(midSplit); eqAir.connect(highSplit);
+  lowSplit.connect(compLow); midSplit.connect(compMid); highSplit.connect(compHigh);
+  compLow.connect(mbSum); compMid.connect(mbSum); compHigh.connect(mbSum);
+  dhMix.connect(mbSum);
+
+  // glue
+  mbSum.connect(glue);
+
+  // NY parallel
+  glue.connect(nyComp);
+  nyComp.connect(nyReturn);
 
   glue.connect(sum);
-
-  glue.connect(nySend);
-  nySend.connect(nyComp);
-  nyComp.connect(nyReturn);
   nyReturn.connect(sum);
 
+  // space
+  sum.connect(spaceSend);
+  spaceSend.connect(spaceDelay);
+  spaceDelay.connect(spaceLP);
+  spaceLP.connect(spaceFb);
+  spaceFb.connect(spaceDelay);
+  spaceLP.connect(spaceMix);
+
+  // finish
   sum.connect(tape);
   tape.connect(clip);
   clip.connect(limiter);
+  spaceMix.connect(limiter);
   limiter.connect(offCtx.destination);
 
   src.start(0);
@@ -1198,4 +1331,3 @@ ui("exportBtn").addEventListener("click", async ()=>{
 </script>
 </body>
 </html>
-
