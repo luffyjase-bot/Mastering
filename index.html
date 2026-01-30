@@ -3,217 +3,47 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>JaseMaster — Wu-Tang Yellow Edition (FFT + TruePeak + MatchTone)</title>
+  <title>JaseMaster — Wu-Tang Yellow (Playback Fixed)</title>
   <style>
     :root{
-      --bg:#fff8d6;
-      --panel:#ffffff;
-      --ink:#111111;
-      --muted:#555;
-      --line:#e6d27a;
-      --yellow:#ffd400;
-      --yellow2:#ffea76;
-      --shadow: 0 10px 30px rgba(0,0,0,.10);
-      --radius: 18px;
-      --btn:#111;
-      --btnText:#fff;
-      --ok:#0a7a2f;
-      --warn:#a14b00;
-      --bad:#b40000;
+      --bg:#fff8d6; --panel:#fff; --ink:#111; --muted:#555; --yellow:#ffd400; --shadow:0 10px 30px rgba(0,0,0,.10);
+      --ok:#0a7a2f; --warn:#a14b00; --bad:#b40000;
+      --radius:18px;
     }
     *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-      color:var(--ink);
-      background: radial-gradient(1200px 600px at 25% 0%, var(--yellow2), transparent 60%),
-                  linear-gradient(180deg, #fff5b5, var(--bg) 40%, #fff);
-    }
-    header{
-      position: sticky; top: 0; z-index: 5;
-      background: linear-gradient(90deg, rgba(255,212,0,.95), rgba(255,255,255,.9));
-      border-bottom: 1px solid rgba(0,0,0,.08);
-      backdrop-filter: blur(8px);
-    }
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--ink);
+      background: radial-gradient(1200px 600px at 25% 0%, #ffea76, transparent 60%), linear-gradient(180deg, #fff5b5, var(--bg) 40%, #fff);}
+    header{position:sticky;top:0;z-index:5;background:linear-gradient(90deg, rgba(255,212,0,.95), rgba(255,255,255,.9));
+      border-bottom:1px solid rgba(0,0,0,.08);backdrop-filter:blur(8px);}
     .wrap{max-width:1200px;margin:0 auto;padding:16px}
-    .topbar{display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap}
-    .brand h1{margin:0;font-size:22px;letter-spacing:.2px}
-    .brand p{margin:4px 0 0;color:rgba(0,0,0,.70);font-size:13px}
-    .actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-    .btn{
-      appearance:none;border:1px solid rgba(0,0,0,.12);
-      border-radius:999px;padding:10px 14px;
-      background:var(--panel); color:var(--ink);
-      font-weight:800; cursor:pointer;
-      box-shadow: 0 8px 18px rgba(0,0,0,.06);
-    }
-    .btn.primary{ background: var(--yellow); border-color: rgba(0,0,0,.22); }
-    .btn.dark{ background: var(--btn); color: var(--btnText); border-color: rgba(0,0,0,.2); }
-    .btn:disabled{opacity:.5; cursor:not-allowed}
-    .pill{
-      padding:8px 12px;border-radius:999px;
-      background:rgba(255,255,255,.75);
-      border:1px solid rgba(0,0,0,.08);
-      color:var(--ok); font-weight:900; font-size:13px;
-      box-shadow: 0 10px 22px rgba(0,0,0,.06);
-      white-space:nowrap;
-    }
-    main .wrap{padding-top:18px}
-    .grid{
-      display:grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap:16px;
-    }
-    @media (max-width: 980px){ .grid{grid-template-columns: 1fr} header .wrap{padding:12px} }
-    .card{
-      background:var(--panel);
-      border:1px solid rgba(0,0,0,.10);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-    }
-    .card .hd{
-      padding:14px 16px;
-      display:flex; gap:10px; align-items:center; justify-content:space-between;
-      border-bottom:1px solid rgba(0,0,0,.07);
-      background: linear-gradient(180deg, rgba(255,212,0,.18), transparent);
-      flex-wrap:wrap;
-    }
-    .card .hd h2{ margin:0; font-size:16px; letter-spacing:.2px; display:flex; gap:10px; align-items:baseline; flex-wrap:wrap; }
-    .meta{color:var(--muted); font-size:13px; font-weight:700}
-    .card .bd{padding:14px 16px}
-    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-    .row.space{justify-content:space-between}
-    .small{font-size:12px;color:var(--muted);font-weight:700}
-    .fileline{
-      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-      border:1px dashed rgba(0,0,0,.18);
-      padding:10px 12px;
-      border-radius: 14px;
-      background: rgba(255,212,0,.06);
-    }
-    input[type=file]{max-width: 100%}
-    .kpi{display:flex; gap:10px; align-items:center; flex-wrap:wrap; color:#000; font-weight:900; font-size:13px;}
-    .kpi span{padding:7px 10px;border-radius:999px;background:rgba(0,0,0,.04);border:1px solid rgba(0,0,0,.07)}
-    .wave{
-      width:100%;
-      height:120px;
-      border-radius: 16px;
-      background: linear-gradient(180deg, rgba(0,0,0,.04), rgba(0,0,0,.02));
-      border:1px solid rgba(0,0,0,.08);
-      overflow:hidden;
-      position:relative;
-      touch-action: pan-x;
-    }
-    .wave canvas{width:100%; height:100%; display:block}
-    .transport{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px}
-    .toggle{
-      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-      padding:8px 10px; border:1px solid rgba(0,0,0,.10);
-      border-radius: 14px; background: rgba(0,0,0,.02);
-      font-weight:800; font-size:13px;
-    }
-    .toggle input{transform: scale(1.15)}
-    .hint{
-      margin-top:10px;
-      color:var(--muted);
-      font-size:13px;
-      display:flex; gap:10px; align-items:flex-start;
-    }
-    .hint .badge{
-      width:22px;height:22px;border-radius:50%;
-      display:grid; place-items:center;
-      background: var(--yellow);
-      border:1px solid rgba(0,0,0,.18);
-      font-weight:1000;
-      flex:0 0 auto;
-    }
-    .styles{display:flex; gap:10px; flex-wrap:wrap; margin-top:8px;}
-    .chip{
-      border-radius:999px;
-      padding:10px 14px;
-      border:1px solid rgba(0,0,0,.14);
-      background:#fff;
-      font-weight:1000;
-      cursor:pointer;
-      box-shadow: 0 8px 18px rgba(0,0,0,.06);
-    }
-    .chip.active{background:var(--yellow); border-color: rgba(0,0,0,.22);}
-    .section{
-      border:1px solid rgba(0,0,0,.10);
-      border-radius: 16px;
-      padding:12px;
-      background: rgba(255,255,255,.75);
-      margin-top:12px;
-    }
-    .section h3{
-      margin:0 0 10px 0;
-      font-size:13px;
-      letter-spacing:.3px;
-      text-transform:uppercase;
-      display:flex; gap:8px; align-items:center;
-    }
-    .ctrlgrid{display:grid; grid-template-columns: 1.2fr .8fr; gap:10px;}
-    @media (max-width: 520px){ .ctrlgrid{grid-template-columns: 1fr} }
-    .field{
-      display:flex; gap:10px; align-items:center; justify-content:space-between;
-      padding:8px 10px;
-      border-radius: 14px;
-      border:1px solid rgba(0,0,0,.10);
-      background: rgba(255,255,255,.9);
-      font-weight:900;
-    }
-    .field label{display:flex; gap:8px; align-items:center}
-    .field input[type=range]{width: 180px; max-width: 52vw}
-    select{
-      border-radius: 12px;
-      border:1px solid rgba(0,0,0,.14);
-      padding:9px 10px;
-      font-weight:900;
-      background:#fff;
-    }
-    .q{
-      display:inline-grid; place-items:center;
-      width:18px;height:18px;border-radius:50%;
-      background:var(--yellow);
-      border:1px solid rgba(0,0,0,.18);
-      font-weight:1100;
-      font-size:12px;
-      cursor:help;
-      user-select:none;
-    }
-    .footnote{
-      margin-top:10px;
-      padding:10px 12px;
-      border-radius:14px;
-      border:1px solid rgba(0,0,0,.10);
-      background: rgba(255,255,255,.85);
-      font-size:13px;
-      color:var(--muted);
-      font-weight:750;
-    }
-    .mixer{display:flex; flex-direction:column; gap:10px; max-height: 520px; overflow:auto; padding-right: 6px;}
-    .stem{
-      border:1px solid rgba(0,0,0,.10);
-      border-radius:14px;
-      padding:10px;
-      background: rgba(255,255,255,.92);
-    }
-    .stem .top{display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; font-weight:1000;}
-    .stem .name{max-width: 520px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-    .stem .gainrow{display:flex; gap:10px; align-items:center; justify-content:space-between; margin-top:8px; font-weight:900; color:var(--muted);}
-    .stem input[type=range]{width: 240px; max-width: 60vw}
-    .tag{padding:6px 10px; border-radius:999px; background: rgba(0,0,0,.05); border:1px solid rgba(0,0,0,.08); font-size:12px; font-weight:1000; color:#222;}
-    .spec{
-      width:100%;
-      height:140px;
-      border-radius:16px;
-      background: linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.02));
-      border:1px solid rgba(0,0,0,.10);
-      overflow:hidden;
-      position:relative;
-    }
-    .spec canvas{width:100%; height:100%; display:block}
+    .topbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .brand h1{margin:0;font-size:22px}
+    .brand p{margin:4px 0 0;color:rgba(0,0,0,.70);font-size:13px;font-weight:700}
+    .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .btn{border:1px solid rgba(0,0,0,.12);border-radius:999px;padding:10px 14px;background:var(--panel);font-weight:900;cursor:pointer;box-shadow:0 8px 18px rgba(0,0,0,.06)}
+    .btn.primary{background:var(--yellow);border-color:rgba(0,0,0,.22)}
+    .btn.dark{background:#111;color:#fff}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .pill{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid rgba(0,0,0,.08);
+      font-weight:1000;font-size:13px;white-space:nowrap;color:var(--ok);box-shadow:0 10px 22px rgba(0,0,0,.06)}
+    .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}
+    @media (max-width:980px){.grid{grid-template-columns:1fr}}
+    .card{background:var(--panel);border:1px solid rgba(0,0,0,.10);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+    .hd{padding:14px 16px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+      border-bottom:1px solid rgba(0,0,0,.07);background:linear-gradient(180deg, rgba(255,212,0,.18), transparent)}
+    .hd h2{margin:0;font-size:16px}
+    .meta{color:var(--muted);font-size:13px;font-weight:800}
+    .bd{padding:14px 16px}
+    .fileline{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border:1px dashed rgba(0,0,0,.18);padding:10px 12px;border-radius:14px;background:rgba(255,212,0,.06)}
+    .small{font-size:12px;color:var(--muted);font-weight:800}
+    .wave{width:100%;height:120px;border-radius:16px;background:linear-gradient(180deg, rgba(0,0,0,.04), rgba(0,0,0,.02));
+      border:1px solid rgba(0,0,0,.08);overflow:hidden}
+    .wave canvas{width:100%;height:100%;display:block}
+    .transport{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+    .toggle{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 10px;border:1px solid rgba(0,0,0,.10);
+      border-radius:14px;background:rgba(0,0,0,.02);font-weight:900;font-size:13px}
+    .toggle input{transform:scale(1.15)}
+    .section{border:1px solid rgba(0,0,0,.10);border-radius:16px;padding:12px;background:rgba(255,255,255,.75);margin-top:12px}
   </style>
 </head>
 
@@ -223,13 +53,10 @@
     <div class="topbar">
       <div class="brand">
         <h1>JaseMaster</h1>
-        <p>Auto mastering (sane, not bullying) • FFT + TruePeak + MatchTone • Bright Wu-Tang Yellow</p>
+        <p>Playback-fixed (mobile-safe) • Original / Mastered / Reference players</p>
       </div>
       <div class="actions">
-        <button class="btn" id="saveBtn" disabled title="Save settings + stem faders to this browser.">Save</button>
-        <button class="btn" id="loadBtn" title="Load last saved project settings from this browser.">Load</button>
         <button class="btn primary" id="autoBtn" disabled>Auto-Master</button>
-        <button class="btn" id="matchToneBtn" disabled title="Reference-guided safe nudges (bounded).">Match Tone (Safe)</button>
         <button class="btn dark" id="exportBtn" disabled>Export WAV</button>
         <span class="pill" id="statusPill">Load audio to begin</span>
       </div>
@@ -240,20 +67,16 @@
 <main>
   <div class="wrap">
     <div class="grid">
-      <!-- LEFT -->
       <div class="col">
-        <!-- ORIGINAL -->
         <div class="card">
           <div class="hd">
             <h2>Original <span class="meta" id="origMeta">—</span></h2>
-            <div class="kpi" id="origKpi"></div>
           </div>
           <div class="bd">
             <div class="fileline">
-              <input type="file" id="inputMain" accept="audio/*" multiple>
-              <div class="small" id="mainInfo">Upload 1 file (stereo) or 2–12 stems (same length).</div>
+              <input type="file" id="inputMain" accept="audio/*">
+              <span class="small" id="mainInfo">Upload a WAV/MP3.</span>
             </div>
-
             <div class="wave"><canvas id="waveOrig"></canvas></div>
             <div class="transport">
               <button class="btn" id="playOrig" disabled>Play</button>
@@ -264,11 +87,9 @@
           </div>
         </div>
 
-        <!-- MASTERED -->
         <div class="card" style="margin-top:16px;">
           <div class="hd">
             <h2>Mastered <span class="meta" id="mastMeta">—</span></h2>
-            <div class="kpi" id="mastKpi"></div>
           </div>
           <div class="bd">
             <div class="wave"><canvas id="waveMast"></canvas></div>
@@ -276,71 +97,22 @@
               <button class="btn" id="playMast" disabled>Play</button>
               <button class="btn" id="pauseMast" disabled>Pause</button>
               <button class="btn" id="stopMast" disabled>Stop</button>
-              <label class="toggle" title="Matches loudness so you judge tone, not volume.">
-                <input type="checkbox" id="levelMatch" checked>
-                Level-match A/B
+              <label class="toggle" title="Match loudness so you judge tone not volume.">
+                <input type="checkbox" id="levelMatch" checked> Level-match
               </label>
               <span class="small" id="mastTime">00:00</span>
             </div>
-
-            <!-- FFT -->
-            <div class="section" style="margin-top:12px;">
-              <div class="row space">
-                <h3 style="margin:0; text-transform:uppercase; letter-spacing:.3px; font-size:13px;">
-                  Spectrum (FFT)
-                  <span class="q" title="Real-time frequency view. Delta = Mastered minus Original (same timestamp).">?</span>
-                </h3>
-                <div class="row">
-                  <select id="fftMode" title="Choose which spectrum to display. Delta compares mastered vs original.">
-                    <option value="orig">Original</option>
-                    <option value="mast" selected>Mastered</option>
-                    <option value="delta">Delta</option>
-                  </select>
-                </div>
-              </div>
-              <div class="spec"><canvas id="fftCanvas"></canvas></div>
-              <div class="small" id="fftNote" style="margin-top:8px;">
-                Tip: Delta mode shows what your master is actually changing (useful for “too bright” or “mud still there”).
-              </div>
-            </div>
-
-            <!-- A/B -->
-            <div class="section" style="margin-top:12px;">
-              <div class="row space">
-                <h3 style="margin:0; text-transform:uppercase; letter-spacing:.3px; font-size:13px;">
-                  Compare A/B
-                  <span class="q" title="Plays one transport and switches between Original and Mastered at the SAME timestamp.">?</span>
-                </h3>
-                <div class="toggle" title="Switch which audio you’re hearing while keeping position in sync.">
-                  <label><input type="radio" name="ab" value="orig" checked> Original</label>
-                  <label><input type="radio" name="ab" value="mast"> Mastered</label>
-                </div>
-              </div>
-              <div class="transport" style="margin-top:10px;">
-                <button class="btn" id="playAB" disabled>Play A/B</button>
-                <button class="btn" id="pauseAB" disabled>Pause</button>
-                <button class="btn" id="stopAB" disabled>Stop</button>
-                <span class="small" id="abTime">00:00</span>
-              </div>
-              <div class="hint">
-                <div class="badge">!</div>
-                <div>If your master is instantly “louder but worse,” lower <b>Intensity</b> or pick a safer target.</div>
-              </div>
-            </div>
-
           </div>
         </div>
 
-        <!-- REFERENCE -->
         <div class="card" style="margin-top:16px;">
           <div class="hd">
-            <h2>Reference <span class="meta">(optional)</span> <span class="meta" id="refMeta">—</span></h2>
-            <div class="kpi" id="refKpi"></div>
+            <h2>Reference <span class="meta" id="refMeta">—</span></h2>
           </div>
           <div class="bd">
             <div class="fileline">
               <input type="file" id="inputRef" accept="audio/*">
-              <div class="small">Upload a pro track you want to aim near (tone/width/loudness target).</div>
+              <span class="small">Optional: load a pro track for comparison.</span>
             </div>
             <div class="wave"><canvas id="waveRef"></canvas></div>
             <div class="transport">
@@ -349,116 +121,26 @@
               <button class="btn" id="stopRef" disabled>Stop</button>
               <span class="small" id="refTime">00:00</span>
             </div>
+
+            <div class="section">
+              <div class="small">
+                If Play does nothing: your browser is blocking audio. Tap Play again (it unlocks AudioContext), or switch silent mode off on iPhone.
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
 
-      <!-- RIGHT -->
       <div class="col">
         <div class="card">
           <div class="hd">
-            <h2>One-Click Styles</h2>
-            <span class="pill" id="masterState">No master yet</span>
+            <h2>Diagnostics</h2>
+            <span class="meta" id="diag">—</span>
           </div>
           <div class="bd">
-            <div class="styles" id="styleBar">
-              <button class="chip active" data-style="upbeat">Upbeat Worship</button>
-              <button class="chip" data-style="pop">Pop Punch</button>
-              <button class="chip" data-style="rock">Rock Edge</button>
-              <button class="chip" data-style="lofi">Lo-Fi Warm</button>
-              <button class="chip" data-style="club">Club Hot</button>
-            </div>
-
-            <div class="hint">
-              <div class="badge">?</div>
-              <div>Pick a style → tap <b>Auto-Master</b>. Reference loaded? Tap <b>Match Tone</b> first.</div>
-            </div>
-
-            <div class="section">
-              <h3>
-                Output Target
-                <span class="q" title="Where you want loudness to land. Streaming is safer. Club is hotter (more risk).">?</span>
-              </h3>
-              <div class="ctrlgrid">
-                <div class="field">
-                  <label>Target</label>
-                  <select id="targetPreset">
-                    <option value="-14">Streaming (≈ -14 LUFS-ish)</option>
-                    <option value="-11">Pop/Hot (≈ -11 LUFS-ish)</option>
-                    <option value="-9">Club (≈ -9 LUFS-ish)</option>
-                  </select>
-                </div>
-
-                <div class="field">
-                  <label>Ceiling <span class="q" title="Max allowed peak after mastering. -1.0 dB is a safe default.">?</span></label>
-                  <input type="range" id="ceiling" min="-2.0" max="0.0" step="0.1" value="-1.0">
-                  <span id="ceilingVal">-1.0 dB</span>
-                </div>
-
-                <div class="field" style="grid-column:1/-1">
-                  <label>Intensity <span class="q" title="How hard the chain pushes. Crunchy? Lower this.">?</span></label>
-                  <input type="range" id="intensity" min="0" max="100" step="1" value="42">
-                  <span id="intensityVal">42%</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="section">
-              <h3>
-                Cleanup EQ
-                <span class="q" title="Sub rumble off, mud/harsh tamed, air added. Gentle moves sound pro.">?</span>
-              </h3>
-              <div class="ctrlgrid">
-                <div class="field"><label><input type="checkbox" id="hpf" checked> HPF 30 Hz</label><span class="q" title="Cuts useless sub-rumble (frees headroom).">?</span></div>
-                <div class="field"><label><input type="checkbox" id="mud" checked> Cut Mud (300 Hz)</label><span class="q" title="Reduces boxiness. Too much makes it thin.">?</span></div>
-                <div class="field"><label><input type="checkbox" id="deharsh" checked> De-Harsh (3.5 kHz)</label><span class="q" title="Tames pain zone where vocals/guitars can stab.">?</span></div>
-                <div class="field"><label><input type="checkbox" id="air" checked> Add Air (12 kHz)</label><span class="q" title="Adds shimmer. Too much = hissy.">?</span></div>
-              </div>
-            </div>
-
-            <div class="section">
-              <h3>
-                Dynamics
-                <span class="q" title="Glue + parallel weight. Keeps energy without flattening everything.">?</span>
-              </h3>
-              <div class="ctrlgrid">
-                <div class="field"><label><input type="checkbox" id="glue" checked> Glue Compression</label><span class="q" title="Gentle bus compression for cohesion.">?</span></div>
-                <div class="field"><label><input type="checkbox" id="parallel" checked> Parallel (New York)</label><span class="q" title="Adds thickness by blending a heavily compressed copy.">?</span></div>
-                <div class="field" style="grid-column:1/-1">
-                  <label>Impact (Transient) <span class="q" title="More impact = more punch (less squish).">?</span></label>
-                  <input type="range" id="impact" min="0" max="100" step="1" value="35">
-                  <span id="impactVal">35%</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="section">
-              <h3>
-                Stereo + Character
-                <span class="q" title="Width & warmth. Mono-bass keeps low end tight.">?</span>
-              </h3>
-              <div class="ctrlgrid">
-                <div class="field" style="grid-column:1/-1">
-                  <label>Width <span class="q" title="Subtle widening (mostly highs). Too much can get phasey.">?</span></label>
-                  <input type="range" id="width" min="1.0" max="1.6" step="0.01" value="1.15">
-                  <span id="widthVal">1.15×</span>
-                </div>
-                <div class="field"><label><input type="checkbox" id="monoBass" checked> Mono Bass (&lt;120 Hz)</label><span class="q" title="Forces low end to mono so clubs don’t turn to soup.">?</span></div>
-                <div class="field"><label><input type="checkbox" id="warmth" checked> Warmth (Tape-ish)</label><span class="q" title="Adds harmonics for perceived loudness without just turning up.">?</span></div>
-              </div>
-            </div>
-
-            <div class="section">
-              <h3>
-                Stem Mixer (only in Stem Mode)
-                <span class="q" title="Upload 2–12 stems and you’ll get auto-balanced faders here.">?</span>
-              </h3>
-              <div class="small" id="stemModeNote">Upload stems to enable the live mixer.</div>
-              <div class="mixer" id="mixer"></div>
-            </div>
-
-            <div class="footnote">
-              Safety rule: if it gets louder but worse, it’s not mastering — lower <b>Intensity</b> or choose a safer target.
+            <div class="small" id="diag2">
+              If anything fails, it will show in the status pill with the real reason.
             </div>
           </div>
         </div>
@@ -470,39 +152,104 @@
 
 <script>
 const $ = (id)=>document.getElementById(id);
-const PROJECT_KEY = "jasemaster_project_v2";
 
 const state = {
   ctx: null,
   original: null,
   mastered: null,
   reference: null,
-  stems: [],
-  stemMode: false,
-  style: "upbeat",
   analysis: { orig:null, mast:null, ref:null },
   players: {
-    orig: mkPlayer("orig"),
-    mast: mkPlayer("mast"),
-    ref:  mkPlayer("ref"),
-    ab:   mkABPlayer("ab") // special: dual analysers for delta
-  },
-  fft: {
-    raf: null,
-    lastDraw: 0
+    orig: makePlayer(),
+    mast: makePlayer(),
+    ref:  makePlayer(),
   }
 };
+
+function setStatus(msg, kind="ok"){
+  const p=$("statusPill");
+  p.textContent = msg;
+  p.style.color = kind==="ok" ? "var(--ok)" : (kind==="warn" ? "var(--warn)" : "var(--bad)");
+}
 
 function ensureCtx(){
   if (!state.ctx){
     state.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    // iOS unlock helpers
+    const unlock = async ()=>{
+      try{
+        if (state.ctx.state === "suspended") await state.ctx.resume();
+      }catch(e){}
+      window.removeEventListener("touchend", unlock, true);
+      window.removeEventListener("click", unlock, true);
+      window.removeEventListener("keydown", unlock, true);
+    };
+    window.addEventListener("touchend", unlock, true);
+    window.addEventListener("click", unlock, true);
+    window.addEventListener("keydown", unlock, true);
   }
   return state.ctx;
 }
 
-function dbToGain(db){ return Math.pow(10, db/20); }
-function gainToDb(g){ return 20*Math.log10(Math.max(1e-12,g)); }
-function clamp(x,a,b){ return Math.max(a,Math.min(b,x)); }
+function makePlayer(){
+  return {
+    src: null,
+    gain: null,
+    buffer: null,
+    startTime: 0,
+    offset: 0,
+    playing: false,
+    get time(){
+      if (!this.playing) return this.offset;
+      return this.offset + (ensureCtx().currentTime - this.startTime);
+    }
+  };
+}
+
+function stopPlayer(p){
+  try{ if (p.src) p.src.stop(0); }catch(e){}
+  try{ if (p.src) p.src.disconnect(); }catch(e){}
+  p.src=null; p.gain=null; p.playing=false; p.startTime=0; p.offset=0;
+}
+
+function pausePlayer(p){
+  if (!p.playing) return;
+  p.offset = p.time;
+  stopPlayer(p);
+}
+
+async function playPlayer(p, buffer, gain=1.0){
+  try{
+    const ctx = ensureCtx();
+    if (ctx.state === "suspended") await ctx.resume();
+
+    // Always create a NEW BufferSource (one-shot node)
+    stopPlayer(p);
+    p.buffer = buffer;
+
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+
+    const g = ctx.createGain();
+    g.gain.value = gain;
+
+    src.connect(g).connect(ctx.destination);
+
+    p.src = src;
+    p.gain = g;
+    p.startTime = ctx.currentTime;
+    p.playing = true;
+
+    const off = Math.max(0, Math.min(p.offset||0, buffer.duration-0.01));
+    src.start(0, off);
+
+    src.onended = ()=>{ p.playing=false; };
+
+  }catch(err){
+    console.error(err);
+    setStatus("Play failed: " + (err?.message || err), "bad");
+  }
+}
 
 function fmtTime(sec){
   sec = Math.max(0, sec|0);
@@ -511,1392 +258,173 @@ function fmtTime(sec){
   return `${m}:${s}`;
 }
 
-function setStatus(msg, kind="ok"){
-  const pill = $("statusPill");
-  pill.textContent = msg;
-  pill.style.color = (kind==="ok") ? "var(--ok)" : (kind==="warn" ? "var(--warn)" : "var(--bad)");
+function gainToDb(g){ return 20*Math.log10(Math.max(1e-12,g)); }
+
+function analyze(buffer){
+  const L = buffer.getChannelData(0);
+  const R = buffer.numberOfChannels>1 ? buffer.getChannelData(1) : null;
+  let peak=0, sum=0;
+  for(let i=0;i<L.length;i++){
+    const v = R ? 0.5*(L[i]+R[i]) : L[i];
+    const a = Math.abs(v);
+    if(a>peak) peak=a;
+    sum += v*v;
+  }
+  const rms = Math.sqrt(sum/L.length);
+  return { peakDb: gainToDb(peak), rmsDb: gainToDb(rms), dur: buffer.duration, sr: buffer.sampleRate, ch: buffer.numberOfChannels };
 }
 
-/* ---------- Waveform (peaks) ---------- */
-function drawWave(canvas, peaks){
-  const ctx2d = canvas.getContext("2d");
-  const dpr = window.devicePixelRatio || 1;
-  const w = canvas.clientWidth;
-  const h = canvas.clientHeight;
-  canvas.width = Math.floor(w*dpr);
-  canvas.height = Math.floor(h*dpr);
-  ctx2d.setTransform(dpr,0,0,dpr,0,0);
-  ctx2d.clearRect(0,0,w,h);
-
-  ctx2d.globalAlpha = 0.20;
-  ctx2d.fillStyle = "#111";
-  ctx2d.fillRect(0, h/2, w, 1);
-  ctx2d.globalAlpha = 1.0;
-
-  const n = peaks.length;
-  const step = w / n;
-  ctx2d.fillStyle = "#111";
-  for (let i=0;i<n;i++){
-    const p = peaks[i];
-    const barH = Math.max(1, p * (h*0.90));
-    const y = (h - barH)/2;
-    ctx2d.fillRect(i*step, y, Math.max(1, step*0.9), barH);
-  }
+function setMeta(which, a){
+  const id = which==="orig" ? "origMeta" : which==="mast" ? "mastMeta" : "refMeta";
+  if (!a){ $(id).textContent="—"; return; }
+  $(id).textContent = `${a.ch}ch • ${Math.round(a.sr/1000)}kHz • Peak ${a.peakDb.toFixed(1)} dB • RMS ${a.rmsDb.toFixed(1)} dB • ${fmtTime(a.dur)}`;
 }
 
 function computePeaks(buffer, bins=900){
-  const ch0 = buffer.getChannelData(0);
-  const ch1 = buffer.numberOfChannels>1 ? buffer.getChannelData(1) : null;
-  const len = ch0.length;
-  const size = Math.max(1, Math.floor(len / bins));
-  const peaks = new Float32Array(bins);
-  for (let i=0;i<bins;i++){
-    const start = i*size;
-    const end = (i===bins-1) ? len : start+size;
-    let max = 0;
-    for (let j=start;j<end;j++){
-      const v = ch1 ? 0.5*(Math.abs(ch0[j])+Math.abs(ch1[j])) : Math.abs(ch0[j]);
-      if (v>max) max=v;
+  const L = buffer.getChannelData(0);
+  const R = buffer.numberOfChannels>1 ? buffer.getChannelData(1) : null;
+  const len=L.length;
+  const size=Math.max(1, Math.floor(len/bins));
+  const peaks=new Float32Array(bins);
+  for(let i=0;i<bins;i++){
+    const s=i*size, e=(i===bins-1)?len:(s+size);
+    let m=0;
+    for(let j=s;j<e;j++){
+      const v=R ? 0.5*(Math.abs(L[j])+Math.abs(R[j])) : Math.abs(L[j]);
+      if(v>m) m=v;
     }
-    peaks[i] = max;
+    peaks[i]=m;
   }
   return peaks;
 }
 
-/* ---------- Analysis ---------- */
-function analyzeBuffer(buffer){
-  const ch0 = buffer.getChannelData(0);
-  const ch1 = buffer.numberOfChannels>1 ? buffer.getChannelData(1) : null;
-  let peak = 0;
-  let sumSq = 0;
-  const n = ch0.length;
-  for (let i=0;i<n;i++){
-    const v = ch1 ? 0.5*(ch0[i]+ch1[i]) : ch0[i];
-    const a = Math.abs(v);
-    if (a>peak) peak=a;
-    sumSq += v*v;
-  }
-  const rms = Math.sqrt(sumSq/n);
-  const peakDb = gainToDb(peak);
-  const rmsDb  = gainToDb(rms);
-  const lufsIsh = rmsDb; // rough
-  return { peak, peakDb, rms, rmsDb, lufsIsh, sr: buffer.sampleRate, dur: buffer.duration, ch: buffer.numberOfChannels };
-}
-
-/* True peak (ISP-ish) warning scan: 4× linear oversampling */
-function truePeak4xLinear(buffer){
-  const ch = buffer.numberOfChannels;
-  const len = buffer.length;
-  const L = buffer.getChannelData(0);
-  const R = ch>1 ? buffer.getChannelData(1) : null;
-
-  let tp = 0;
-  // quick helper to scan one channel
-  function scanChan(A){
-    let m = 0;
-    for (let i=0;i<len-1;i++){
-      const a0 = A[i], a1 = A[i+1];
-      // sample peak
-      const aa0 = Math.abs(a0); if (aa0>m) m=aa0;
-      // 3 intermediate points (linear)
-      const d = a1 - a0;
-      let y = a0 + d*0.25; let ay = Math.abs(y); if (ay>m) m=ay;
-      y = a0 + d*0.50; ay = Math.abs(y); if (ay>m) m=ay;
-      y = a0 + d*0.75; ay = Math.abs(y); if (ay>m) m=ay;
-    }
-    const aa = Math.abs(A[len-1]); if (aa>m) m=aa;
-    return m;
-  }
-
-  const tpL = scanChan(L);
-  tp = tpL;
-  if (R){
-    const tpR = scanChan(R);
-    if (tpR>tp) tp = tpR;
-  }
-  return tp;
-}
-
-function setMeta(which, info, truePeakLin=null){
-  const metaId = which==="orig" ? "origMeta" : which==="mast" ? "mastMeta" : "refMeta";
-  const kpiId  = which==="orig" ? "origKpi"  : which==="mast" ? "mastKpi"  : "refKpi";
-  const meta = $(metaId);
-  const kpi = $(kpiId);
-  if (!info){ meta.textContent="—"; kpi.innerHTML=""; return; }
-
-  meta.textContent = `${info.ch}ch • ${Math.round(info.sr/1000)}.0 kHz`;
-  const tpDb = (truePeakLin!=null) ? gainToDb(truePeakLin) : null;
-
-  kpi.innerHTML = `
-    <span>Peak ${info.peakDb.toFixed(1)} dB</span>
-    <span>RMS ${info.rmsDb.toFixed(1)} dB</span>
-    <span>LUFS-ish ${info.lufsIsh.toFixed(1)}</span>
-    ${tpDb!=null ? `<span>TruePk ${tpDb.toFixed(1)} dB</span>` : ``}
-    <span>${fmtTime(info.dur)}</span>
-  `;
-}
-
-/* ---------- Players ---------- */
-function mkPlayer(tag){
-  return {
-    tag,
-    source:null,
-    gainNode:null,
-    analyser:null,
-    startTime:0,
-    offset:0,
-    playing:false,
-    buffer:null,
-    get currentTime(){
-      if (!this.playing) return this.offset;
-      return this.offset + (ensureCtx().currentTime - this.startTime);
-    }
-  };
-}
-
-function mkABPlayer(tag){
-  return {
-    tag,
-    audible:null,  // BufferSource
-    ghost:null,    // BufferSource (silent) feeding other analyser
-    gainAud:null,  // Gain
-    gainGhost:null,// Gain (0)
-    analyserA:null,// analyser for original
-    analyserB:null,// analyser for mastered
-    startTime:0,
-    offset:0,
-    playing:false,
-    buffers:{ orig:null, mast:null },
-    audibleWhich:"orig", // "orig" or "mast"
-    get currentTime(){
-      if (!this.playing) return this.offset;
-      return this.offset + (ensureCtx().currentTime - this.startTime);
-    }
-  };
-}
-
-function stopPlayer(p){
-  try{ if (p.source) p.source.stop(0); }catch(e){}
-  try{ if (p.source) p.source.disconnect(); }catch(e){}
-  p.source=null; p.playing=false; p.startTime=0; p.offset=0; p.buffer=null;
-}
-
-function pausePlayer(p){
-  if (!p.playing) return;
-  p.offset = p.currentTime;
-  try{ p.source.stop(0); }catch(e){}
-  try{ p.source.disconnect(); }catch(e){}
-  p.source=null;
-  p.playing=false;
-}
-
-function playBufferOnPlayer(p, buffer, gain=1.0){
-  const ctx = ensureCtx();
-  if (ctx.state === "suspended") ctx.resume();
-
-  // stop old
-  if (p.source){ try{p.source.stop(0)}catch(e){} try{p.source.disconnect()}catch(e){} }
-
-  const src = ctx.createBufferSource();
-  src.buffer = buffer;
-
-  const g = ctx.createGain();
-  g.gain.value = gain;
-
-  // analyser
-  const an = ctx.createAnalyser();
-  an.fftSize = 2048;
-  an.smoothingTimeConstant = 0.75;
-
-  src.connect(g).connect(an).connect(ctx.destination);
-
-  p.source = src;
-  p.gainNode = g;
-  p.analyser = an;
-  p.buffer = buffer;
-  p.startTime = ctx.currentTime;
-  p.playing = true;
-
-  const off = p.offset || 0;
-  src.start(0, off);
-
-  src.onended = ()=>{ if(p.playing){ p.playing=false; } };
-}
-
-function stopABPlayer(p){
-  try{ if (p.audible) p.audible.stop(0); }catch(e){}
-  try{ if (p.ghost) p.ghost.stop(0); }catch(e){}
-  try{ if (p.audible) p.audible.disconnect(); }catch(e){}
-  try{ if (p.ghost) p.ghost.disconnect(); }catch(e){}
-  p.audible=null; p.ghost=null;
-  p.playing=false; p.startTime=0; p.offset=0;
-}
-
-function pauseABPlayer(p){
-  if (!p.playing) return;
-  p.offset = p.currentTime;
-  stopABPlayer(p);
-}
-
-function playABWithGhost(p, origBuf, mastBuf, audibleWhich, gainAud){
-  const ctx = ensureCtx();
-  if (ctx.state === "suspended") ctx.resume();
-
-  // stop old
-  stopABPlayer(p);
-
-  p.buffers.orig = origBuf;
-  p.buffers.mast = mastBuf;
-  p.audibleWhich = audibleWhich;
-
-  const audibleBuf = (audibleWhich==="mast") ? mastBuf : origBuf;
-  const ghostBuf   = (audibleWhich==="mast") ? origBuf : mastBuf;
-
-  // analysers: A = original, B = mastered (always)
-  p.analyserA = ctx.createAnalyser(); p.analyserA.fftSize=2048; p.analyserA.smoothingTimeConstant=0.75;
-  p.analyserB = ctx.createAnalyser(); p.analyserB.fftSize=2048; p.analyserB.smoothingTimeConstant=0.75;
-
-  const srcAud = ctx.createBufferSource(); srcAud.buffer = audibleBuf;
-  const srcGhost = ctx.createBufferSource(); srcGhost.buffer = ghostBuf;
-
-  const gAud = ctx.createGain(); gAud.gain.value = gainAud;
-  const gGhost = ctx.createGain(); gGhost.gain.value = 0.0;
-
-  // Route audible to destination, both to their analysers.
-  // Important: analyzers must be fed from correct buffers
-  if (audibleWhich==="mast"){
-    // audible = mastered -> analyserB
-    srcAud.connect(gAud).connect(p.analyserB).connect(ctx.destination);
-    // ghost = original -> analyserA
-    srcGhost.connect(gGhost).connect(p.analyserA).connect(ctx.destination);
-  } else {
-    // audible = original -> analyserA
-    srcAud.connect(gAud).connect(p.analyserA).connect(ctx.destination);
-    // ghost = mastered -> analyserB
-    srcGhost.connect(gGhost).connect(p.analyserB).connect(ctx.destination);
-  }
-
-  p.audible = srcAud;
-  p.ghost = srcGhost;
-  p.gainAud = gAud;
-  p.gainGhost = gGhost;
-
-  const off = p.offset || 0;
-  p.startTime = ctx.currentTime;
-  p.playing = true;
-
-  srcAud.start(0, off);
-  srcGhost.start(0, off);
-
-  srcAud.onended = ()=>{ if(p.playing){ p.playing=false; } };
-}
-
-/* ---------- Controls live values ---------- */
-function bindRange(id, outId, fmt){
-  const r=$(id), o=$(outId);
-  const upd=()=>{ o.textContent = fmt(r.value); autoSaveProject(); };
-  r.addEventListener("input", upd); upd();
-}
-bindRange("ceiling","ceilingVal",(v)=>`${Number(v).toFixed(1)} dB`);
-bindRange("intensity","intensityVal",(v)=>`${v|0}%`);
-bindRange("impact","impactVal",(v)=>`${v|0}%`);
-bindRange("width","widthVal",(v)=>`${Number(v).toFixed(2)}×`);
-
-["hpf","mud","deharsh","air","glue","parallel","monoBass","warmth","levelMatch","targetPreset","fftMode"].forEach(id=>{
-  const el = $(id);
-  if (!el) return;
-  el.addEventListener("change", ()=>{ autoSaveProject(); });
-});
-
-/* ---------- Style selection ---------- */
-$("styleBar").addEventListener("click", (e)=>{
-  const btn = e.target.closest(".chip");
-  if (!btn) return;
-  state.style = btn.dataset.style;
-  [...document.querySelectorAll(".chip")].forEach(x=>x.classList.remove("active"));
-  btn.classList.add("active");
-  autoSaveProject();
-});
-
-/* ---------- Transport attach ---------- */
-function attachTransport(tag, playId, pauseId, stopId, timeId, getBufferFn, getGainFn){
-  const play = $(playId), pause=$(pauseId), stop=$(stopId), t=$(timeId);
-  const p = state.players[tag];
-
-  play.onclick = ()=>{
-    const buf = getBufferFn();
-    if (!buf) return;
-    playBufferOnPlayer(p, buf, getGainFn ? getGainFn() : 1.0);
-    ensureFFTLoop();
-  };
-  pause.onclick = ()=> pausePlayer(p);
-  stop.onclick = ()=> { stopPlayer(p); t.textContent="00:00"; };
-
-  setInterval(()=>{
-    if (!p.buffer){ return; }
-    t.textContent = fmtTime(p.currentTime);
-  }, 250);
-}
-attachTransport("orig","playOrig","pauseOrig","stopOrig","origTime", ()=>state.original, ()=>1.0);
-attachTransport("mast","playMast","pauseMast","stopMast","mastTime", ()=>state.mastered, ()=>getLevelMatchedGain());
-attachTransport("ref", "playRef","pauseRef","stopRef","refTime", ()=>state.reference, ()=>1.0);
-
-/* A/B transport */
-$("playAB").addEventListener("click", ()=>{
-  const mode = document.querySelector('input[name="ab"]:checked')?.value || "orig";
-  if (!state.original || !state.mastered) return;
-  const gainAud = (mode==="mast") ? getLevelMatchedGain() : 1.0;
-  playABWithGhost(state.players.ab, state.original, state.mastered, mode, gainAud);
-  ensureFFTLoop();
-});
-$("pauseAB").addEventListener("click", ()=>pauseABPlayer(state.players.ab));
-$("stopAB").addEventListener("click", ()=>{
-  stopABPlayer(state.players.ab);
-  $("abTime").textContent="00:00";
-});
-
-setInterval(()=>{
-  const p = state.players.ab;
-  if (!p.buffers.orig) return;
-  $("abTime").textContent = fmtTime(p.currentTime);
-}, 250);
-
-// switch AB during playback at same timestamp
-document.querySelectorAll('input[name="ab"]').forEach(r=>{
-  r.addEventListener("change", ()=>{
-    const p = state.players.ab;
-    if (!p.playing) return;
-    const t = p.currentTime;
-    p.offset = t;
-    const mode = document.querySelector('input[name="ab"]:checked')?.value || "orig";
-    const gainAud = (mode==="mast") ? getLevelMatchedGain() : 1.0;
-    playABWithGhost(p, state.original, state.mastered, mode, gainAud);
-  });
-});
-
-function getLevelMatchedGain(){
-  const lm = $("levelMatch").checked;
-  if (!lm) return 1.0;
-  const aO = state.analysis.orig;
-  const aM = state.analysis.mast;
-  if (!aO || !aM) return 1.0;
-  const deltaDb = aO.rmsDb - aM.rmsDb;
-  return dbToGain(deltaDb);
-}
-
-/* ---------- FFT drawing (real-time) ---------- */
-function ensureFFTLoop(){
-  if (state.fft.raf) return;
-  const canvas = $("fftCanvas");
-  const ctx2d = canvas.getContext("2d");
-
-  const draw = (ts)=>{
-    state.fft.raf = requestAnimationFrame(draw);
-    // throttle ~30fps
-    if (ts - state.fft.lastDraw < 33) return;
-    state.fft.lastDraw = ts;
-
-    const mode = $("fftMode").value;
-
-    // Choose analysers:
-    // Prefer A/B analysers if playing (so delta makes sense)
-    const ab = state.players.ab;
-    const useAB = ab.playing && ab.analyserA && ab.analyserB;
-
-    const aOrig = useAB ? ab.analyserA : state.players.orig.analyser;
-    const aMast = useAB ? ab.analyserB : state.players.mast.analyser;
-
-    // If not playing anywhere, fade out
-    if (!aOrig && !aMast){
-      paintFFTBackground(canvas, ctx2d, 0.08);
-      return;
-    }
-
-    const fftSize = (aOrig || aMast).frequencyBinCount;
-    const tmp1 = new Uint8Array(fftSize);
-    const tmp2 = new Uint8Array(fftSize);
-
-    if (aOrig) aOrig.getByteFrequencyData(tmp1);
-    if (aMast) aMast.getByteFrequencyData(tmp2);
-
-    paintFFT(canvas, ctx2d, tmp1, tmp2, mode);
-  };
-
-  state.fft.raf = requestAnimationFrame(draw);
-}
-
-function paintFFTBackground(canvas, ctx2d, alpha=0.12){
-  const dpr = window.devicePixelRatio || 1;
-  const w = canvas.clientWidth, h = canvas.clientHeight;
-  canvas.width = Math.floor(w*dpr);
-  canvas.height = Math.floor(h*dpr);
-  ctx2d.setTransform(dpr,0,0,dpr,0,0);
-  ctx2d.clearRect(0,0,w,h);
-  ctx2d.globalAlpha = 1;
-  ctx2d.fillStyle = `rgba(0,0,0,${alpha})`;
-  ctx2d.fillRect(0,0,w,h);
-}
-
-function paintFFT(canvas, ctx2d, origBins, mastBins, mode){
-  const dpr = window.devicePixelRatio || 1;
-  const w = canvas.clientWidth, h = canvas.clientHeight;
-  canvas.width = Math.floor(w*dpr);
-  canvas.height = Math.floor(h*dpr);
+function drawWave(canvas, peaks){
+  const ctx2d=canvas.getContext("2d");
+  const dpr=window.devicePixelRatio||1;
+  const w=canvas.clientWidth, h=canvas.clientHeight;
+  canvas.width=Math.floor(w*dpr); canvas.height=Math.floor(h*dpr);
   ctx2d.setTransform(dpr,0,0,dpr,0,0);
   ctx2d.clearRect(0,0,w,h);
 
-  // background
-  ctx2d.fillStyle = "rgba(0,0,0,0.05)";
-  ctx2d.fillRect(0,0,w,h);
+  ctx2d.globalAlpha=0.18;
+  ctx2d.fillStyle="#111";
+  ctx2d.fillRect(0,h/2,w,1);
+  ctx2d.globalAlpha=1;
 
-  // grid
-  ctx2d.globalAlpha = 0.18;
-  ctx2d.fillStyle = "#111";
-  for (let i=1;i<5;i++){
-    const y = (h*i)/5;
-    ctx2d.fillRect(0, y, w, 1);
-  }
-  ctx2d.globalAlpha = 1;
-
-  const N = origBins.length;
-  const bars = Math.min(120, N); // mobile-friendly
-  const step = Math.floor(N / bars);
-  const barW = w / bars;
-
-  for (let i=0;i<bars;i++){
-    const idx = i*step;
-    const o = origBins[idx] / 255;
-    const m = mastBins[idx] / 255;
-
-    let v;
-    if (mode==="orig") v = o;
-    else if (mode==="mast") v = m;
-    else {
-      // delta: mastered - original (scaled into center)
-      // Map [-1..1] into [0..1] around midpoint.
-      const d = clamp(m - o, -1, 1);
-      v = (d*0.5) + 0.5;
-    }
-
-    const barH = Math.max(2, v * (h*0.92));
-    const x = i * barW;
-    const y = h - barH;
-
-    // color logic: delta uses two-tone
-    if (mode==="delta"){
-      // Above midpoint = boosted, below midpoint = cut
-      const mid = h*0.5;
-      ctx2d.fillStyle = (y < mid) ? "rgba(0,0,0,0.85)" : "rgba(0,0,0,0.30)";
-      ctx2d.fillRect(x, y, Math.max(1, barW*0.85), barH);
-      // midpoint line
-      ctx2d.globalAlpha = 0.35;
-      ctx2d.fillStyle = "#111";
-      ctx2d.fillRect(0, mid, w, 1);
-      ctx2d.globalAlpha = 1;
-    } else {
-      ctx2d.fillStyle = "rgba(0,0,0,0.80)";
-      ctx2d.fillRect(x, y, Math.max(1, barW*0.85), barH);
-    }
+  const n=peaks.length;
+  const step=w/n;
+  ctx2d.fillStyle="#111";
+  for(let i=0;i<n;i++){
+    const p=peaks[i];
+    const barH=Math.max(1, p*(h*0.9));
+    const y=(h-barH)/2;
+    ctx2d.fillRect(i*step,y,Math.max(1,step*0.9),barH);
   }
 }
 
-/* ---------- Project Save/Load ---------- */
-$("saveBtn").addEventListener("click", ()=>saveProject(true));
-$("loadBtn").addEventListener("click", ()=>loadProject());
-
-function snapshotSettings(){
-  return {
-    style: state.style,
-    targetPreset: $("targetPreset").value,
-    ceiling: $("ceiling").value,
-    intensity: $("intensity").value,
-    impact: $("impact").value,
-    width: $("width").value,
-    hpf: $("hpf").checked,
-    mud: $("mud").checked,
-    deharsh: $("deharsh").checked,
-    air: $("air").checked,
-    glue: $("glue").checked,
-    parallel: $("parallel").checked,
-    monoBass: $("monoBass").checked,
-    warmth: $("warmth").checked,
-    levelMatch: $("levelMatch").checked,
-    fftMode: $("fftMode").value,
-    stemMode: state.stemMode,
-    stems: state.stems.map(s=>({ name:s.name, gainDb:s.gainDb, kind:s.kind }))
+function enableBlock(which, on){
+  const map = {
+    orig: ["playOrig","pauseOrig","stopOrig"],
+    mast: ["playMast","pauseMast","stopMast"],
+    ref:  ["playRef","pauseRef","stopRef"]
   };
+  map[which].forEach(id=>$(id).disabled=!on);
 }
 
-function applySettings(s){
-  if (!s) return;
-
-  // style
-  state.style = s.style || "upbeat";
-  [...document.querySelectorAll(".chip")].forEach(x=>{
-    x.classList.toggle("active", x.dataset.style === state.style);
-  });
-
-  $("targetPreset").value = s.targetPreset ?? $("targetPreset").value;
-  $("ceiling").value = s.ceiling ?? $("ceiling").value;
-  $("intensity").value = s.intensity ?? $("intensity").value;
-  $("impact").value = s.impact ?? $("impact").value;
-  $("width").value = s.width ?? $("width").value;
-
-  $("hpf").checked = s.hpf ?? $("hpf").checked;
-  $("mud").checked = s.mud ?? $("mud").checked;
-  $("deharsh").checked = s.deharsh ?? $("deharsh").checked;
-  $("air").checked = s.air ?? $("air").checked;
-  $("glue").checked = s.glue ?? $("glue").checked;
-  $("parallel").checked = s.parallel ?? $("parallel").checked;
-  $("monoBass").checked = s.monoBass ?? $("monoBass").checked;
-  $("warmth").checked = s.warmth ?? $("warmth").checked;
-  $("levelMatch").checked = s.levelMatch ?? $("levelMatch").checked;
-  $("fftMode").value = s.fftMode ?? $("fftMode").value;
-
-  // refresh labels
-  $("ceilingVal").textContent = `${Number($("ceiling").value).toFixed(1)} dB`;
-  $("intensityVal").textContent = `${$("intensity").value|0}%`;
-  $("impactVal").textContent = `${$("impact").value|0}%`;
-  $("widthVal").textContent = `${Number($("width").value).toFixed(2)}×`;
-
-  // stem faders only if stems loaded
-  if (state.stems.length && s.stems?.length){
-    const map = new Map(s.stems.map(x=>[x.name, x.gainDb]));
-    state.stems.forEach(st=>{
-      if (map.has(st.name)) st.gainDb = Number(map.get(st.name));
-    });
-    buildMixerUI();
-  }
-}
-
-function saveProject(showToast=false){
-  try{
-    const snap = snapshotSettings();
-    localStorage.setItem(PROJECT_KEY, JSON.stringify({ savedAt: Date.now(), snap }));
-    if (showToast) setStatus("Saved project settings ✅","ok");
-  }catch(e){
-    console.error(e);
-    if (showToast) setStatus("Save failed (storage blocked).","bad");
-  }
-}
-
-let autosaveTimer=null;
-function autoSaveProject(){
-  clearTimeout(autosaveTimer);
-  autosaveTimer=setTimeout(()=>saveProject(false), 200);
-}
-
-function loadProject(){
-  try{
-    const raw = localStorage.getItem(PROJECT_KEY);
-    if (!raw){ setStatus("No saved project found.","warn"); return; }
-    const obj = JSON.parse(raw);
-    applySettings(obj.snap);
-    setStatus("Loaded project settings ✅","ok");
-  }catch(e){
-    console.error(e);
-    setStatus("Load failed (corrupt storage).","bad");
-  }
-}
-
-/* ---------- Load main input (stereo or stems) ---------- */
+// main load
 $("inputMain").addEventListener("change", async (e)=>{
-  const files = [...e.target.files||[]];
-  if (!files.length) return;
+  const f=e.target.files?.[0];
+  if(!f) return;
   try{
-    setStatus("Loading audio…","warn");
-    $("autoBtn").disabled = true;
-    $("exportBtn").disabled = true;
-    $("matchToneBtn").disabled = true;
-    $("masterState").textContent = "No master yet";
-    $("masterState").style.color = "var(--warn)";
+    setStatus("Loading original…","warn");
+    stopPlayer(state.players.orig);
+    const ctx=ensureCtx();
+    const arr=await f.arrayBuffer();
+    const buf=await ctx.decodeAudioData(arr.slice(0));
+    state.original=buf;
+    state.analysis.orig=analyze(buf);
+    setMeta("orig", state.analysis.orig);
+    drawWave($("waveOrig"), computePeaks(buf));
+    enableBlock("orig", true);
 
-    state.stems = [];
-    state.stemMode = false;
-    state.mastered = null;
-    stopAll();
-
-    const ctx = ensureCtx();
-    const decoded = [];
-    for (const f of files){
-      const arr = await f.arrayBuffer();
-      const buf = await ctx.decodeAudioData(arr.slice(0));
-      decoded.push({file:f, buffer:buf});
-    }
-
-    if (decoded.length === 1){
-      state.stemMode = false;
-      state.original = decoded[0].buffer;
-      $("stemModeNote").textContent = "Upload stems to enable the live mixer.";
-      $("mixer").innerHTML = "";
-      $("mainInfo").textContent = `Stereo mode: ${decoded[0].file.name}`;
-    } else {
-      if (decoded.length > 12){
-        setStatus("Too many stems (max 12).","bad");
-        return;
-      }
-      const d0 = decoded[0].buffer.duration;
-      const ok = decoded.every(x=>Math.abs(x.buffer.duration - d0) < 0.03);
-      if (!ok){
-        setStatus("Stems must be the same length to stay in sync.","bad");
-        return;
-      }
-      state.stemMode = true;
-
-      state.stems = decoded.map(x=>{
-        const name = x.file.name;
-        const kind = guessStemKind(name);
-        const a = analyzeBuffer(x.buffer);
-        const desired = -18;
-        const gainDb = clamp(desired - a.rmsDb, -12, 12);
-        return { name, kind, buffer:x.buffer, gainDb };
-      });
-
-      buildMixerUI();
-      state.original = await renderStemSumBuffer(state.stems);
-      $("stemModeNote").textContent = "Stem mode active: faders are auto-balanced. Adjust, then Auto-Master.";
-      $("mainInfo").textContent = `Stem mode: ${decoded.length} files loaded`;
-    }
-
-    // waveform + analysis + true peak warning check (only if hot-ish)
-    const a0 = analyzeBuffer(state.original);
-    state.analysis.orig = a0;
-
-    let tp0 = null;
-    if (a0.peakDb > -2.0){ // only scan truepeak if near the top
-      tp0 = truePeak4xLinear(state.original);
-      const tpDb = gainToDb(tp0);
-      if (tpDb > 0.0) setStatus("Original has potential inter-sample clipping (TruePeak > 0 dB).","bad");
-    }
-
-    setMeta("orig", a0, tp0);
-    drawWave($("waveOrig"), computePeaks(state.original));
-
-    enableOriginal(true);
-    $("autoBtn").disabled = false;
-    $("saveBtn").disabled = false;
-    $("matchToneBtn").disabled = !state.reference;
-
-    setStatus(state.stemMode ? "Stems loaded — ready to sum & master" : "Track loaded — ready to master");
-    autoSaveProject();
-
+    $("autoBtn").disabled=false;
+    setStatus("Original loaded. Tap Play.","ok");
   }catch(err){
     console.error(err);
-    setStatus("Failed to load audio. Try WAV/MP3 and reload.","bad");
+    setStatus("Load failed (try WAV/MP3): " + (err?.message||err), "bad");
   }
 });
 
-/* ---------- Load reference ---------- */
+// reference load
 $("inputRef").addEventListener("change", async (e)=>{
-  const f = e.target.files?.[0];
-  if (!f) return;
+  const f=e.target.files?.[0];
+  if(!f) return;
   try{
     setStatus("Loading reference…","warn");
     stopPlayer(state.players.ref);
-
-    const ctx = ensureCtx();
-    const arr = await f.arrayBuffer();
-    const buf = await ctx.decodeAudioData(arr.slice(0));
-    state.reference = buf;
-
-    const ar = analyzeBuffer(buf);
-    state.analysis.ref = ar;
-    setMeta("ref", ar);
+    const ctx=ensureCtx();
+    const arr=await f.arrayBuffer();
+    const buf=await ctx.decodeAudioData(arr.slice(0));
+    state.reference=buf;
+    state.analysis.ref=analyze(buf);
+    setMeta("ref", state.analysis.ref);
     drawWave($("waveRef"), computePeaks(buf));
-
-    enableRef(true);
-    $("matchToneBtn").disabled = !state.original;
-    setStatus("Reference loaded");
-    autoSaveProject();
+    enableBlock("ref", true);
+    setStatus("Reference loaded. Tap Play.","ok");
   }catch(err){
     console.error(err);
-    setStatus("Failed to load reference.","bad");
+    setStatus("Reference load failed: " + (err?.message||err), "bad");
   }
 });
 
-/* ---------- Match Tone (Safe) ---------- */
-$("matchToneBtn").addEventListener("click", async ()=>{
-  if (!state.original || !state.reference) return;
-  try{
-    setStatus("Match Tone: analyzing bands…","warn");
-
-    const t = await bandProfile(state.original);
-    const r = await bandProfile(state.reference);
-
-    // ratios: reference vs target
-    const lowD = r.lowDb - t.lowDb;
-    const midD = r.midDb - t.midDb;
-    const highD= r.highDb - t.highDb;
-
-    // Bound nudges (SAFE)
-    // If reference has more high than target => enable air and slightly increase intensity/width
-    // If reference has less low => enable mud/hpf
-    let intensity = Number($("intensity").value);
-    let width = Number($("width").value);
-
-    // EQ toggles (keep simple + bounded)
-    if (highD > 1.0) $("air").checked = true;
-    if (lowD < -1.0) $("hpf").checked = true;
-
-    // Mud cut if target has more low-mid than ref
-    if ((midD < -0.8) || (lowD < -0.8)) $("mud").checked = true;
-
-    // Deharsh if ref is darker (target too bright)
-    if (highD < -1.0) $("deharsh").checked = true;
-
-    // intensity nudges: + up to 10, - up to 15
-    intensity += clamp((r.totalDb - t.totalDb) * 4, -15, 10);
-    intensity = clamp(intensity, 10, 70); // don’t let match-tone make it insane
-    $("intensity").value = intensity;
-    $("intensityVal").textContent = `${intensity|0}%`;
-
-    // width nudges bounded
-    width += clamp(highD * 0.03, -0.05, 0.08);
-    width = clamp(width, 1.00, 1.25);
-    $("width").value = width;
-    $("widthVal").textContent = `${width.toFixed(2)}×`;
-
-    setStatus("Match Tone applied (safe nudges) ✅","ok");
-    autoSaveProject();
-  }catch(e){
-    console.error(e);
-    setStatus("Match Tone failed.","bad");
-  }
-});
-
-/* Band profile: render short segment through 3 filters into 3 channels */
-async function bandProfile(buffer){
-  const sr = buffer.sampleRate;
-  const segSec = Math.min(12, buffer.duration); // keep it fast
-  const segLen = Math.max(1, Math.floor(segSec * sr));
-
-  // take from loud-ish middle
-  const start = Math.max(0, Math.floor((buffer.length - segLen) * 0.5));
-  const seg = sliceBuffer(buffer, start, segLen);
-
-  const off = new OfflineAudioContext(3, segLen, sr);
-  const src = off.createBufferSource();
-  src.buffer = seg;
-
-  // mono sum first
-  const splitter = off.createChannelSplitter(seg.numberOfChannels);
-  const merger1 = off.createChannelMerger(1);
-  const gL = off.createGain(); gL.gain.value = 0.5;
-  const gR = off.createGain(); gR.gain.value = 0.5;
-
-  if (seg.numberOfChannels > 1){
-    src.connect(splitter);
-    splitter.connect(gL, 0);
-    splitter.connect(gR, 1);
-    gL.connect(merger1, 0, 0);
-    gR.connect(merger1, 0, 0);
-  } else {
-    src.connect(merger1);
-  }
-
-  // filters
-  const low = off.createBiquadFilter(); low.type="lowpass"; low.frequency.value=200;
-  const mid = off.createBiquadFilter(); mid.type="bandpass"; mid.frequency.value=1000; mid.Q.value=0.8;
-  const high = off.createBiquadFilter(); high.type="highpass"; high.frequency.value=6000;
-
-  const outMerger = off.createChannelMerger(3);
-
-  merger1.connect(low);  low.connect(outMerger, 0, 0);
-  merger1.connect(mid);  mid.connect(outMerger, 0, 1);
-  merger1.connect(high); high.connect(outMerger,0, 2);
-
-  outMerger.connect(off.destination);
-  src.start(0);
-
-  const rendered = await off.startRendering();
-
-  const lowDb  = bandRmsDb(rendered.getChannelData(0));
-  const midDb  = bandRmsDb(rendered.getChannelData(1));
-  const highDb = bandRmsDb(rendered.getChannelData(2));
-  const totalDb = (lowDb + midDb + highDb)/3;
-
-  return { lowDb, midDb, highDb, totalDb };
+function getLevelMatchedGain(){
+  if (!$("levelMatch").checked) return 1.0;
+  const o=state.analysis.orig, m=state.analysis.mast;
+  if(!o || !m) return 1.0;
+  const deltaDb = o.rmsDb - m.rmsDb;
+  return Math.pow(10, deltaDb/20);
 }
 
-function bandRmsDb(arr){
-  let sum=0;
-  for (let i=0;i<arr.length;i++) sum += arr[i]*arr[i];
-  const rms = Math.sqrt(sum/arr.length);
-  return gainToDb(rms);
-}
+// transport wiring
+$("playOrig").onclick = ()=> state.original && playPlayer(state.players.orig, state.original, 1.0);
+$("pauseOrig").onclick = ()=> pausePlayer(state.players.orig);
+$("stopOrig").onclick = ()=> { stopPlayer(state.players.orig); $("origTime").textContent="00:00"; };
 
-function sliceBuffer(buffer, start, len){
-  const out = new AudioBuffer({ length: len, numberOfChannels: buffer.numberOfChannels, sampleRate: buffer.sampleRate });
-  for (let c=0;c<out.numberOfChannels;c++){
-    const src = buffer.getChannelData(c);
-    const dst = out.getChannelData(c);
-    for (let i=0;i<len;i++) dst[i] = src[start+i] || 0;
-  }
-  return out;
-}
+$("playRef").onclick  = ()=> state.reference && playPlayer(state.players.ref, state.reference, 1.0);
+$("pauseRef").onclick = ()=> pausePlayer(state.players.ref);
+$("stopRef").onclick  = ()=> { stopPlayer(state.players.ref); $("refTime").textContent="00:00"; };
 
-/* ---------- Auto-Master ---------- */
+$("playMast").onclick = ()=> state.mastered && playPlayer(state.players.mast, state.mastered, getLevelMatchedGain());
+$("pauseMast").onclick= ()=> pausePlayer(state.players.mast);
+$("stopMast").onclick = ()=> { stopPlayer(state.players.mast); $("mastTime").textContent="00:00"; };
+
+// time updates
+setInterval(()=>{
+  const p=state.players.orig; if(p.buffer) $("origTime").textContent=fmtTime(p.time);
+  const r=state.players.ref;  if(r.buffer) $("refTime").textContent=fmtTime(r.time);
+  const m=state.players.mast; if(m.buffer) $("mastTime").textContent=fmtTime(m.time);
+  $("diag").textContent = `AudioContext: ${state.ctx ? state.ctx.state : "not created"}`;
+}, 250);
+
+// placeholder mastering (you will replace with your full chain)
 $("autoBtn").addEventListener("click", async ()=>{
-  if (!state.original) return;
-
+  if(!state.original) return;
   try{
-    $("autoBtn").disabled = true;
-    setStatus("Auto-Master: preparing…","warn");
-    $("masterState").textContent = "Mastering…";
-    $("masterState").style.color = "var(--warn)";
-
-    if (state.stemMode){
-      setStatus("Summing stems (live mixer)…","warn");
-      state.original = await renderStemSumBuffer(state.stems);
-      const a0 = analyzeBuffer(state.original);
-      state.analysis.orig = a0;
-      setMeta("orig", a0);
-      drawWave($("waveOrig"), computePeaks(state.original));
-    }
-
-    const settings = readSettings();
-
-    // If reference exists, nudge target loudness halfway (safe)
-    const ref = state.analysis.ref;
-    if (ref){
-      const baseTarget = settings.targetLufs;
-      const nudged = clamp((baseTarget + ref.lufsIsh)/2, -14, -9);
-      settings.targetLufs = nudged;
-    }
-
-    state.mastered = await offlineMaster(state.original, settings);
-
-    // Analyze + true peak warning
-    const am = analyzeBuffer(state.mastered);
-    state.analysis.mast = am;
-
-    let tpM = null;
-    const ceilingLin = dbToGain(Number($("ceiling").value));
-    // only run truepeak scan if near ceiling
-    if (am.peak > ceilingLin * 0.85){
-      tpM = truePeak4xLinear(state.mastered);
-      const tpDb = gainToDb(tpM);
-      const ceilDb = Number($("ceiling").value);
-      if (tpDb > ceilDb + 0.3){
-        setStatus("TruePeak warning: potential ISP clipping. Lower Intensity or Ceiling.","bad");
-      }
-    }
-
-    setMeta("mast", am, tpM);
+    setStatus("Auto-Master (demo): copying original → mastered","warn");
+    // For now: just copy original (pro chain goes here)
+    state.mastered = state.original;
+    state.analysis.mast = analyze(state.mastered);
+    setMeta("mast", state.analysis.mast);
     drawWave($("waveMast"), computePeaks(state.mastered));
+    enableBlock("mast", true);
 
-    enableMastered(true);
-    $("exportBtn").disabled = false;
-    $("matchToneBtn").disabled = !state.reference;
-    $("saveBtn").disabled = false;
-
-    $("masterState").textContent = "Master ready";
-    $("masterState").style.color = "var(--ok)";
-    setStatus("Master ready — compare A/B","ok");
-    autoSaveProject();
+    $("exportBtn").disabled=false;
+    setStatus("Master ready. Play Mastered.","ok");
   }catch(err){
     console.error(err);
-    setStatus("Master failed (memory/size). Try shorter file or lower intensity.","bad");
-  }finally{
-    $("autoBtn").disabled = false;
+    setStatus("Auto-master failed: " + (err?.message||err), "bad");
   }
 });
-
-/* ---------- Export ---------- */
-$("exportBtn").addEventListener("click", ()=>{
-  if (!state.mastered) return;
-  try{
-    setStatus("Exporting WAV…","warn");
-    const wav = encodeWav(state.mastered, { float32:true });
-    const blob = new Blob([wav], {type:"audio/wav"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `JaseMaster_${state.style}_master.wav`;
-    a.click();
-    setStatus("Exported WAV","ok");
-  }catch(err){
-    console.error(err);
-    setStatus("Export failed.","bad");
-  }
-});
-
-/* ---------- Stem mixer ---------- */
-function guessStemKind(name){
-  const n = name.toLowerCase();
-  if (n.includes("drum") || n.includes("kick") || n.includes("snare") || n.includes("perc")) return "Drums";
-  if (n.includes("bass")) return "Bass";
-  if (n.includes("vocal") || n.includes("lead") || n.includes("vox") || n.includes("back")) return "Vocals";
-  if (n.includes("guitar")) return "Guitar";
-  if (n.includes("key") || n.includes("piano")) return "Keys";
-  if (n.includes("synth")) return "Synth";
-  return "Stem";
-}
-
-function buildMixerUI(){
-  const box = $("mixer");
-  box.innerHTML = "";
-  state.stems.forEach((s)=>{
-    const div = document.createElement("div");
-    div.className = "stem";
-    div.innerHTML = `
-      <div class="top">
-        <div class="name" title="${escapeHtml(s.name)}">${escapeHtml(s.name)}</div>
-        <span class="tag">${s.kind}</span>
-      </div>
-      <div class="gainrow">
-        <span>Gain</span>
-        <input type="range" min="-24" max="12" step="0.1" value="${s.gainDb}">
-        <span class="val">${s.gainDb.toFixed(1)} dB</span>
-      </div>
-    `;
-    const r = div.querySelector("input");
-    const val = div.querySelector(".val");
-    r.addEventListener("input", ()=>{
-      s.gainDb = Number(r.value);
-      val.textContent = `${s.gainDb.toFixed(1)} dB`;
-      scheduleStemResum();
-      autoSaveProject();
-    });
-    box.appendChild(div);
-  });
-}
-
-function escapeHtml(str){
-  return String(str).replace(/[&<>"']/g, (m)=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
-}
-
-let stemResumTimer = null;
-function scheduleStemResum(){
-  if (!state.stemMode) return;
-  clearTimeout(stemResumTimer);
-  stemResumTimer = setTimeout(async ()=>{
-    try{
-      setStatus("Updating stem sum…","warn");
-      state.original = await renderStemSumBuffer(state.stems);
-      const a0 = analyzeBuffer(state.original);
-      state.analysis.orig = a0;
-      setMeta("orig", a0);
-      drawWave($("waveOrig"), computePeaks(state.original));
-      setStatus("Stem sum updated","ok");
-    }catch(e){
-      console.error(e);
-      setStatus("Stem sum failed (memory).","bad");
-    }
-  }, 350);
-}
-
-async function renderStemSumBuffer(stems){
-  const sr = stems[0].buffer.sampleRate;
-  const len = stems[0].buffer.length;
-  const ch = stems[0].buffer.numberOfChannels;
-  const off = new OfflineAudioContext(ch, len, sr);
-
-  const bus = off.createGain();
-  bus.gain.value = 1.0;
-  bus.connect(off.destination);
-
-  stems.forEach(s=>{
-    const src = off.createBufferSource();
-    src.buffer = s.buffer;
-    const g = off.createGain();
-    g.gain.value = dbToGain(s.gainDb);
-    src.connect(g).connect(bus);
-    src.start(0);
-  });
-
-  const rendered = await off.startRendering();
-
-  // Headroom target peak -6dB pre-master
-  const a = analyzeBuffer(rendered);
-  const targetPeakDb = -6.0;
-  const preDb = clamp(targetPeakDb - a.peakDb, -24, 24);
-  return applyGain(rendered, dbToGain(preDb));
-}
-
-/* ---------- Settings + Styles ---------- */
-function readSettings(){
-  const targetLufs = Number($("targetPreset").value);
-  const ceilingDb = Number($("ceiling").value);
-  const intensity = Number($("intensity").value)/100;
-  const impact = Number($("impact").value)/100;
-  const width = Number($("width").value);
-  const flags = {
-    hpf: $("hpf").checked,
-    mud: $("mud").checked,
-    deharsh: $("deharsh").checked,
-    air: $("air").checked,
-    glue: $("glue").checked,
-    parallel: $("parallel").checked,
-    monoBass: $("monoBass").checked,
-    warmth: $("warmth").checked
-  };
-
-  const styleMap = {
-    upbeat: { airBoost: 1.00, mudCut: 1.00, harshCut: 1.00, glueAmt: 0.95, sat: 0.85, wid: 1.10, punch: 1.10 },
-    pop:    { airBoost: 1.10, mudCut: 0.95, harshCut: 1.05, glueAmt: 1.05, sat: 0.90, wid: 1.12, punch: 1.18 },
-    rock:   { airBoost: 0.95, mudCut: 1.05, harshCut: 1.10, glueAmt: 1.10, sat: 1.05, wid: 1.05, punch: 1.22 },
-    lofi:   { airBoost: 0.80, mudCut: 0.90, harshCut: 0.90, glueAmt: 1.00, sat: 1.20, wid: 1.00, punch: 0.95 },
-    club:   { airBoost: 1.00, mudCut: 1.00, harshCut: 1.00, glueAmt: 1.15, sat: 1.05, wid: 1.18, punch: 1.12 },
-  };
-
-  return { targetLufs, ceilingDb, intensity, impact, width, flags, style: state.style, styleMap: styleMap[state.style] };
-}
-
-/* ---------- Offline mastering chain (safe) ---------- */
-async function offlineMaster(inputBuffer, settings){
-  setStatus("Auto-Master: enforcing headroom…","warn");
-
-  // Auto Safety Gate: if already clipped/hot, reduce intensity
-  const aIn = analyzeBuffer(inputBuffer);
-  let safeIntensity = settings.intensity;
-  if (aIn.peakDb > -0.5 || aIn.rmsDb > -10){
-    safeIntensity = Math.min(safeIntensity, 0.45);
-  }
-
-  const headroomTargetPeak = -6.0;
-  const preGainDb = clamp(headroomTargetPeak - aIn.peakDb, -30, 12);
-  const preBuffer = applyGain(inputBuffer, dbToGain(preGainDb));
-
-  const sr = preBuffer.sampleRate;
-  const len = preBuffer.length;
-  const ch = preBuffer.numberOfChannels;
-  const off = new OfflineAudioContext(ch, len, sr);
-
-  const src = off.createBufferSource();
-  src.buffer = preBuffer;
-
-  const hpf = off.createBiquadFilter(); hpf.type="highpass"; hpf.frequency.value=30;
-
-  const mud = off.createBiquadFilter(); mud.type="peaking"; mud.frequency.value=300; mud.Q.value=1.0;
-  const deharsh = off.createBiquadFilter(); deharsh.type="peaking"; deharsh.frequency.value=3500; deharsh.Q.value=1.2;
-  const air = off.createBiquadFilter(); air.type="highshelf"; air.frequency.value=12000;
-
-  const comp = off.createDynamicsCompressor();
-  comp.threshold.value = -18;
-  comp.knee.value = 20;
-  comp.ratio.value = 2.0;
-  comp.attack.value = 0.030;
-  comp.release.value = 0.200;
-
-  const split = off.createGain();
-  const dry = off.createGain(); dry.gain.value=1.0;
-  const wet = off.createGain();
-
-  const compHard = off.createDynamicsCompressor();
-  compHard.threshold.value = -30;
-  compHard.knee.value = 10;
-  compHard.ratio.value = 8.0;
-  compHard.attack.value = 0.010;
-  compHard.release.value = 0.250;
-
-  const sat = off.createWaveShaper();
-  sat.curve = makeSaturationCurve(1.0);
-  sat.oversample = "2x";
-
-  const outGain = off.createGain(); outGain.gain.value=1.0;
-
-  let node = src;
-
-  if (settings.flags.hpf){ node.connect(hpf); node = hpf; }
-  if (settings.flags.mud){
-    mud.gain.value = -1.5 * safeIntensity * settings.styleMap.mudCut;
-    node.connect(mud); node = mud;
-  }
-  if (settings.flags.deharsh){
-    deharsh.gain.value = -1.2 * safeIntensity * settings.styleMap.harshCut;
-    node.connect(deharsh); node = deharsh;
-  }
-  if (settings.flags.air){
-    air.gain.value = 1.2 * safeIntensity * settings.styleMap.airBoost;
-    node.connect(air); node = air;
-  }
-
-  if (settings.flags.glue){
-    const impact = settings.impact;
-    comp.threshold.value = -18 + (impact*4);
-    comp.attack.value = 0.030 + impact*0.010;
-    comp.ratio.value = 2.0 + safeIntensity*0.6*settings.styleMap.glueAmt;
-    node.connect(comp); node = comp;
-  }
-
-  node.connect(split);
-  split.connect(dry);
-
-  if (settings.flags.parallel){
-    split.connect(compHard);
-    compHard.connect(wet);
-    wet.gain.value = 0.10 + 0.25*safeIntensity;
-  } else {
-    wet.gain.value = 0.0;
-  }
-
-  const sum = off.createGain();
-  dry.connect(sum);
-  wet.connect(sum);
-
-  // Width + mono bass
-  const splitter = off.createChannelSplitter(2);
-  const merger = off.createChannelMerger(2);
-
-  const dL = off.createDelay(0.02), dR = off.createDelay(0.02);
-  const mixL = off.createGain(), mixR = off.createGain();
-  const addL = off.createGain(), addR = off.createGain();
-  const sumL = off.createGain(), sumR = off.createGain();
-
-  const width = clamp(settings.width * settings.styleMap.wid, 1.0, 1.45);
-  const widAmt = (width - 1.0) / 0.45;
-  dL.delayTime.value = widAmt*0.003;
-  dR.delayTime.value = widAmt*0.004;
-  addL.gain.value = widAmt * 0.20;
-  addR.gain.value = widAmt * 0.20;
-
-  sum.connect(splitter);
-  splitter.connect(mixL, 0);
-  splitter.connect(mixR, 1);
-  splitter.connect(dL, 0); splitter.connect(dR, 1);
-  dL.connect(addL); dR.connect(addR);
-  mixL.connect(sumL); addL.connect(sumL);
-  mixR.connect(sumR); addR.connect(sumR);
-
-  if (settings.flags.monoBass && ch>1){
-    const lpL = off.createBiquadFilter(); lpL.type="lowpass"; lpL.frequency.value=120;
-    const lpR = off.createBiquadFilter(); lpR.type="lowpass"; lpR.frequency.value=120;
-    const hpL = off.createBiquadFilter(); hpL.type="highpass"; hpL.frequency.value=120;
-    const hpR = off.createBiquadFilter(); hpR.type="highpass"; hpR.frequency.value=120;
-
-    sumL.connect(lpL); sumR.connect(lpR);
-    sumL.connect(hpL); sumR.connect(hpR);
-
-    const lowSum = off.createGain();
-    const lowGain = off.createGain(); lowGain.gain.value = 0.5;
-    lpL.connect(lowSum); lpR.connect(lowSum);
-    lowSum.connect(lowGain);
-
-    const outL = off.createGain();
-    const outR = off.createGain();
-    lowGain.connect(outL); hpL.connect(outL);
-    lowGain.connect(outR); hpR.connect(outR);
-
-    outL.connect(merger, 0, 0);
-    outR.connect(merger, 0, 1);
-  } else {
-    sumL.connect(merger, 0, 0);
-    sumR.connect(merger, 0, 1);
-  }
-
-  if (settings.flags.warmth){
-    sat.curve = makeSaturationCurve(0.60 + 0.70*safeIntensity*settings.styleMap.sat);
-    merger.connect(sat);
-    sat.connect(outGain);
-  } else {
-    merger.connect(outGain);
-  }
-
-  outGain.connect(off.destination);
-  src.start(0);
-
-  const rendered = await off.startRendering();
-
-  setStatus("Auto-Master: targeting loudness…","warn");
-  const aR = analyzeBuffer(rendered);
-
-  const targetRmsDb = settings.targetLufs;
-  let makeUpDb = clamp(targetRmsDb - aR.rmsDb, -12, 12);
-  makeUpDb *= (0.45 + 0.55*safeIntensity) * settings.styleMap.punch;
-
-  let gained = applyGain(rendered, dbToGain(makeUpDb));
-
-  gained = softClipBuffer(gained, 0.985, 0.35 + 0.45*safeIntensity);
-
-  const ceilingLin = dbToGain(settings.ceilingDb);
-  const limited = brickwallLimit(gained, ceilingLin, { lookAheadMs: 3.0, releaseMs: 120.0 });
-
-  const aF = analyzeBuffer(limited);
-  if (aF.peak > ceilingLin * 1.0005){
-    const fixDb = gainToDb(ceilingLin / aF.peak);
-    return applyGain(limited, dbToGain(fixDb));
-  }
-  return limited;
-}
-
-/* ---------- DSP helpers ---------- */
-function applyGain(buffer, gain){
-  const out = new AudioBuffer({ length: buffer.length, numberOfChannels: buffer.numberOfChannels, sampleRate: buffer.sampleRate });
-  for (let c=0;c<out.numberOfChannels;c++){
-    const src = buffer.getChannelData(c);
-    const dst = out.getChannelData(c);
-    for (let i=0;i<src.length;i++) dst[i] = src[i]*gain;
-  }
-  return out;
-}
-
-function makeSaturationCurve(amount){
-  const n = 65536;
-  const curve = new Float32Array(n);
-  const k = clamp(amount, 0.01, 2.0) * 2.5;
-  for (let i=0;i<n;i++){
-    const x = (i/(n-1))*2 - 1;
-    curve[i] = Math.tanh(k*x) / Math.tanh(k);
-  }
-  return curve;
-}
-
-function softClipBuffer(buffer, threshold=0.985, softness=0.6){
-  const out = new AudioBuffer({ length: buffer.length, numberOfChannels: buffer.numberOfChannels, sampleRate: buffer.sampleRate });
-  const t = threshold;
-  const s = clamp(softness, 0.01, 1.0);
-  for (let c=0;c<buffer.numberOfChannels;c++){
-    const src = buffer.getChannelData(c);
-    const dst = out.getChannelData(c);
-    for (let i=0;i<src.length;i++){
-      let x = src[i];
-      const ax = Math.abs(x);
-      if (ax <= t){ dst[i] = x; }
-      else{
-        const sign = x<0?-1:1;
-        const over = (ax - t) / (1 - t);
-        const y = t + (1 - Math.exp(-over/(s))) * (1 - t);
-        dst[i] = sign * y;
-      }
-    }
-  }
-  return out;
-}
-
-function brickwallLimit(buffer, ceiling, opt){
-  const sr = buffer.sampleRate;
-  const look = Math.max(1, Math.floor((opt.lookAheadMs||3) * 0.001 * sr));
-  const rel  = Math.max(1, Math.floor((opt.releaseMs||120) * 0.001 * sr));
-  const ch = buffer.numberOfChannels;
-  const len = buffer.length;
-
-  const gainEnv = new Float32Array(len);
-  for (let i=0;i<len;i++) gainEnv[i]=1.0;
-
-  for (let i=0;i<len;i++){
-    let peak = 0;
-    const end = Math.min(len, i+look);
-    for (let j=i;j<end;j++){
-      let v=0;
-      if (ch===1){
-        v = Math.abs(buffer.getChannelData(0)[j]);
-      } else {
-        const L = buffer.getChannelData(0)[j];
-        const R = buffer.getChannelData(1)[j];
-        v = Math.max(Math.abs(L), Math.abs(R));
-      }
-      if (v>peak) peak=v;
-    }
-    gainEnv[i] = (peak>ceiling) ? (ceiling/peak) : 1.0;
-  }
-
-  let g = 1.0;
-  for (let i=0;i<len;i++){
-    const target = gainEnv[i];
-    if (target < g) g = target;
-    else g += (target - g) / rel;
-    gainEnv[i] = g;
-  }
-
-  const out = new AudioBuffer({ length: len, numberOfChannels: ch, sampleRate: sr });
-  for (let c=0;c<ch;c++){
-    const src = buffer.getChannelData(c);
-    const dst = out.getChannelData(c);
-    for (let i=0;i<len;i++) dst[i] = src[i]*gainEnv[i];
-  }
-  return out;
-}
-
-/* ---------- WAV export (32-bit float) ---------- */
-function encodeWav(buffer, {float32=true}={}){
-  const numCh = buffer.numberOfChannels;
-  const sr = buffer.sampleRate;
-  const numFrames = buffer.length;
-
-  const format = float32 ? 3 : 1;
-  const bitDepth = float32 ? 32 : 16;
-  const blockAlign = numCh * (bitDepth/8);
-  const byteRate = sr * blockAlign;
-  const dataSize = numFrames * blockAlign;
-  const buf = new ArrayBuffer(44 + dataSize);
-  const view = new DataView(buf);
-
-  let o=0;
-  function wstr(s){ for(let i=0;i<s.length;i++) view.setUint8(o++, s.charCodeAt(i)); }
-  function u32(x){ view.setUint32(o, x, true); o+=4; }
-  function u16(x){ view.setUint16(o, x, true); o+=2; }
-
-  wstr("RIFF"); u32(36 + dataSize); wstr("WAVE");
-  wstr("fmt "); u32(16);
-  u16(format);
-  u16(numCh);
-  u32(sr);
-  u32(byteRate);
-  u16(blockAlign);
-  u16(bitDepth);
-  wstr("data"); u32(dataSize);
-
-  const chans = [];
-  for (let c=0;c<numCh;c++) chans.push(buffer.getChannelData(c));
-
-  if (float32){
-    for (let i=0;i<numFrames;i++){
-      for (let c=0;c<numCh;c++){
-        view.setFloat32(o, chans[c][i], true); o+=4;
-      }
-    }
-  } else {
-    for (let i=0;i<numFrames;i++){
-      for (let c=0;c<numCh;c++){
-        let s = clamp(chans[c][i], -1, 1);
-        view.setInt16(o, s<0 ? s*0x8000 : s*0x7fff, true); o+=2;
-      }
-    }
-  }
-  return new Uint8Array(buf);
-}
-
-/* ---------- UI enable/disable ---------- */
-function stopAll(){
-  stopPlayer(state.players.orig);
-  stopPlayer(state.players.mast);
-  stopPlayer(state.players.ref);
-  stopABPlayer(state.players.ab);
-}
-
-function enableOriginal(on){
-  ["playOrig","pauseOrig","stopOrig"].forEach(id=>$(id).disabled = !on);
-  $("playAB").disabled = !(on && state.mastered);
-  $("pauseAB").disabled = !(on && state.mastered);
-  $("stopAB").disabled = !(on && state.mastered);
-}
-function enableMastered(on){
-  ["playMast","pauseMast","stopMast"].forEach(id=>$(id).disabled = !on);
-  $("playAB").disabled = !on;
-  $("pauseAB").disabled = !on;
-  $("stopAB").disabled = !on;
-}
-function enableRef(on){
-  ["playRef","pauseRef","stopRef"].forEach(id=>$(id).disabled = !on);
-}
-
-/* ---------- Resize redraw ---------- */
-window.addEventListener("resize", ()=>{
-  if (state.original) drawWave($("waveOrig"), computePeaks(state.original));
-  if (state.mastered) drawWave($("waveMast"), computePeaks(state.mastered));
-  if (state.reference) drawWave($("waveRef"), computePeaks(state.reference));
-  // FFT canvas auto redraw each frame anyway
-});
-
-/* ---------- Init ---------- */
-setMeta("orig", null);
-setMeta("mast", null);
-setMeta("ref", null);
-enableOriginal(false);
-enableMastered(false);
-enableRef(false);
-setStatus("Load a track or stems to begin","ok");
-loadProject(); // load saved settings (if present)
 </script>
 </body>
 </html>
